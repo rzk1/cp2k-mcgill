@@ -39,7 +39,7 @@ MODULE iterate_matrix
    END INTERFACE
 
    PUBLIC :: invert_Hotelling, matrix_sign_Newton_Schulz, matrix_sqrt_Newton_Schulz, &
-             purify_mcweeny, invert_Hotelling2
+             purify_mcweeny
 
 CONTAINS
 
@@ -780,122 +780,5 @@ CONTAINS
       CALL cp_dbcsr_release(matrix_test)
       CALL timestop(handle)
    END SUBROUTINE purify_mcweeny_nonorth
-
-! **************************************************************************************************
-!> \brief ...
-!> \param matrix_inverse ...
-!> \param matrix ...
-!> \param threshold ...
-!> \param use_inv_as_guess ...
-! **************************************************************************************************
-   SUBROUTINE invert_Hotelling2(matrix_inverse, matrix, threshold, use_inv_as_guess)
-
-      TYPE(cp_dbcsr_type), INTENT(INOUT)                 :: matrix_inverse, matrix
-      REAL(KIND=dp), INTENT(IN)                          :: threshold
-      LOGICAL, INTENT(IN), OPTIONAL                      :: use_inv_as_guess
-
-      CHARACTER(LEN=*), PARAMETER :: routineN = 'invert_Hotelling2', &
-         routineP = moduleN//':'//routineN
-
-      INTEGER                                            :: handle, i, unit_nr
-      INTEGER(KIND=int_8)                                :: flop1, flop2
-      LOGICAL                                            :: prepare_to_exit, use_inv_guess
-      REAL(KIND=dp)                                      :: frob_matrix, gershgorin_norm, &
-                                                            maxnorm_matrix, occ_matrix, t1, t2
-      TYPE(cp_dbcsr_type)                                :: tmp1, tmp2
-      TYPE(cp_logger_type), POINTER                      :: logger
-
-! turn this off for the time being
-
-      CALL timeset(routineN, handle)
-
-      logger => cp_get_default_logger()
-      IF (logger%para_env%mepos == logger%para_env%source) THEN
-         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
-      ELSE
-         unit_nr = -1
-      ENDIF
-
-      use_inv_guess = .FALSE.
-      IF (PRESENT(use_inv_as_guess)) THEN
-         use_inv_guess = use_inv_as_guess
-      ENDIF
-
-      IF (.NOT. use_inv_guess) THEN
-         gershgorin_norm = cp_dbcsr_gershgorin_norm(matrix)
-         frob_matrix = cp_dbcsr_frobenius_norm(matrix)
-         CALL cp_dbcsr_set(matrix_inverse, 0.0_dp)
-         CALL cp_dbcsr_add_on_diag(matrix_inverse, 1/MIN(gershgorin_norm, frob_matrix))
-      ENDIF
-
-      CALL cp_dbcsr_init(tmp1)
-      CALL cp_dbcsr_create(tmp1, template=matrix_inverse)
-      CALL cp_dbcsr_init(tmp2)
-      CALL cp_dbcsr_create(tmp2, template=matrix_inverse)
-
-      IF (unit_nr > 0) WRITE (unit_nr, *)
-
-      prepare_to_exit = .FALSE.
-
-      DO i = 1, 100
-
-         t1 = m_walltime()
-         ! tmp1 = S^-1 S
-         CALL cp_dbcsr_multiply("N", "N", 1.0_dp, matrix_inverse, matrix, &
-                                0.0_dp, tmp1, flop=flop1)
-
-         ! for the convergence check
-         !frob_matrix_base=cp_dbcsr_frobenius_norm(tmp1)
-         CALL cp_dbcsr_add_on_diag(tmp1, -1.0_dp)
-         !frob_matrix=cp_dbcsr_frobenius_norm(tmp1)
-         CALL cp_dbcsr_norm(tmp1, &
-                            dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix)
-
-         CALL cp_dbcsr_add_on_diag(tmp1, +1.0_dp)
-         occ_matrix = cp_dbcsr_get_occupation(matrix_inverse)
-
-         ! tmp2 = S^-1 S S^-1
-         CALL cp_dbcsr_multiply("N", "N", 1.0_dp, tmp1, matrix_inverse, 0.0_dp, tmp2, &
-                                flop=flop2)
-         ! S^-1_{n+1} = 2 S^-1 - S^-1 S S^-1
-         CALL cp_dbcsr_add(matrix_inverse, tmp2, 2.0_dp, -1.0_dp)
-
-         CALL cp_dbcsr_filter(matrix_inverse, threshold)
-         t2 = m_walltime()
-
-         IF (unit_nr > 0) THEN
-            WRITE (unit_nr, '(T6,A,1X,I3,1X,F10.8,E12.3,F12.3,F13.3)') "Hotelling iter", i, occ_matrix, &
-               maxnorm_matrix, t2-t1, &
-               (flop1+flop2)/(1.0E6_dp*MAX(0.001_dp, t2-t1))
-            CALL m_flush(unit_nr)
-         ENDIF
-
-         ! use max_norm
-         IF (maxnorm_matrix < threshold*100) EXIT
-
-      ENDDO
-
-      !! this check is not really needed
-      !CALL cp_dbcsr_multiply("N", "N", 1.0_dp, matrix_inverse, matrix, 0.0_dp, tmp1,error=error)
-      !!frob_matrix_base=cp_dbcsr_frobenius_norm(tmp1)
-      !CALL cp_dbcsr_add_on_diag(tmp1,-1.0_dp,error=error)
-      !!frob_matrix=cp_dbcsr_frobenius_norm(tmp1)
-      !CALL cp_dbcsr_norm(tmp1,&
-      !        dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix, error=error)
-      !occ_matrix=cp_dbcsr_get_occupation(matrix_inverse)
-      IF (unit_nr > 0) THEN
-         !   WRITE(unit_nr,'(T6,A,1X,I3,1X,F10.8,E12.3)') "Final Hotelling ",i,occ_matrix,&
-         !      !frob_matrix/frob_matrix_base
-         !      maxnorm_matrix
-         WRITE (unit_nr, '()')
-         CALL m_flush(unit_nr)
-      ENDIF
-
-      CALL cp_dbcsr_release(tmp1)
-      CALL cp_dbcsr_release(tmp2)
-
-      CALL timestop(handle)
-
-   END SUBROUTINE invert_Hotelling2
 
 END MODULE iterate_matrix

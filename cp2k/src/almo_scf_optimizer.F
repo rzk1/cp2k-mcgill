@@ -2185,9 +2185,7 @@ CONTAINS
                CALL almo_scf_update_ks_energy(qs_env, &
                                               almo_scf_env%almo_scf_energy+energy_new)
 
-               ! DANGER: return to the original condition
-               !IF (almo_scf_env%almo_eda.gt.0) THEN
-               IF (.TRUE.) THEN
+               IF (almo_scf_env%almo_analysis%do_analysis) THEN
 
                   ! energy decomposition analysis (EDA)
                   IF (unit_nr > 0) THEN
@@ -2202,12 +2200,12 @@ CONTAINS
 
                   ! open the output file, print and close
                   CALL get_qs_env(qs_env, input=input)
-                  almo_print_section => section_vals_get_subs_vals(input, "DFT%ALMO_SCF%PRINT")
+                  almo_print_section => section_vals_get_subs_vals(input, "DFT%ALMO_SCF%ANALYSIS%PRINT")
                   eda_unit = cp_print_key_unit_nr(logger, almo_print_section, &
-                                                  "ALMO_EDA", extension=".dat", local=.TRUE.)
+                                                  "ALMO_EDA_CT", extension=".dat", local=.TRUE.)
                   CALL cp_dbcsr_print_block_sum(m_tmp_no_1, eda_unit)
                   CALL cp_print_key_finished_output(eda_unit, logger, almo_print_section, &
-                                                    "ALMO_EDA", local=.TRUE.)
+                                                    "ALMO_EDA_CT", local=.TRUE.)
 
                   ! charge transfer analysis (CTA)
                   IF (unit_nr > 0) THEN

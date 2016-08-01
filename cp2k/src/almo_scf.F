@@ -50,7 +50,8 @@ MODULE almo_scf
         almo_mat_distr_atomic, almo_mat_distr_molecular, almo_scf_diag, almo_scf_dm_sign, &
         almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, optimizer_diis, optimizer_pcg, &
         tensor_orthogonal, virt_full, virt_minimal, virt_number, virt_occ_size, &
-        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal
+        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
+        almo_frz_crystal, molecular_guess
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
@@ -388,7 +389,9 @@ CONTAINS
       INTEGER                                            :: handle
       TYPE(section_vals_type), POINTER                   :: almo_opt_diis_section, &
                                                             almo_opt_pcg_section, &
-                                                            almo_scf_section, xalmo_opt_pcg_section
+                                                            almo_scf_section, &
+                                                            almo_analysis_section, &
+                                                            xalmo_opt_pcg_section
 
       CALL timeset(routineN, handle)
 
@@ -399,6 +402,7 @@ CONTAINS
                                                          "ALMO_OPTIMIZER_PCG")
       xalmo_opt_pcg_section => section_vals_get_subs_vals(almo_scf_section, &
                                                           "XALMO_OPTIMIZER_PCG")
+      almo_analysis_section => section_vals_get_subs_vals(almo_scf_section, "ANALYSIS")
 
       ! RZK-warning the values of these keywords are hardcoded
       ! but ideally they should also be read from the input file
@@ -457,9 +461,10 @@ CONTAINS
       CALL section_vals_val_get(xalmo_opt_pcg_section, "PRECONDITIONER", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%preconditioner)
 
-      ! do not do EDA in the official release until the output files are written
-      ! using the proper CP2K routines
-      almo_scf_env%almo_eda = 0
+      CALL section_vals_val_get(almo_analysis_section, "_SECTION_PARAMETERS_", &
+                                l_val=almo_scf_env%almo_analysis%do_analysis)
+      CALL section_vals_val_get(almo_analysis_section, "FROZEN_MO_ENERGY_TERM", &
+                                i_val=almo_scf_env%almo_analysis%frozen_mo_energy_term)
 
       !CALL section_vals_val_get(almo_scf_section,"DOMAIN_LAYOUT_AOS",&
       !                          i_val=almo_scf_env%domain_layout_aos)
@@ -673,6 +678,17 @@ CONTAINS
                        "XALMO_R_CUTOFF_FACTOR is larger than almo_max_cutoff_multiplier. "// &
                        "Increase the hard-coded almo_max_cutoff_multiplier")
       ENDIF
+      
+      ! check analysis settings
+      IF (almo_scf_env%almo_analysis%do_analysis) THEN
+
+         IF (almo_scf_env%almo_analysis%frozen_mo_energy_term==almo_frz_crystal &
+             .AND. almo_scf_env%almo_scf_guess.NE.molecular_guess) THEN 
+            CPABORT("To compute frozen-MO energy term set ALMO_SCF_GUESS MOLECULAR")
+         ENDIF
+
+      ENDIF ! end analysis settings
+
 
       CALL timestop(handle)
 

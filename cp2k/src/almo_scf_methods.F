@@ -38,7 +38,6 @@ MODULE almo_scf_methods
                                               almo_mat_distr_atomic,&
                                               almo_scf_diag
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
-                                              invert_Hotelling2,&
                                               matrix_sqrt_Newton_Schulz
    USE kinds,                           ONLY: dp
    USE util,                            ONLY: sort
@@ -1669,7 +1668,7 @@ CONTAINS
                                 filter_eps=eps_filter)
 
          ! invert MO overlap
-         CALL invert_Hotelling2( &
+         CALL invert_Hotelling( &
             matrix_inverse=sigma_inv, &
             matrix=sigma, &
             use_inv_as_guess=use_sigma_inv_guess, &

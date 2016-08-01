@@ -39,6 +39,16 @@ MODULE almo_scf_types
    PUBLIC :: almo_scf_env_type, optimizer_options_type, &
              print_optimizer_options
 
+   ! almo-based electronic structure analysis
+   TYPE almo_analysis_type
+
+      ! switch analysis on/off
+      LOGICAL :: do_analysis
+
+      INTEGER :: frozen_mo_energy_term
+
+   END TYPE almo_analysis_type
+
    TYPE optimizer_options_type
 
       ! SCF procedure for the block-diagonal ALMOs
@@ -148,9 +158,6 @@ MODULE almo_scf_types
       INTEGER :: domain_layout_mos, domain_layout_aos
       ! ALMO  constraint type.
       INTEGER :: constraint_type
-
-      ! decomposition analysis (energy da, charge da)
-      INTEGER :: almo_eda
 
       ! Desciptors of molecules
       !INTEGER, DIMENSION(:), ALLOCATABLE        :: molecule_index_of_atom
@@ -301,6 +308,9 @@ MODULE almo_scf_types
 
       INTEGER, DIMENSION(:), ALLOCATABLE                       :: cpu_of_domain
 
+      ! Options for various optimizers collected neatly
+      TYPE(almo_analysis_type)                       :: almo_analysis
+      
       ! Options for various optimizers collected neatly
       TYPE(optimizer_options_type)                   :: opt_block_diag_diis
       TYPE(optimizer_options_type)                   :: opt_block_diag_pcg

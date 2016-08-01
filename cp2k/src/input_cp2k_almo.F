@@ -528,62 +528,12 @@ CONTAINS
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
-      !NULLIFY(subsection)
-      !CALL create_almo_eda_section(subsection)
-      !CALL section_add_subsection(section, subsection)
-      !CALL section_release(subsection)
-
-      NULLIFY (subsection)
-      CALL create_almo_print_section(subsection)
+      NULLIFY(subsection)
+      CALL create_almo_analysis_section(subsection)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
    END SUBROUTINE create_almo_scf_section
-
-! **************************************************************************************************
-!> \brief The ALMO EDA section controls decomposition analysis based on ALMOs
-!> \param section ...
-!> \par History
-!>       2014.10 created [Rustam Z Khaliullin]
-!> \author Rustam Z Khaliullin
-! **************************************************************************************************
-   SUBROUTINE create_almo_eda_section(section)
-
-      TYPE(section_type), POINTER                        :: section
-
-      CHARACTER(len=*), PARAMETER :: routineN = 'create_almo_eda_section', &
-         routineP = moduleN//':'//routineN
-
-      TYPE(keyword_type), POINTER                        :: keyword
-
-      CPASSERT(.NOT. ASSOCIATED(section))
-      NULLIFY (section)
-
-      CALL section_create(section, "ALMO_DA", &
-                          description="Controls decomposition analysis based on ALMOs and XALMOs. "// &
-                          "Not yet fully implemented.", &
-                          n_keywords=1, n_subsections=0, repeats=.FALSE., &
-                          citations=(/Khaliullin2007, Khaliullin2008/))
-
-      NULLIFY (keyword)
-
-      CALL keyword_create(keyword, name="FRZ_TERM", &
-                          description="Perform calculations on single molecules to compute the frozen density term", &
-                          usage="FRZ_TERM ISOLATED", default_i_val=0, &
-                          !enum_c_vals=s2a("SKIP", "ISOLATED", "CRYSTAL"),&
-                          enum_c_vals=s2a("SKIP", "CRYSTAL"), &
-                          enum_desc=s2a("Do not compute the frozen energy term.", &
-                                        !"Use isolated molecules as the reference.",&
-                                        "Use molecules in their positions in the crystal cell as the reference. "// &
-                                        !"Substantially more expensive than ISOLATED. "//&
-                                        "Be careful interpreting this term for systems with charged fragmetns."), &
-                          enum_i_vals=(/almo_frz_none, &
-                                        !              almo_frz_isolated,&
-                                        almo_frz_crystal/))
-      CALL section_add_keyword(section, keyword)
-      CALL keyword_release(keyword)
-
-   END SUBROUTINE create_almo_eda_section
 
 ! **************************************************************************************************
 !> \brief The optimizer section is a collection of keywords that are similar
@@ -708,6 +658,64 @@ CONTAINS
 
    END SUBROUTINE create_optimizer_section
 
+! **************************************************************************************************
+!> \brief The section controls electronic structure analysis based on ALMOs
+!> \param section ...
+!> \par History
+!>       2014.10 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE create_almo_analysis_section(section)
+
+      TYPE(section_type), POINTER                        :: section
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'create_almo_analysis_section', &
+         routineP = moduleN//':'//routineN
+
+      TYPE(keyword_type), POINTER                        :: keyword
+      TYPE(section_type), POINTER                        :: subsection
+
+      CPASSERT(.NOT. ASSOCIATED(section))
+      NULLIFY (section)
+
+      CALL section_create(section, "ANALYSIS", &
+                          description="Controls electronic structure analysis based on ALMOs and XALMOs.", &
+                          n_keywords=2, n_subsections=0, repeats=.FALSE., &
+                          citations=(/Khaliullin2007, Khaliullin2008/))
+
+      NULLIFY (keyword)
+
+      CALL keyword_create(keyword, name="_SECTION_PARAMETERS_", &
+                          description="Activation of ALMO-based electronic structure analysis.", &
+                          usage="&ANALYSIS T", &
+                          default_l_val=.FALSE., &
+                          lone_keyword_l_val=.TRUE.)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="FROZEN_MO_ENERGY_TERM", &
+                          description="Perform calculations on single molecules to compute the frozen density term", &
+                          usage="FROZEN_MO_ENERGY_TERM SUBLATTICE", default_i_val=almo_frz_none, &
+                          !enum_c_vals=s2a("SKIP", "ISOLATED", "SUBLATTICE"),&
+                          enum_c_vals=s2a("SKIP", "SUBLATTICE"), &
+                          enum_desc=s2a("Do not compute the frozen MO energy term.", &
+                                        !"Use isolated gas-phase molecules as the reference.",&
+                                        "Use energies of single molecules in their positions in the crystal "// &
+                                        "cell as the reference. "// &
+                                        "This term does not have an interpretation if fragmetns are charged."), &
+                          enum_i_vals=(/almo_frz_none, &
+                                        !almo_frz_isolated,&
+                                        almo_frz_crystal/))
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      NULLIFY (subsection)
+      CALL create_almo_print_section(subsection)
+      CALL section_add_subsection(section, subsection)
+      CALL section_release(subsection)
+
+   END SUBROUTINE create_almo_analysis_section
+
 ! *****************************************************************************
 !> \brief Create a section with all print keys for ALMO methods
 !> \param section ...
@@ -728,21 +736,29 @@ CONTAINS
       NULLIFY (section)
 
       CALL section_create(section, name="PRINT", &
-                          description="Controls printing of ALMO data", &
-                          n_keywords=0, n_subsections=1, repeats=.TRUE.)
+                          description="Controls printing of detailed ALMO decomosition analysis results", &
+                          n_keywords=0, n_subsections=2, repeats=.TRUE.)
 
       ! create print keys within this subsection
-      CALL cp_print_key_section_create(print_key, "ALMO_EDA", &
-                                       description="Controls the output of the ALMO energy decomposition analysis", &
+      CALL cp_print_key_section_create(print_key, "ALMO_EDA_CT", &
+                                       description="Controls printing of the electron transfer terms in "// &
+                                       "ALMO energy decomposition analysis. "// &
+                                       "File format: first column is the index of the electron acceptor "// &
+                                       "fragment, second -- is the index of the electron donor fragment, "// &
+                                       "third - the energy change (a.u.) associated with the electron transfer.", &
                                        print_level=low_print_level, common_iter_levels=1, &
-                                       filename="EDA", unit_str="angstrom")
+                                       filename="EDA")
       CALL section_add_subsection(section, print_key)
       CALL section_release(print_key)
 
       CALL cp_print_key_section_create(print_key, "ALMO_CTA", &
-                                       description="Controls the output of the ALMO charge transfer analysis", &
+                                       description="Controls printing of the electron transfer terms in "// &
+                                       "ALMO charge transfer analysis. "// &
+                                       "File format: first column is the index of the electron acceptor "// &
+                                       "fragment, second -- is the index of the electron donor fragment, "// &
+                                       "third - the change (a.u.) transferred between the two fragments.", &
                                        print_level=low_print_level, common_iter_levels=1, &
-                                       filename="CTA", unit_str="angstrom")
+                                       filename="CTA")
       CALL section_add_subsection(section, print_key)
       CALL section_release(print_key)
 
