@@ -220,6 +220,9 @@ CONTAINS
                   " iterations, and jacobi_fallback switched off "
             ENDIF
          END IF
+      CASE (do_loc_cayley_direct)
+         CALL cayley_mini(weights, zij_fm_set, vectors, max_iter=max_iter, &
+                          eps_localization=eps_localization, iterations=sweeps)
       CASE (do_loc_direct)
          CALL direct_mini(weights, zij_fm_set, vectors, max_iter=max_iter, &
                           eps_localization=eps_localization, iterations=sweeps)
@@ -352,6 +355,9 @@ CONTAINS
          CPABORT("Crazy and Pipek not implemented.")
       CASE (do_loc_l1_norm_sd)
          CPABORT("L1 norm and Pipek not implemented.")
+      !CASE (do_loc_cayley_direct)
+      !   CALL cayley_mini(weights, zij_fm_set, vectors, max_iter=max_iter, &
+      !                    eps_localization=eps_localization, iterations=sweeps)
       CASE (do_loc_direct)
          CPABORT("Direct and Pipek not implemented.")
       CASE (do_loc_none)

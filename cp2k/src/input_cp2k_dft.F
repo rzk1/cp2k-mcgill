@@ -40,7 +40,7 @@ MODULE input_cp2k_dft
         do_admm_purify_mo_no_diag, do_admm_purify_none, do_admm_purify_none_dm, do_arnoldi, &
         do_bch, do_cn, do_ddapc_constraint, do_ddapc_restraint, do_em, do_etrs, do_full_density, &
         do_gapw_gcs, do_gapw_gct, do_gapw_log, do_loc_both, do_loc_crazy, do_loc_direct, &
-        do_loc_homo, do_loc_jacobi, do_loc_l1_norm_sd, do_loc_lumo, do_loc_max, do_loc_min, &
+        do_loc_homo, do_loc_jacobi, do_loc_l1_norm_sd, do_loc_cayley_direct, do_loc_lumo, do_loc_max, do_loc_min, &
         do_loc_none, do_lri_inv, do_lri_inv_auto, do_lri_opt_all, do_lri_opt_coeff, &
         do_lri_opt_exps, do_lri_pseudoinv_diag, do_lri_pseudoinv_svd, do_method_am1, &
         do_method_dftb, do_method_gapw, do_method_gapw_xc, do_method_gpw, do_method_lrigpw, &
@@ -639,17 +639,19 @@ CONTAINS
          keyword, name="METHOD", &
          description="Method of optimization if any", &
          usage="METHOD (JACOBI|CRAZY|DIRECT|L1SD|NONE)", &
-         enum_c_vals=s2a("NONE", "JACOBI", "CRAZY", "L1SD", "DIRECT"), &
+         enum_c_vals=s2a("NONE", "JACOBI", "CRAZY", "L1SD", "DIRECT", "CAYLEY"), &
          enum_i_vals=(/do_loc_none, &
                        do_loc_jacobi, &
                        do_loc_crazy, &
                        do_loc_l1_norm_sd, &
-                       do_loc_direct/), &
+                       do_loc_direct, &
+                       do_loc_cayley_direct/), &
          enum_desc=s2a("No localization is applied", &
                        "Using 2 x 2 rotations of the orbitals, slow but robust", &
                        "A new fast method is applied, might be slightly less robust than jacobi, but usually much faster", &
                        "Steepest descent minimization of an approximate l1 norm", &
-                       "Using a direct minimisation approach"), &
+                       "Using a direct minimisation approach", &
+                       "Using a direct minimization using the Cayley parameterization of a unitary matrix"), &
          default_i_val=do_loc_jacobi)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)

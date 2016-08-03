@@ -922,6 +922,405 @@ CONTAINS
    END SUBROUTINE crazy_rotations
 
 ! **************************************************************************************************
+!> \brief use the Cayley parametrization of unitry matrices to perform a direct minimization
+!> \par History
+!>       2016.08 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE cayley_mini(weights, zij, vectors, max_iter, eps_localization, iterations)
+      REAL(KIND=dp), INTENT(IN)                          :: weights(:)
+      TYPE(cp_fm_p_type), INTENT(INOUT)                  :: ZIJ(:, :)
+      TYPE(cp_fm_type), POINTER                          :: vectors
+      INTEGER, INTENT(IN)                                :: max_iter
+      REAL(KIND=dp), INTENT(IN)                          :: eps_localization
+      INTEGER                                            :: iterations
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'cayley_mini', routineP = moduleN//':'//routineN
+      COMPLEX(KIND=dp), PARAMETER                        :: cone = (1.0_dp, 0.0_dp), &
+                                                            czero = (0.0_dp, 0.0_dp)
+      REAL(KIND=dp), PARAMETER                           :: gold_sec = 0.3819_dp
+
+      COMPLEX(KIND=dp)                                   :: lk, ll, tmp
+      COMPLEX(KIND=dp), DIMENSION(:), POINTER            :: evals_exp
+      COMPLEX(KIND=dp), DIMENSION(:, :), POINTER         :: diag_z
+      INTEGER                                            :: handle, i, icol, idim, irow, &
+                                                            line_search_count, line_searches, lsl, &
+                                                            lsm, lsr, n, ncol_local, ndim, &
+                                                            nrow_local, output_unit
+      INTEGER, DIMENSION(:), POINTER                     :: col_indices, row_indices
+      LOGICAL                                            :: new_direction
+      REAL(KIND=dp)                                      :: a, b, beta_pr, c, denom, ds, ds_min, fa, &
+                                                            fb, fc, nom, normg, normg_cross, &
+                                                            normg_old, npos, omega, tol, val, x0, &
+                                                            x1, xa, xb, xc
+      REAL(KIND=dp), DIMENSION(150)                      :: energy, grad, pos
+      REAL(KIND=dp), DIMENSION(:), POINTER               :: evals, fval, fvald
+      TYPE(cp_cfm_p_type), DIMENSION(:), POINTER         :: c_zij
+      TYPE(cp_cfm_type), POINTER                         :: cmat_A, cmat_B, cmat_M, cmat_R, cmat_t1, &
+                                                            cmat_t2, cmat_U
+      TYPE(cp_fm_type), POINTER                          :: matrix_A, matrix_G, matrix_G_old, &
+                                                            matrix_G_search, matrix_H, matrix_R, &
+                                                            matrix_T
+
+      NULLIFY (evals, evals_exp, diag_z, fval, fvald, c_zij)
+      NULLIFY (matrix_A, matrix_G, matrix_T, matrix_G_search, matrix_G_old)
+      NULLIFY (cmat_A, cmat_U, cmat_R, cmat_t1, cmat_t2, cmat_B, cmat_M)
+
+      CALL timeset(routineN, handle)
+      output_unit = cp_logger_get_default_io_unit()
+
+      n = zij(1, 1)%matrix%matrix_struct%nrow_global
+      ndim = (SIZE(zij, 2))
+
+      IF (output_unit > 0) THEN
+         WRITE (output_unit, '(T4,A )') "Localization by direct minimization of the functional; "
+         WRITE (output_unit, '(T5,2A13,A20,A20,A10 )') " Line search ", " Iteration ", " Functional ", " Tolerance ", " ds Min "
+      END IF
+
+      ALLOCATE (evals(n), evals_exp(n), diag_z(n, ndim), fval(n), fvald(n))
+      ALLOCATE (c_zij(ndim))
+
+      ! create the three complex matrices Z
+      DO idim = 1, ndim
+         NULLIFY (c_zij(idim)%matrix)
+         CALL cp_cfm_create(c_zij(idim)%matrix, zij(1, 1)%matrix%matrix_struct)
+         c_zij(idim)%matrix%local_data = CMPLX(zij(1, idim)%matrix%local_data, &
+                                               zij(2, idim)%matrix%local_data, dp)
+      ENDDO
+
+      CALL cp_fm_create(matrix_A, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_fm_create(matrix_G, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_fm_create(matrix_T, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_fm_create(matrix_H, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_fm_create(matrix_G_search, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_fm_create(matrix_G_old, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_fm_create(matrix_R, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_fm_set_all(matrix_R, 0.0_dp, 1.0_dp)
+
+      CALL cp_fm_set_all(matrix_A, 0.0_dp)
+!    CALL cp_fm_init_random ( matrix_A )
+
+      CALL cp_cfm_create(cmat_A, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_cfm_create(cmat_U, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_cfm_create(cmat_R, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_cfm_create(cmat_t1, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_cfm_create(cmat_t2, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_cfm_create(cmat_B, zij(1, 1)%matrix%matrix_struct)
+      CALL cp_cfm_create(cmat_M, zij(1, 1)%matrix%matrix_struct)
+
+      CALL cp_cfm_get_info(cmat_B, nrow_local=nrow_local, ncol_local=ncol_local, &
+                           row_indices=row_indices, col_indices=col_indices)
+
+      CALL cp_fm_set_all(matrix_G_old, 0.0_dp)
+      CALL cp_fm_set_all(matrix_G_search, 0.0_dp)
+      normg_old = 1.0E30_dp
+      ds_min = 1.0_dp
+      new_direction = .TRUE.
+      Iterations = 0
+      line_searches = 0
+      line_search_count = 0
+      DO
+         iterations = iterations+1
+         ! compute U,R,evals given A
+         cmat_A%local_data = CMPLX(0.0_dp, matrix_A%local_data, dp) ! cmat_A is hermitian, evals are reals
+         CALL cp_cfm_heevd(cmat_A, cmat_R, evals)
+         evals_exp(:) = EXP((0.0_dp, -1.0_dp)*evals(:))
+         CALL cp_cfm_to_cfm(cmat_R, cmat_t1)
+         CALL cp_cfm_column_scale(cmat_t1, evals_exp)
+         CALL cp_cfm_gemm('N', 'C', n, n, n, cone, cmat_t1, cmat_R, czero, cmat_U)
+         cmat_U%local_data = REAL(cmat_U%local_data, KIND=dp) ! enforce numerics, U is a real matrix
+
+         IF (new_direction .AND. MOD(line_searches, 20) .EQ. 5) THEN ! reset with A .eq. 0
+            DO idim = 1, ndim
+               CALL cp_cfm_gemm('N', 'N', n, n, n, cone, c_zij(idim)%matrix, cmat_U, czero, cmat_t1)
+               CALL cp_cfm_gemm('C', 'N', n, n, n, cone, cmat_U, cmat_t1, czero, c_zij(idim)%matrix)
+            ENDDO
+            ! collect rotation matrix
+            matrix_H%local_data = REAL(cmat_U%local_data, KIND=dp)
+            CALL cp_gemm('N', 'N', n, n, n, 1.0_dp, matrix_R, matrix_H, 0.0_dp, matrix_T)
+            CALL cp_fm_to_fm(matrix_T, matrix_R)
+
+            CALL cp_cfm_set_all(cmat_U, czero, cone)
+            CALL cp_cfm_set_all(cmat_R, czero, cone)
+            CALL cp_cfm_set_all(cmat_A, czero)
+            CALL cp_fm_set_all(matrix_A, 0.0_dp)
+            evals(:) = 0.0_dp
+            evals_exp(:) = EXP((0.0_dp, -1.0_dp)*evals(:))
+            CALL cp_fm_set_all(matrix_G_old, 0.0_dp)
+            CALL cp_fm_set_all(matrix_G_search, 0.0_dp)
+            normg_old = 1.0E30_dp
+         ENDIF
+
+         ! compute Omega and M
+         CALL cp_cfm_set_all(cmat_M, czero)
+         omega = 0.0_dp
+         DO idim = 1, ndim
+            CALL cp_cfm_gemm('N', 'N', n, n, n, cone, c_zij(idim)%matrix, cmat_U, czero, cmat_t1) ! t1=ZU
+            CALL cp_cfm_gemm('C', 'N', n, n, n, cone, cmat_U, cmat_t1, czero, cmat_t2) ! t2=(U^T)ZU
+            DO i = 1, n
+               CALL cp_cfm_get_element(cmat_t2, i, i, diag_z(i, idim))
+               SELECT CASE (2) ! allows for selection of different spread functionals
+               CASE (1)
+                  fval(i) = -weights(idim)*LOG(ABS(diag_z(i, idim))**2)
+                  fvald(i) = -weights(idim)/(ABS(diag_z(i, idim))**2)
+               CASE (2) ! corresponds to the jacobi setup
+                  fval(i) = weights(idim)-weights(idim)*ABS(diag_z(i, idim))**2
+                  fvald(i) = -weights(idim)
+               END SELECT
+               omega = omega+fval(i)
+            ENDDO
+            DO icol = 1, ncol_local
+               DO irow = 1, nrow_local
+                  tmp = cmat_t1%local_data(irow, icol)*CONJG(diag_z(col_indices(icol), idim))
+                  cmat_M%local_data(irow, icol) = cmat_M%local_data(irow, icol) &
+                                                  +4.0_dp*fvald(col_indices(icol))*REAL(tmp, KIND=dp)
+               ENDDO
+            ENDDO
+         ENDDO
+
+         ! compute Hessian diagonal approximation for the preconditioner
+         IF (.TRUE.) THEN
+            CALL gradsq_at_0(diag_z, weights, matrix_H, ndim)
+         ELSE
+            CALL cp_fm_set_all(matrix_H, 1.0_dp)
+         ENDIF
+
+         ! compute B
+         DO icol = 1, ncol_local
+            DO irow = 1, nrow_local
+               ll = (0.0_dp, -1.0_dp)*evals(row_indices(irow))
+               lk = (0.0_dp, -1.0_dp)*evals(col_indices(icol))
+               IF (ABS(ll-lk) .LT. 0.5_dp) THEN ! use a series expansion to avoid loss of precision
+                  tmp = 1.0_dp
+                  cmat_B%local_data(irow, icol) = 0.0_dp
+                  DO i = 1, 16
+                     cmat_B%local_data(irow, icol) = cmat_B%local_data(irow, icol)+tmp
+                     tmp = tmp*(ll-lk)/(i+1)
+                  ENDDO
+                  cmat_B%local_data(irow, icol) = cmat_B%local_data(irow, icol)*EXP(lk)
+               ELSE
+                  cmat_B%local_data(irow, icol) = (EXP(lk)-EXP(ll))/(lk-ll)
+               ENDIF
+            ENDDO
+         ENDDO
+         ! compute gradient matrix_G
+
+         CALL cp_cfm_gemm('C', 'N', n, n, n, cone, cmat_M, cmat_R, czero, cmat_t1) ! t1=(M^T)(R^T)
+         CALL cp_cfm_gemm('C', 'N', n, n, n, cone, cmat_R, cmat_t1, czero, cmat_t2) ! t2=(R)t1
+         CALL cp_cfm_schur_product(cmat_t2, cmat_B, cmat_t1)
+         CALL cp_cfm_gemm('N', 'C', n, n, n, cone, cmat_t1, cmat_R, czero, cmat_t2)
+         CALL cp_cfm_gemm('N', 'N', n, n, n, cone, cmat_R, cmat_t2, czero, cmat_t1)
+         matrix_G%local_data = REAL(cmat_t1%local_data, KIND=dp)
+         CALL cp_fm_transpose(matrix_G, matrix_T)
+         CALL cp_fm_scale_and_add(-1.0_dp, matrix_G, 1.0_dp, matrix_T)
+         CALL cp_fm_maxabsval(matrix_G, tol)
+
+         ! from here on, minimizing technology
+         IF (new_direction) THEN
+            ! energy converged up to machine precision ?
+            line_searches = line_searches+1
+            ! DO i=1,line_search_count
+            !   write(15,*) pos(i),energy(i)
+            ! ENDDO
+            ! write(15,*) ""
+            ! CALL m_flush(15)
+            !write(16,*) evals(:)
+            !write(17,*) matrix_A%local_data(:,:)
+            !write(18,*) matrix_G%local_data(:,:)
+            IF (output_unit > 0) THEN
+               WRITE (output_unit, '(T5,I10,T18,I10,T31,2F20.6,F10.3)') line_searches, Iterations, Omega, tol, ds_min
+               CALL m_flush(output_unit)
+            ENDIF
+            IF (tol < eps_localization .OR. iterations > max_iter) EXIT
+
+            IF (.TRUE.) THEN ! do conjugate gradient CG
+               CALL cp_fm_trace(matrix_G, matrix_G_old, normg_cross)
+               normg_cross = normg_cross*0.5_dp ! takes into account the fact that A is antisymmetric
+               ! apply the preconditioner
+               DO icol = 1, ncol_local
+                  DO irow = 1, nrow_local
+                     matrix_G_old%local_data(irow, icol) = matrix_G%local_data(irow, icol)/matrix_H%local_data(irow, icol)
+                  ENDDO
+               ENDDO
+               CALL cp_fm_trace(matrix_G, matrix_G_old, normg)
+               normg = normg*0.5_dp
+               beta_pr = (normg-normg_cross)/normg_old
+               normg_old = normg
+               beta_pr = MAX(beta_pr, 0.0_dp)
+               CALL cp_fm_scale_and_add(beta_pr, matrix_G_search, -1.0_dp, matrix_G_old)
+               CALL cp_fm_trace(matrix_G_search, matrix_G_old, normg_cross)
+               IF (normg_cross .GE. 0) THEN ! back to SD
+                  IF (matrix_A%matrix_struct%para_env%mepos .EQ. &
+                      matrix_A%matrix_struct%para_env%source) THEN
+                     WRITE (cp_logger_get_default_unit_nr(), *) "!"
+                  ENDIF
+                  beta_pr = 0.0_dp
+                  CALL cp_fm_scale_and_add(beta_pr, matrix_G_search, -1.0_dp, matrix_G_old)
+               ENDIF
+            ELSE ! SD
+               CALL cp_fm_scale_and_add(0.0_dp, matrix_G_search, -1.0_dp, matrix_G)
+            ENDIF
+            ! ds_min=1.0E-4_dp
+            line_search_count = 0
+         END IF
+         line_search_count = line_search_count+1
+         energy(line_search_count) = Omega
+
+         ! line search section
+         SELECT CASE (3)
+         CASE (1) ! two point line search
+            SELECT CASE (line_search_count)
+            CASE (1)
+               pos(1) = 0.0_dp
+               pos(2) = ds_min
+               CALL cp_fm_trace(matrix_G, matrix_G_search, grad(1))
+               grad(1) = grad(1)/2.0_dp
+               new_direction = .FALSE.
+            CASE (2)
+               new_direction = .TRUE.
+               x0 = pos(1) ! 0.0_dp
+               c = energy(1)
+               b = grad(1)
+               x1 = pos(2)
+               a = (energy(2)-b*x1-c)/(x1**2)
+               IF (a .LE. 0.0_dp) a = 1.0E-15_dp
+               npos = -b/(2.0_dp*a)
+               val = a*npos**2+b*npos+c
+               IF (val .LT. energy(1) .AND. val .LE. energy(2)) THEN
+                  ! we go to a minimum, but ...
+                  ! we take a guard against too large steps
+                  pos(3) = MIN(npos, MAXVAL(pos(1:2))*4.0_dp)
+               ELSE ! just take an extended step
+                  pos(3) = MAXVAL(pos(1:2))*2.0_dp
+               ENDIF
+            END SELECT
+         CASE (2) ! 3 point line search
+            SELECT CASE (line_search_count)
+            CASE (1)
+               new_direction = .FALSE.
+               pos(1) = 0.0_dp
+               pos(2) = ds_min*0.8_dp
+            CASE (2)
+               new_direction = .FALSE.
+               IF (energy(2) .GT. energy(1)) THEN
+                  pos(3) = ds_min*0.7_dp
+               ELSE
+                  pos(3) = ds_min*1.4_dp
+               ENDIF
+            CASE (3)
+               new_direction = .TRUE.
+               xa = pos(1)
+               xb = pos(2)
+               xc = pos(3)
+               fa = energy(1)
+               fb = energy(2)
+               fc = energy(3)
+               nom = (xb-xa)**2*(fb-fc)-(xb-xc)**2*(fb-fa)
+               denom = (xb-xa)*(fb-fc)-(xb-xc)*(fb-fa)
+               IF (ABS(denom) .LE. 1.0E-18_dp*MAX(ABS(fb-fc), ABS(fb-fa))) THEN
+                  npos = xb
+               ELSE
+                  npos = xb-0.5_dp*nom/denom ! position of the stationary point
+               ENDIF
+               val = (npos-xa)*(npos-xb)*fc/((xc-xa)*(xc-xb))+ &
+                     (npos-xb)*(npos-xc)*fa/((xa-xb)*(xa-xc))+ &
+                     (npos-xc)*(npos-xa)*fb/((xb-xc)*(xb-xa))
+               IF (val .LT. fa .AND. val .LE. fb .AND. val .LE. fc) THEN ! OK, we go to a minimum
+                  ! we take a guard against too large steps
+                  pos(4) = MAX(MAXVAL(pos(1:3))*0.01_dp, &
+                               MIN(npos, MAXVAL(pos(1:3))*4.0_dp))
+               ELSE ! just take an extended step
+                  pos(4) = MAXVAL(pos(1:3))*2.0_dp
+               ENDIF
+            END SELECT
+         CASE (3) ! golden section hunt
+            new_direction = .FALSE.
+            IF (line_search_count .EQ. 1) THEN
+               lsl = 1
+               lsr = 0
+               lsm = 1
+               pos(1) = 0.0_dp
+               pos(2) = ds_min/gold_sec
+            ELSE
+               IF (line_search_count .EQ. 150) CPABORT("Too many")
+               IF (lsr .EQ. 0) THEN
+                  IF (energy(line_search_count-1) .LT. energy(line_search_count)) THEN
+                     lsr = line_search_count
+                     pos(line_search_count+1) = pos(lsm)+(pos(lsr)-pos(lsm))*gold_sec
+                  ELSE
+                     lsl = lsm
+                     lsm = line_search_count
+                     pos(line_search_count+1) = pos(line_search_count)/gold_sec
+                  ENDIF
+               ELSE
+                  IF (pos(line_search_count) .LT. pos(lsm)) THEN
+                     IF (energy(line_search_count) .LT. energy(lsm)) THEN
+                        lsr = lsm
+                        lsm = line_search_count
+                     ELSE
+                        lsl = line_search_count
+                     ENDIF
+                  ELSE
+                     IF (energy(line_search_count) .LT. energy(lsm)) THEN
+                        lsl = lsm
+                        lsm = line_search_count
+                     ELSE
+                        lsr = line_search_count
+                     ENDIF
+                  ENDIF
+                  IF (pos(lsr)-pos(lsm) .GT. pos(lsm)-pos(lsl)) THEN
+                     pos(line_search_count+1) = pos(lsm)+gold_sec*(pos(lsr)-pos(lsm))
+                  ELSE
+                     pos(line_search_count+1) = pos(lsl)+gold_sec*(pos(lsm)-pos(lsl))
+                  ENDIF
+                  IF ((pos(lsr)-pos(lsl)) .LT. 1.0E-3_dp*pos(lsr)) THEN
+                     new_direction = .TRUE.
+                  ENDIF
+               ENDIF ! lsr .eq. 0
+            ENDIF ! first step
+         END SELECT
+         ! now go to the suggested point
+         ds_min = pos(line_search_count+1)
+         ds = pos(line_search_count+1)-pos(line_search_count)
+         CALL cp_fm_scale_and_add(1.0_dp, matrix_A, ds, matrix_G_search)
+      ENDDO
+
+      ! collect rotation matrix
+      matrix_H%local_data = REAL(cmat_U%local_data, KIND=dp)
+      CALL cp_gemm('N', 'N', n, n, n, 1.0_dp, matrix_R, matrix_H, 0.0_dp, matrix_T)
+      CALL cp_fm_to_fm(matrix_T, matrix_R)
+      CALL rotate_orbitals(matrix_R, vectors)
+      CALL cp_fm_release(matrix_R)
+
+      CALL cp_fm_release(matrix_A)
+      CALL cp_fm_release(matrix_G)
+      CALL cp_fm_release(matrix_H)
+      CALL cp_fm_release(matrix_T)
+      CALL cp_fm_release(matrix_G_search)
+      CALL cp_fm_release(matrix_G_old)
+      CALL cp_cfm_release(cmat_A)
+      CALL cp_cfm_release(cmat_U)
+      CALL cp_cfm_release(cmat_R)
+      CALL cp_cfm_release(cmat_t1)
+      CALL cp_cfm_release(cmat_t2)
+      CALL cp_cfm_release(cmat_B)
+      CALL cp_cfm_release(cmat_M)
+
+      DEALLOCATE (evals, evals_exp, fval, fvald)
+
+      DO idim = 1, SIZE(c_zij)
+         zij(1, idim)%matrix%local_data = REAL(c_zij(idim)%matrix%local_data, dp)
+         zij(2, idim)%matrix%local_data = AIMAG(c_zij(idim)%matrix%local_data)
+         CALL cp_cfm_release(c_zij(idim)%matrix)
+      ENDDO
+      DEALLOCATE (c_zij)
+      DEALLOCATE (diag_z)
+
+      CALL timestop(handle)
+
+   END SUBROUTINE cayley_mini
+
+! **************************************************************************************************
 !> \brief use the exponential parametrization as described in to perform a direct mini
 !>        Gerd Berghold et al. PRB 61 (15), pag. 10040 (2000)
 !> none of the input is modified for the time being, just finds the rotations
