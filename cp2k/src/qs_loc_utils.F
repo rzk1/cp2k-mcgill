@@ -1425,7 +1425,8 @@ CONTAINS
       LOGICAL                                            :: my_do_xas
       REAL(dp), POINTER                                  :: ene(:)
       TYPE(cp_logger_type), POINTER                      :: logger
-      TYPE(section_vals_type), POINTER                   :: loc_print_section
+      TYPE(section_vals_type), POINTER                   :: loc_print_section, &
+                                                            cayley_optimizer_section
 
       my_do_xas = .FALSE.
       IF (PRESENT(do_xas)) THEN
@@ -1439,6 +1440,8 @@ CONTAINS
       CALL section_vals_val_get(loc_section, "_SECTION_PARAMETERS_", l_val=localize)
       IF (localize) THEN
          loc_print_section => section_vals_get_subs_vals(loc_section, "PRINT")
+         cayley_optimizer_section => section_vals_get_subs_vals(loc_section, &
+                                                          "CAYLEY_OPTIMIZER")
          NULLIFY (list)
          NULLIFY (loc_list)
          localized_wfn_control%lu_bound_states = 0
@@ -1473,6 +1476,21 @@ CONTAINS
                                    l_val=localized_wfn_control%loc_restart)
          CALL section_vals_val_get(loc_section, "USE_HISTORY", &
                                    l_val=localized_wfn_control%use_history)
+      
+         CALL section_vals_val_get(cayley_optimizer_section, "EPS_ERROR", &
+                                   r_val=localized_wfn_control%cayley_optimizer%eps_error)
+         CALL section_vals_val_get(cayley_optimizer_section, "MAX_ITER", &
+                                   i_val=localized_wfn_control%cayley_optimizer%max_iter)
+         CALL section_vals_val_get(cayley_optimizer_section, "MAX_ITER_OUTER_LOOP", &
+                                   i_val=localized_wfn_control%cayley_optimizer%max_iter_outer_loop)
+         CALL section_vals_val_get(cayley_optimizer_section, "LIN_SEARCH_EPS_ERROR", &
+                                   r_val=localized_wfn_control%cayley_optimizer%lin_search_eps_error)
+         CALL section_vals_val_get(cayley_optimizer_section, "LIN_SEARCH_STEP_SIZE_GUESS", &
+                                   r_val=localized_wfn_control%cayley_optimizer%lin_search_step_size_guess)
+         CALL section_vals_val_get(cayley_optimizer_section, "CONJUGATOR", &
+                                   i_val=localized_wfn_control%cayley_optimizer%conjugator)
+         CALL section_vals_val_get(cayley_optimizer_section, "PRECONDITIONER", &
+                                   i_val=localized_wfn_control%cayley_optimizer%preconditioner)
 
          IF (localized_wfn_control%do_homo) THEN
             ! List of States HOMO

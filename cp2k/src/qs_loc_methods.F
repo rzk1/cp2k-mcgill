@@ -46,7 +46,7 @@ MODULE qs_loc_methods
    USE cp_para_types,                   ONLY: cp_para_env_type
    USE cp_realspace_grid_cube,          ONLY: cp_pw_to_cube
    USE cp_units,                        ONLY: cp_unit_from_cp2k
-   USE input_constants,                 ONLY: &
+   USE input_constants,                 ONLY: do_loc_cayley_direct, &
         do_loc_crazy, do_loc_direct, do_loc_jacobi, do_loc_l1_norm_sd, do_loc_none, dump_dcd, &
         dump_dcd_aligned_cell, dump_xmol, op_loc_berry, op_loc_boys, op_loc_pipek, state_loc_list
    USE input_section_types,             ONLY: section_get_ival,&
@@ -90,6 +90,7 @@ MODULE qs_loc_methods
    USE qs_loc_utils,                    ONLY: jacobi_rotation_pipek
    USE qs_localization_methods,         ONLY: approx_l1_norm_sd,&
                                               crazy_rotations,&
+                                              cayley_mini,&
                                               direct_mini,&
                                               jacobi_rotations
    USE qs_matrix_pools,                 ONLY: mpools_get
@@ -194,6 +195,7 @@ CONTAINS
       out_each = qs_loc_env%localized_wfn_control%out_each
       target_time = qs_loc_env%target_time
       start_time = qs_loc_env%start_time
+
       CALL centers_spreads_berry(qs_loc_env, zij_fm_set, nmoloc, cell, weights, &
                                  ispin, print_loc_section, only_initial_out=.TRUE.)
       SELECT CASE (method)
@@ -221,8 +223,13 @@ CONTAINS
             ENDIF
          END IF
       CASE (do_loc_cayley_direct)
-         CALL cayley_mini(weights, zij_fm_set, vectors, max_iter=max_iter, &
-                          eps_localization=eps_localization, iterations=sweeps)
+         CALL cayley_mini(weights, zij_fm_set, vectors, &
+                          qs_loc_env%localized_wfn_control%cayley_optimizer)
+         ! DANGER: use the existing code to check if we are at an extremum
+         !CALL centers_spreads_berry(qs_loc_env, zij_fm_set, nmoloc, cell, weights, &
+         !                        ispin, print_loc_section)
+         !CALL direct_mini(weights, zij_fm_set, vectors, max_iter=max_iter, &
+         !                 eps_localization=eps_localization, iterations=sweeps)
       CASE (do_loc_direct)
          CALL direct_mini(weights, zij_fm_set, vectors, max_iter=max_iter, &
                           eps_localization=eps_localization, iterations=sweeps)
@@ -248,7 +255,7 @@ CONTAINS
       CASE DEFAULT
          CPABORT("Unknown localization method")
       END SELECT
-      IF (output_unit > 0) THEN
+      IF (output_unit > 0 .AND. method.ne.do_loc_cayley_direct) THEN
          IF (sweeps <= max_iter) WRITE (output_unit, '(T4,A,I3,A,I6,A)') " Localization  for spin ", ispin, &
             " converged in ", sweeps, " iterations"
       ENDIF

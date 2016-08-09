@@ -81,8 +81,9 @@ MODULE input_cp2k_dft
         wfi_use_guess_method_nr, wfi_use_prev_p_method_nr, wfi_use_prev_rho_r_method_nr, &
         wfi_use_prev_wf_method_nr, xas_1s_type, xas_2p_type, xas_2s_type, xas_dip_len2, &
         xas_dip_vel, xas_dscf, xas_none, xas_tp_fh, xas_tp_flex, xas_tp_hh, xas_tp_xfh, &
-        xas_tp_xhh, xes_tp_val
-   USE input_cp2k_almo,                 ONLY: create_almo_scf_section
+        xas_tp_xhh, xes_tp_val, optimizer_pcg
+   USE input_cp2k_almo,                 ONLY: create_almo_scf_section, &
+                                              create_optimizer_section
    USE input_cp2k_distribution,         ONLY: create_distribution_section
    USE input_cp2k_kpoints,              ONLY: create_kpoints_section
    USE input_cp2k_ls,                   ONLY: create_ls_scf_section
@@ -565,7 +566,7 @@ CONTAINS
       CALL section_create(section, name="LOCALIZE", &
                           description="Use one of the available methods to define the localization "// &
                           " and possibly to optimize it to a minimum or a maximum.", &
-                          n_keywords=8, n_subsections=0, repeats=.FALSE.)
+                          n_keywords=8, n_subsections=1, repeats=.FALSE.)
 
       CALL keyword_create(keyword, name="_SECTION_PARAMETERS_", &
                           description="controls the activation of the MOS localization procedure", &
@@ -738,6 +739,14 @@ CONTAINS
          type_of_var=real_t)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
+
+      NULLIFY (subsection)
+      CALL create_optimizer_section(subsection, "CAYLEY_OPTIMIZER", &
+              description="Controls an iterative PCG optimization of the localization functionals. "// &
+              "Unitary transformations are represented by the Cayley trnsform. ", &
+              opt_type = optimizer_pcg)
+      CALL section_add_subsection(section, subsection)
+      CALL section_release(subsection)
 
       NULLIFY (print_section)
       CALL section_create(print_section, name="PRINT", &

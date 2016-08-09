@@ -36,11 +36,7 @@ MODULE input_cp2k_almo
 
    CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'input_cp2k_almo'
 
-   INTEGER, PARAMETER, PRIVATE :: optimizer_block_diagonal_diis = 1
-   INTEGER, PARAMETER, PRIVATE :: optimizer_block_diagonal_pcg = 2
-   INTEGER, PARAMETER, PRIVATE :: optimizer_xalmo_pcg = 3
-
-   PUBLIC :: create_almo_scf_section
+   PUBLIC :: create_almo_scf_section, create_optimizer_section
 
 CONTAINS
 
@@ -514,17 +510,23 @@ CONTAINS
       !CALL keyword_release(keyword)
 
       NULLIFY (subsection)
-      CALL create_optimizer_section(subsection, optimizer_block_diagonal_diis)
+      CALL create_optimizer_section(subsection, "ALMO_OPTIMIZER_DIIS", &
+              description="Controls the iterative DIIS-accelerated optimization of block-diagonal ALMOs.", &
+              opt_type = optimizer_diis)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
       NULLIFY (subsection)
-      CALL create_optimizer_section(subsection, optimizer_block_diagonal_pcg)
+      CALL create_optimizer_section(subsection, "ALMO_OPTIMIZER_PCG", &
+              description="Controls the PCG optimization of block-diagonal ALMOs.", &
+              opt_type = optimizer_pcg)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
       NULLIFY (subsection)
-      CALL create_optimizer_section(subsection, optimizer_xalmo_pcg)
+      CALL create_optimizer_section(subsection, "XALMO_OPTIMIZER_PCG", &
+              description="Controls the PCG optimization of extended ALMOs.", &
+              opt_type = optimizer_pcg)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
@@ -539,46 +541,49 @@ CONTAINS
 !> \brief The optimizer section is a collection of keywords that are similar
 !>        to all optimization methods (e.g. target error, number of iterations)
 !> \param section ...
-!> \param optimizer_id - allows to adapt the standard section for specific needs
 !> \par History
 !>       2012.03 created [Rustam Z Khaliullin]
 !>       2014.10 fully integrated [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE create_optimizer_section(section, optimizer_id)
-
+   SUBROUTINE create_optimizer_section(section, title, description, opt_type, n_keywords, &
+                                       n_subsections, repeats, citations)
       TYPE(section_type), POINTER                        :: section
-      INTEGER, INTENT(IN)                                :: optimizer_id
+      CHARACTER(len=*), INTENT(in)                       :: title, description
+      INTEGER, INTENT(IN), OPTIONAL                      :: opt_type
+      INTEGER, INTENT(in), OPTIONAL                      :: n_keywords, n_subsections
+      LOGICAL, INTENT(in), OPTIONAL                      :: repeats
+      INTEGER, DIMENSION(:), INTENT(IN), OPTIONAL        :: citations
+
 
       CHARACTER(len=*), PARAMETER :: routineN = 'create_optimizer_section', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: optimizer_type
+      INTEGER                                            :: my_optimizer_type, &
+                                                            my_n_keywords, &
+                                                            my_n_subsections
       TYPE(keyword_type), POINTER                        :: keyword
 
       CPASSERT(.NOT. ASSOCIATED(section))
       NULLIFY (section)
+      
+      my_optimizer_type = optimizer_pcg 
+      IF (PRESENT(opt_type)) my_optimizer_type = opt_type
 
-      ! choose the name of the section
-      SELECT CASE (optimizer_id)
-      CASE (optimizer_block_diagonal_diis)
-         CALL section_create(section, "ALMO_OPTIMIZER_DIIS", &
-                             description="Controls the iterative DIIS-accelerated optimization of block-diagonal ALMOs.", &
-                             n_keywords=3, n_subsections=0, repeats=.FALSE.)
-         optimizer_type = optimizer_diis
-      CASE (optimizer_block_diagonal_pcg)
-         CALL section_create(section, "ALMO_OPTIMIZER_PCG", &
-                             description="Controls the PCG optimization of block-diagonal ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
-         optimizer_type = optimizer_pcg
-      CASE (optimizer_xalmo_pcg)
-         CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
-                             description="Controls the PCG optimization of extended ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
-         optimizer_type = optimizer_pcg
-      CASE DEFAULT
-         CPABORT("No default values allowed")
+      SELECT CASE (my_optimizer_type)
+      CASE (optimizer_pcg)
+         my_n_subsections = 0
+         my_n_keywords = 6
+      CASE (optimizer_diis)
+         my_n_subsections = 0
+         my_n_keywords = 3
       END SELECT
+      IF (PRESENT(n_keywords)) my_n_keywords = n_keywords
+      IF (PRESENT(n_subsections)) my_n_subsections = n_subsections
+
+      CALL section_create(section, title, description, &
+                          n_keywords=my_n_keywords, n_subsections=my_n_subsections, &
+                          repeats=.FALSE.)
 
       NULLIFY (keyword)
 
@@ -596,7 +601,7 @@ CONTAINS
       CALL keyword_release(keyword)
 
       ! add keywords specific to each type
-      SELECT CASE (optimizer_type)
+      SELECT CASE (my_optimizer_type)
       CASE (optimizer_diis)
 
          CALL keyword_create(keyword, name="N_DIIS", &
@@ -610,13 +615,13 @@ CONTAINS
 
          CALL keyword_create(keyword, name="LIN_SEARCH_EPS_ERROR", &
                              description="Target value of the gradient norm during the linear search", &
-                             usage="LIN_SEARCH_EPS_ERROR 1.E-2", default_r_val=1.0E-3_dp)
+                             usage="LIN_SEARCH_EPS_ERROR 1.E-3", default_r_val=1.0E-2_dp)
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
 
          CALL keyword_create(keyword, name="LIN_SEARCH_STEP_SIZE_GUESS", &
                              description="The size of the first step in the linear search", &
-                             usage="LIN_SEARCH_STEP_SIZE_GUESS 0.1", default_r_val=1.0_dp)
+                             usage="LIN_SEARCH_STEP_SIZE_GUESS 0.1", default_r_val=0.05_dp)
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
 
