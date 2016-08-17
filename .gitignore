@@ -1,3 +1,11 @@
+# cp2k object and exe directories
+cp2k/exe
+cp2k/obj
+
+# cp2k results of calculations
+*.wfn
+*.wfn.bak-?
+
 # Prerequisites
 *.d
 
