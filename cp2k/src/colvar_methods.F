@@ -3131,7 +3131,7 @@ CONTAINS
       INTEGER                                            :: i, ii, j, jj, l, m, n_atoms_from, &
                                                             n_atoms_to
       REAL(KIND=dp) :: alpha, bond, costheta, dplm, dylm, exp_fac, fact, fi, ftmp(3), &
-         inv_n_atoms_from, nbond, plm, pre_fac, qlm, qlm2, qparm, r12, r_tmp, rcut, ss(3), theta, &
+         inv_n_atoms_from, nbond, plm, pre_fac, qlm, qlm2, qparm, r12, r_tmp, rcut, ss(3), &
          x_tmp, xij(3), y_tmp, ymag, ymag1, z_tmp
       REAL(KIND=dp), DIMENSION(3)                        :: grad, grad_nb, grad_nb_tot, grad_tot, &
                                                             xpi, xpj
@@ -3159,14 +3159,13 @@ CONTAINS
          i = colvar%qparm_param%i_at_from(ii)
          CALL get_coordinates(colvar, i, xpi, my_particles)
          qlm = 0.0_dp
-         qlm2 = 0.0_dp
          grad_tot(:) = 0.0_dp
          grad_nb_tot(:) = 0.0_dp
          DO m = 0, l
             ylm = 0.0_dp
             grad(:) = 0.0_dp
             grad_nb(:) = 0.0_dp
-            nbond = 0
+            nbond = 0.0_dp
             DO jj = 1, n_atoms_to
                j = colvar%qparm_param%i_at_to(jj)
                IF (i == j) CYCLE
@@ -3175,28 +3174,39 @@ CONTAINS
                ss = ss-NINT(ss)
                xij = MATMUL(cell%hmat, ss)
                r12 = SQRT(DOT_PRODUCT(xij, xij))
-               IF (r12 < rcut) nbond = nbond+1.0_dp
                x_tmp = xij(1)
                y_tmp = xij(2)
                z_tmp = xij(3)
                r_tmp = r12
-               IF (ABS(x_tmp) .GT. 1.0E-8_dp) THEN
-                  fi = ATAN(y_tmp/x_tmp)
+               bond = 1.0_dp/(1.0_dp+EXP(alpha*(r_tmp-rcut)))
+               IF (bond > 1.0_dp) THEN
+                  CPABORT("bond > 1.0_dp")
+               END IF
+               ! compute continuous bond order
+               nbond = nbond+bond
+               IF ( ABS(x_tmp).LT.1.0E-8_dp .AND. ABS(y_tmp).LT.1.0E-8_dp ) THEN
+                  fi = 0.0_dp
                ELSE
-                  fi = 0.5_dp*pi
+                  fi = ATAN2(y_tmp,x_tmp)
                ENDIF
+               !IF (ABS(x_tmp) .GT. 1.0E-3_dp) THEN
+               !   fi = ATAN(y_tmp/x_tmp)
+               !ELSE
+               !   ! if x is too small use x/y to get angle fi
+               !   IF (y_tmp/x_tmp .GT. 0.0_dp) THEN
+               !      fi = 0.5_dp*pi - ATAN(x_tmp/y_tmp)
+               !   ELSE
+               !      fi = -0.5_dp*pi - ATAN(x_tmp/y_tmp)
+               !   ENDIF
+               !ENDIF
                costheta = z_tmp/r_tmp
                IF (costheta > 1.0_dp) costheta = 1.0_dp
                IF (costheta < -1.0_dp) costheta = -1.0_dp
-               theta = ACOS(costheta)
+               !theta = ACOS(costheta)
                plm = legendre(costheta, l, m)
                dplm = dlegendre(costheta, l, m)
                IF ((l+m) > maxfac) THEN
                   CPABORT("(l-m) > maxfac")
-               END IF
-               bond = 1.0_dp/(1.0_dp+EXP(alpha*(r_tmp-rcut)))
-               IF (bond > 1.0_dp) THEN
-                  CPABORT("bond > 1.0_dp")
                END IF
                pre_fac = bond*SQRT(((2*l+1)*fac(l-m))/(4*pi*fac(l+m)))
                IF (plm < 0.0_dp) THEN
@@ -3205,6 +3215,14 @@ CONTAINS
                   dylm = pre_fac*dplm
                ENDIF
                ylm_calc = pre_fac*plm*(CMPLX(COS(m*fi), SIN(m*fi), KIND=dp))
+               !WRITE(*,*) " zzz ", m, j
+               !WRITE(*,*) " zzz ", xpi(:)
+               !WRITE(*,*) " zzz ", xpj(:)
+               !WRITE(*,*) " zzz ", x_tmp, y_tmp
+               !WRITE(*,*) " zzz ", fi, r_tmp
+               !WRITE(*,*) " zzz ", pre_fac, plm
+               !WRITE(*,*) " zzz ", COS(m*fi), SIN(m*fi)
+               !WRITE(*,*) "    Ylm_j = ", m, j, ylm_calc
                ylm = ylm+ylm_calc
                ylm_calc2 = pre_fac/bond*plm*(CMPLX(COS(m*fi), SIN(m*fi), KIND=dp))
                ymag = (SQRT(REAL(ylm_calc2*CONJG(ylm_calc2), KIND=dp)))
@@ -3230,12 +3248,13 @@ CONTAINS
             grad_nb(:) = grad_nb(:)/nbond
             ymag1 = REAL(ylm*CONJG(ylm), KIND=dp)
             qlm = qlm+fact*ymag1
+            !WRITE(*,*) "  Ylm = ", m, ylm, nbond, fact*ymag1
             grad_tot(:) = grad_tot(:)+fact*grad(:)
             grad_nb_tot(:) = grad_nb_tot(:)+fact*grad_nb(:)
          ENDDO
          pre_fac = (4.0_dp*pi)/(2.0_dp*l+1)
          qlm = SQRT(pre_fac*qlm)
-         qlm2 = SQRT(pre_fac*qlm2)
+         !WRITE(*,*) "Ql(i) = ", qlm
          qparm = qparm+qlm
          ftmp(:) = SQRT(pre_fac)*(grad_tot(:)+grad_nb_tot(:))
          CALL put_derivative(colvar, ii, ftmp)
