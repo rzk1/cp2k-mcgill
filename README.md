@@ -32,6 +32,13 @@ git status
 
 # decide which svn updates git master branch is allowed to receive
 # ideally all changes (except for obvious garbage)
-# stage all modified/deleted files
+# to stage all modified/deleted files use:
 git add -u
+
+# commit staged files
+git commit -m "message here"
+
+# send to github
+git push origin master
+
 ==============================================
