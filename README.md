@@ -32,3 +32,6 @@ git status
 
 # decide which svn updates git master branch is allowed to receive
 # ideally all changes (except for obvious garbage)
+# stage all modified/deleted files
+git add -u
+==============================================
