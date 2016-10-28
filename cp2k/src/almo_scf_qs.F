@@ -878,7 +878,7 @@ CONTAINS
       DO WHILE (neighbor_list_iterate(nl_iterator2) == 0)
          CALL get_iterator_info(nl_iterator2, &
                                 iatom=iatom2, jatom=jatom2)
-!WRITE(*,*) "GET INFO: ",iatom2, jatom2
+         !WRITE(*,*) "GET INFO: ",iatom2, jatom2
          local_list(2*local_list_length+1) = iatom2
          local_list(2*local_list_length+2) = jatom2
          local_list_length = local_list_length+1
