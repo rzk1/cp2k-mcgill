@@ -34,7 +34,7 @@ MODULE generic_os_integrals
    USE debug_os_integrals,              ONLY: overlap_aabb_test,&
                                               overlap_ab_test,&
                                               overlap_abc_test
-   USE input_constants,                 ONLY: operator_coulomb,&
+   USE constants_operator,              ONLY: operator_coulomb,&
                                               operator_gauss,&
                                               operator_verf,&
                                               operator_verfc,&

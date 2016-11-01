@@ -689,7 +689,6 @@ CONTAINS
 
       ENDIF ! end analysis settings
 
-
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_init_read_write_input
