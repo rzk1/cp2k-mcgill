@@ -740,6 +740,7 @@ CONTAINS
                           n_keywords=0, n_subsections=2, repeats=.TRUE.)
 
       ! create print keys within this subsection
+      NULLIFY (print_key)
       CALL cp_print_key_section_create(print_key, "ALMO_EDA_CT", &
                                        description="Controls printing of the electron transfer terms in "// &
                                        "ALMO energy decomposition analysis. "// &
