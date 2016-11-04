@@ -36,7 +36,7 @@ MODULE almo_scf_qs
         cp_dbcsr_work_create, dbcsr_distribution_col_clusters, dbcsr_distribution_col_dist, &
         dbcsr_distribution_mp, dbcsr_distribution_obj, dbcsr_distribution_row_clusters, &
         dbcsr_distribution_row_dist, dbcsr_mp_group, dbcsr_mp_mynode, dbcsr_mp_numnodes, &
-        dbcsr_type_no_symmetry
+        dbcsr_type_no_symmetry, cp_dbcsr_multiply
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
@@ -82,7 +82,7 @@ MODULE almo_scf_qs
    CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'almo_scf_qs'
 
    PUBLIC :: almo_scf_init_qs, matrix_almo_create, matrix_qs_to_almo, &
-             almo_scf_dm_to_ks, &
+             almo_scf_dm_to_ks, calculate_w_matrix_almo, &
              almo_scf_construct_quencher, almo_scf_update_ks_energy
 
 CONTAINS
@@ -1448,6 +1448,83 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_construct_quencher
+
+! *****************************************************************************
+!> \brief Compute matrix W (energy-weighted density matrix) that is needed
+!>        for the evaluation of forces
+!> \param matrix_w ...
+!> \param almo_scf_env ...
+!> \par History
+!>       2015.03 created [Rustam Z. Khaliullin]
+!> \author Rustam Z. Khaliullin
+! *****************************************************************************
+  SUBROUTINE calculate_w_matrix_almo(matrix_w,almo_scf_env)
+    TYPE(cp_dbcsr_p_type), DIMENSION(:), &
+      POINTER                                  :: matrix_w
+    TYPE(almo_scf_env_type)                    :: almo_scf_env
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'calculate_w_matrix_almo', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: handle, ispin
+    REAL(KIND=dp)                            :: scaling
+    TYPE(cp_dbcsr_type)                      :: tmp_no1, tmp_nn1, &
+                                                tmp_oo1, tmp_oo2
+
+    CALL timeset(routineN,handle)
+
+    IF (almo_scf_env%nspins==1) THEN
+      scaling=2.0_dp
+    ELSE
+      scaling=1.0_dp
+    ENDIF
+
+    DO ispin=1,almo_scf_env%nspins
+    
+      CALL cp_dbcsr_init(tmp_nn1)
+      CALL cp_dbcsr_create(tmp_nn1,template=almo_scf_env%matrix_s(1),&
+              matrix_type=dbcsr_type_no_symmetry)
+      CALL cp_dbcsr_init(tmp_no1)
+      CALL cp_dbcsr_create(tmp_no1,template=almo_scf_env%matrix_t(ispin),&
+              matrix_type=dbcsr_type_no_symmetry)
+      CALL cp_dbcsr_init(tmp_oo1)
+      CALL cp_dbcsr_create(tmp_oo1,template=almo_scf_env%matrix_sigma_inv(ispin),&
+              matrix_type=dbcsr_type_no_symmetry)
+      CALL cp_dbcsr_init(tmp_oo2)
+      CALL cp_dbcsr_create(tmp_oo2,template=almo_scf_env%matrix_sigma_inv(ispin),&
+          matrix_type=dbcsr_type_no_symmetry)
+
+      CALL cp_dbcsr_copy(tmp_nn1,almo_scf_env%matrix_ks(ispin))
+      ! 1. TMP_NO1=F.T
+      CALL cp_dbcsr_multiply("N", "N", scaling, tmp_nn1, almo_scf_env%matrix_t(ispin),&
+                              0.0_dp, tmp_no1, filter_eps=almo_scf_env%eps_filter)
+      ! 2. TMP_OO1=T^(tr).TMP_NO1=T^(tr).(FT)
+      CALL cp_dbcsr_multiply("T", "N", 1.0_dp, almo_scf_env%matrix_t(ispin), tmp_no1,&
+                              0.0_dp, tmp_oo1, filter_eps=almo_scf_env%eps_filter)
+      ! 3. TMP_OO2=TMP_OO1.siginv=(T^(tr)FT).siginv
+      CALL cp_dbcsr_multiply("N", "N", 1.0_dp, tmp_oo1, almo_scf_env%matrix_sigma_inv(ispin),&
+                              0.0_dp, tmp_oo2, filter_eps=almo_scf_env%eps_filter)
+      ! 4. TMP_OO1=siginv.TMP_OO2=siginv.(T^(tr)FTsiginv)
+      CALL cp_dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_sigma_inv(ispin), tmp_oo2,&
+                              0.0_dp, tmp_oo1, filter_eps=almo_scf_env%eps_filter)
+      ! 5. TMP_NO1=T.TMP_OO1.=T.(siginvT^(tr)FTsiginv)
+      CALL cp_dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_t(ispin), tmp_oo1,&
+                              0.0_dp, tmp_no1, filter_eps=almo_scf_env%eps_filter)
+      ! 6. TMP_NN1=TMP_NO1.T^(tr)=(TsiginvT^(tr)FTsiginv).T^(tr)=RFR
+      CALL cp_dbcsr_multiply("N", "T", 1.0_dp, tmp_no1, almo_scf_env%matrix_t(ispin),&
+                              0.0_dp, tmp_nn1, filter_eps=almo_scf_env%eps_filter)
+      CALL matrix_almo_to_qs(tmp_nn1, matrix_w(ispin)%matrix, almo_scf_env)
+      
+      CALL cp_dbcsr_release(tmp_nn1)
+      CALL cp_dbcsr_release(tmp_no1)
+      CALL cp_dbcsr_release(tmp_oo1)
+      CALL cp_dbcsr_release(tmp_oo2)
+    
+    ENDDO
+
+    CALL timestop(handle)
+
+  END SUBROUTINE calculate_w_matrix_almo
 
 END MODULE almo_scf_qs
 

@@ -19,6 +19,7 @@ MODULE almo_scf
    USE almo_scf_qs,                     ONLY: almo_scf_construct_quencher,&
                                               almo_scf_init_qs,&
                                               matrix_almo_create,&
+                                              calculate_w_matrix_almo,&
                                               matrix_qs_to_almo
    USE almo_scf_types,                  ONLY: &
         almo_mat_dim_aobasis, almo_mat_dim_occ, almo_mat_dim_virt, almo_mat_dim_virt_disc, &
@@ -98,12 +99,8 @@ CONTAINS
 
       CALL cite_reference(Khaliullin2013)
 
-      ! no forces so far
-      IF (calc_forces) &
-         CPABORT(" No forces/gradients with ALMOs.... yet(!) ")
-
       ! initialize scf
-      CALL almo_scf_init(qs_env, almo_scf_env)
+      CALL almo_scf_init(qs_env, almo_scf_env, calc_forces)
 
       ! perform SCF for block diagonal ALMOs
       CALL almo_scf_main(qs_env, almo_scf_env)
@@ -111,10 +108,13 @@ CONTAINS
       ! allow electron delocalization
       CALL almo_scf_delocalization(qs_env, almo_scf_env)
 
-      ! return computed quantities to the qs_env
-      !CALL almo_return_to_qs(qs_env,almo_scf_env)
+      ! electron correlation methods
+      !CALL almo_correlation_main(qs_env,almo_scf_env)
 
       ! do post scf processing
+      CALL almo_scf_post(qs_env,almo_scf_env)
+
+      ! clean up the mess
       CALL almo_scf_clean_up(almo_scf_env)
 
       CALL timestop(handle)
@@ -129,9 +129,10 @@ CONTAINS
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_init(qs_env, almo_scf_env)
+   SUBROUTINE almo_scf_init(qs_env, almo_scf_env,calc_forces)
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(almo_scf_env_type)                            :: almo_scf_env
+      LOGICAL                                            :: calc_forces
 
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_init', routineP = moduleN//':'//routineN
 
@@ -327,6 +328,11 @@ CONTAINS
       almo_scf_env%need_virtuals = .TRUE.
       almo_scf_env%need_orbital_energies = .TRUE.
       !ENDIF
+      
+      IF (calc_forces .AND. &
+          .NOT. (almo_scf_env%deloc_method==almo_deloc_none .OR. &
+                 almo_scf_env%deloc_method==almo_deloc_scf) ) &
+         CPABORT(" Forces are not implemented for this method yet ")
 
       ! create all matrices
       CALL almo_scf_env_create_matrices(almo_scf_env, matrix_s(1)%matrix)
@@ -1260,6 +1266,41 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_delocalization
+
+! *****************************************************************************
+!> \brief after SCF we have the final density and KS matrices compute various
+!>        post-scf quantities
+!> \param qs_env ...
+!> \param almo_scf_env ...
+!> \par History
+!>       2015.03 created  [Rustam Z. Khaliullin]
+!> \author Rustam Z. Khaliullin
+! *****************************************************************************
+  SUBROUTINE almo_scf_post(qs_env,almo_scf_env)
+    TYPE(qs_environment_type), POINTER       :: qs_env
+    TYPE(almo_scf_env_type)                  :: almo_scf_env
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_post', &
+      routineP = moduleN//':'//routineN
+
+    TYPE(cp_dbcsr_p_type), DIMENSION(:), &
+      POINTER                                :: matrix_w
+    INTEGER                                  :: handle
+
+    CALL timeset(routineN,handle)
+
+    ! store the matrices for a next scf run
+    !CALL almo_scf_store_result(almo_scf_env)
+
+    ! compute the W matrix if associated
+    CALL get_qs_env(qs_env,matrix_w=matrix_w)
+    IF (ASSOCIATED(matrix_w)) THEN
+       CALL calculate_w_matrix_almo(matrix_w,almo_scf_env)
+    ENDIF
+
+    CALL timestop(handle)
+
+  END SUBROUTINE almo_scf_post
 
 ! **************************************************************************************************
 !> \brief create various matrices
