@@ -71,6 +71,7 @@ MODULE qs_wannier90
    USE qs_scf_diagonalization,          ONLY: do_general_diag_kp
    USE qs_scf_types,                    ONLY: qs_scf_env_type
    USE scf_control_types,               ONLY: scf_control_type
+   USE wannier90,                       ONLY: wannier_setup
 #include "./base/base_uses.f90"
 
    IMPLICIT NONE
@@ -124,7 +125,7 @@ CONTAINS
                '!-----------------------------------------------------------------------------!'
          END IF
 
-         CALL wannier90(qs_env, w_input, iw)
+         CALL wannier90_files(qs_env, w_input, iw)
 
          IF (iw > 0) THEN
             WRITE (iw, '(/,T2,A)') &
@@ -141,12 +142,13 @@ CONTAINS
 !> \param input ...
 !> \param iw ...
 ! **************************************************************************************************
-   SUBROUTINE wannier90(qs_env, input, iw)
+   SUBROUTINE wannier90_files(qs_env, input, iw)
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(section_vals_type), POINTER                   :: input
       INTEGER, INTENT(IN)                                :: iw
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'wannier90', routineP = moduleN//':'//routineN
+      CHARACTER(len=*), PARAMETER :: routineN = 'wannier90_files', &
+         routineP = moduleN//':'//routineN
       INTEGER, PARAMETER                                 :: num_nnmax = 12
 
       CHARACTER(len=2)                                   :: asym
@@ -256,16 +258,11 @@ CONTAINS
       DO i = 1, num_kpts
          kpoint%xkp(1:3, i) = (angstrom/twopi)*MATMUL(recip_lattice, kpt_latt(:, i))
       END DO
-      ALLOCATE (kpoint%skp(3, num_kpts))
-      DO i = 1, num_kpts
-         kpoint%skp(1:3, i) = MATMUL(TRANSPOSE(cell%hmat), kpoint%xkp(1:3, i))
-      END DO
       ! number of bands in calculation
       CALL get_qs_env(qs_env, mos=mos)
       CALL get_mo_set(mo_set=mos(1)%mo_set, nao=nao, nmo=num_bands_tot)
       num_bands_tot = MIN(nao, num_bands_tot+nadd)
       num_bands = num_wann
-      ! atoms
       num_atoms = SIZE(particle_set)
       ALLOCATE (atoms_cart(3, num_atoms))
       ALLOCATE (atom_symbols(num_atoms))
@@ -285,13 +282,8 @@ CONTAINS
 
       IF (iw > 0) THEN
          ! setup
-#if defined (__WANNIER90)
-         CALL wannier_setup_simple(seed_name, mp_grid, num_kpts, real_lattice, recip_lattice, &
-                                   kpt_latt, num_bands_tot, num_atoms, atom_symbols, atoms_cart, &
-                                   num_bands, num_wann, nntot, nnlist, nncell, iw)
-#else
-         CPABORT("Wannier90 library not available")
-#endif
+         CALL wannier_setup(mp_grid, num_kpts, real_lattice, recip_lattice, &
+                            kpt_latt, nntot, nnlist, nncell, iw)
       END IF
 
       CALL get_qs_env(qs_env, para_env=para_env)
@@ -616,6 +608,6 @@ CONTAINS
 
       CALL kpoint_release(kpoint)
 
-   END SUBROUTINE wannier90
+   END SUBROUTINE wannier90_files
 
 END MODULE qs_wannier90

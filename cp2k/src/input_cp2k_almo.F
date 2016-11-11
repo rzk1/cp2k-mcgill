@@ -528,10 +528,17 @@ CONTAINS
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
+<<<<<<< .mine
       NULLIFY(subsection)
       CALL create_almo_analysis_section(subsection)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
+=======
+      NULLIFY (subsection)
+      CALL create_almo_analysis_section(subsection)
+      CALL section_add_subsection(section, subsection)
+      CALL section_release(subsection)
+>>>>>>> .r17546
 
    END SUBROUTINE create_almo_scf_section
 
@@ -733,14 +740,13 @@ CONTAINS
       TYPE(section_type), POINTER                        :: print_key
 
       CPASSERT(.NOT. ASSOCIATED(section))
-      NULLIFY (section)
+      NULLIFY (section, print_key)
 
       CALL section_create(section, name="PRINT", &
                           description="Controls printing of detailed ALMO decomosition analysis results", &
                           n_keywords=0, n_subsections=2, repeats=.TRUE.)
 
       ! create print keys within this subsection
-      NULLIFY (print_key)
       CALL cp_print_key_section_create(print_key, "ALMO_EDA_CT", &
                                        description="Controls printing of the electron transfer terms in "// &
                                        "ALMO energy decomposition analysis. "// &

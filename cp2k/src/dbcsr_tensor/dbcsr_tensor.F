@@ -234,6 +234,20 @@ CONTAINS
    END SUBROUTINE
 
 ! **************************************************************************************************
+!> \brief Number of dimensions.
+!> \param iterator ...
+!> \retval ndims_iterator ...
+!> \par Note: specification function below must be defined before it is used in
+!>      the source due to a bug in the IBM XL Fortran compiler (compilation fails)
+! **************************************************************************************************
+   PURE FUNCTION ndims_iterator(iterator)
+      TYPE(dbcsr_t_iterator), INTENT(IN)                 :: iterator
+      INTEGER                                            :: ndims_iterator
+
+      ndims_iterator = iterator%nd_index%ndim_nd
+   END FUNCTION
+
+! **************************************************************************************************
 !> \brief iterate over nd blocks of an nd rank tensor
 !>        index only
 !> \param iterator ...
@@ -273,18 +287,6 @@ CONTAINS
       LOGICAL                                            :: dbcsr_t_iterator_blocks_left
 
       dbcsr_t_iterator_blocks_left = dbcsr_iterator_blocks_left(iterator%iter)
-   END FUNCTION
-
-! **************************************************************************************************
-!> \brief Number of dimensions.
-!> \param iterator ...
-!> \retval ndims_iterator ...
-! **************************************************************************************************
-   PURE FUNCTION ndims_iterator(iterator)
-      TYPE(dbcsr_t_iterator), INTENT(IN)                 :: iterator
-      INTEGER                                            :: ndims_iterator
-
-      ndims_iterator = iterator%nd_index%ndim_nd
    END FUNCTION
 
 ! **************************************************************************************************

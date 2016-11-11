@@ -1269,7 +1269,7 @@ CONTAINS
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="RCUT", &
-                          description="Specifies the distance cutoff for neighbors. "//& 
+                          description="Specifies the distance cutoff for neighbors. "// &
                           "Cutoff function is exactly zero for all neighbors beyond RCUT.", &
                           usage="RCUT {real}", &
                           n_var=1, unit_str="angstrom", type_of_var=real_t)
@@ -1284,7 +1284,7 @@ CONTAINS
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="RSTART", &
-                          description="Specifies the distance cutoff for neighbors. "//& 
+                          description="Specifies the distance cutoff for neighbors. "// &
                           "Cutoff function is exactly 1 for all neighbors closer than RSTART.", &
                           usage="RSTART {real}", &
                           n_var=1, unit_str="angstrom", type_of_var=real_t)

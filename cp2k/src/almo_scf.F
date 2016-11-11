@@ -47,10 +47,10 @@ MODULE almo_scf
    USE input_constants,                 ONLY: &
         almo_constraint_distance, almo_deloc_none, almo_deloc_scf, almo_deloc_x, &
         almo_deloc_x_then_scf, almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, &
-        almo_deloc_xk, almo_domain_layout_atomic, almo_domain_layout_molecular, &
+        almo_deloc_xk, almo_domain_layout_atomic, almo_domain_layout_molecular, almo_frz_crystal, &
         almo_mat_distr_atomic, almo_mat_distr_molecular, almo_scf_diag, almo_scf_dm_sign, &
-        almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, optimizer_diis, optimizer_pcg, &
-        tensor_orthogonal, virt_full, virt_minimal, virt_number, virt_occ_size, &
+        almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, optimizer_diis, &
+        optimizer_pcg, tensor_orthogonal, virt_full, virt_minimal, virt_number, virt_occ_size, &
         xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
         almo_frz_crystal, molecular_guess
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
@@ -393,11 +393,8 @@ CONTAINS
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle
-      TYPE(section_vals_type), POINTER                   :: almo_opt_diis_section, &
-                                                            almo_opt_pcg_section, &
-                                                            almo_scf_section, &
-                                                            almo_analysis_section, &
-                                                            xalmo_opt_pcg_section
+      TYPE(section_vals_type), POINTER :: almo_analysis_section, almo_opt_diis_section, &
+         almo_opt_pcg_section, almo_scf_section, xalmo_opt_pcg_section
 
       CALL timeset(routineN, handle)
 
@@ -688,8 +685,8 @@ CONTAINS
       ! check analysis settings
       IF (almo_scf_env%almo_analysis%do_analysis) THEN
 
-         IF (almo_scf_env%almo_analysis%frozen_mo_energy_term==almo_frz_crystal &
-             .AND. almo_scf_env%almo_scf_guess.NE.molecular_guess) THEN 
+         IF (almo_scf_env%almo_analysis%frozen_mo_energy_term == almo_frz_crystal &
+             .AND. almo_scf_env%almo_scf_guess .NE. molecular_guess) THEN
             CPABORT("To compute frozen-MO energy term set ALMO_SCF_GUESS MOLECULAR")
          ENDIF
 

@@ -310,7 +310,7 @@ MODULE almo_scf_types
 
       ! Options for various optimizers collected neatly
       TYPE(almo_analysis_type)                       :: almo_analysis
-      
+
       ! Options for various optimizers collected neatly
       TYPE(optimizer_options_type)                   :: opt_block_diag_diis
       TYPE(optimizer_options_type)                   :: opt_block_diag_pcg
