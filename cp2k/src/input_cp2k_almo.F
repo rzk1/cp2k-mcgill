@@ -65,7 +65,7 @@ CONTAINS
                           description="Settings for a class of efficient linear scaling methods based "// &
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
-                          n_keywords=4, n_subsections=3, repeats=.FALSE., &
+                          n_keywords=6, n_subsections=3, repeats=.FALSE., &
                           citations=(/Khaliullin2013/))
 
       NULLIFY (keyword)
@@ -88,6 +88,14 @@ CONTAINS
                           enum_i_vals=(/molecular_guess, atomic_guess/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="EXTRAPOLATION_ORDER", &
+                          description="Number of previous states used for the ASPC extrapolation of the initial guess. "// &
+                          "0 implies that guess is given by ALMO_SCF_GUESS at each step.", &
+                          usage="EXTRAPOLATION_ORDER 3", default_i_val=4)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
 
       CALL keyword_create(keyword, name="ALMO_ALGORITHM", &
                           description="Specifies the algorithm to update block-diagonal ALMOs during the SCF procedure.", &

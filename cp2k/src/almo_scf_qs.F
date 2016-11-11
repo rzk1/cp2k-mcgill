@@ -10,8 +10,7 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_qs
-   USE almo_scf_methods,                ONLY: almo_scf_p_blk_to_t_blk,&
-                                              almo_scf_t_blk_to_p,&
+   USE almo_scf_methods,                ONLY: almo_scf_t_blk_to_p,&
                                               almo_scf_t_blk_to_t_blk_orthonormal
    USE almo_scf_types,                  ONLY: almo_mat_dim_aobasis,&
                                               almo_mat_dim_occ,&
@@ -45,7 +44,7 @@ MODULE almo_scf_qs
    USE input_constants,                 ONLY: &
         almo_constraint_ao_overlap, almo_constraint_block_diagonal, almo_constraint_distance, &
         almo_domain_layout_molecular, almo_mat_distr_atomic, almo_mat_distr_molecular, &
-        atomic_guess, do_bondparm_covalent, do_bondparm_vdw, molecular_guess
+        do_bondparm_covalent, do_bondparm_vdw
    USE input_section_types,             ONLY: section_vals_type
    USE kinds,                           ONLY: dp
    USE message_passing,                 ONLY: mp_allgather
@@ -83,7 +82,8 @@ MODULE almo_scf_qs
 
    PUBLIC :: almo_scf_init_qs, matrix_almo_create, matrix_qs_to_almo, &
              almo_scf_dm_to_ks, calculate_w_matrix_almo, &
-             almo_scf_construct_quencher, almo_scf_update_ks_energy
+             almo_scf_construct_quencher, almo_scf_update_ks_energy, &
+             matrix_almo_to_qs
 
 CONTAINS
 
@@ -524,33 +524,16 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_init_qs', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, ispin, nspin, unit_nr
-      INTEGER, DIMENSION(2)                              :: nelectron_spin
-      LOGICAL                                            :: has_unit_metric
-      TYPE(atomic_kind_type), DIMENSION(:), POINTER      :: atomic_kind_set
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_ks, matrix_s, rho_ao
-      TYPE(cp_logger_type), POINTER                      :: logger
-      TYPE(cp_para_env_type), POINTER                    :: para_env
+      INTEGER                                            :: handle, ispin, nspin
+      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_ks, matrix_s
       TYPE(dft_control_type), POINTER                    :: dft_control
-      TYPE(molecular_scf_guess_env_type), POINTER        :: mscfg_env
       TYPE(neighbor_list_set_p_type), DIMENSION(:), &
          POINTER                                         :: sab_orb
-      TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
-      TYPE(qs_energy_type), POINTER                      :: energy
-      TYPE(qs_kind_type), DIMENSION(:), POINTER          :: qs_kind_set
       TYPE(qs_ks_env_type), POINTER                      :: ks_env
-      TYPE(qs_rho_type), POINTER                         :: rho
-      TYPE(section_vals_type), POINTER                   :: input
 
       CALL timeset(routineN, handle)
-      NULLIFY (rho, sab_orb, rho_ao)
-      ! get a useful output_unit
-      logger => cp_get_default_logger()
-      IF (logger%para_env%mepos == logger%para_env%source) THEN
-         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
-      ELSE
-         unit_nr = -1
-      ENDIF
+
+      NULLIFY (sab_orb)
 
       ! get basic quantities from the qs_env
       CALL get_qs_env(qs_env, &
@@ -558,20 +541,7 @@ CONTAINS
                       matrix_s=matrix_s, &
                       matrix_ks=matrix_ks, &
                       ks_env=ks_env, &
-                      input=input, &
-                      energy=energy, &
-                      atomic_kind_set=atomic_kind_set, &
-                      qs_kind_set=qs_kind_set, &
-                      particle_set=particle_set, &
-                      has_unit_metric=has_unit_metric, &
-                      para_env=para_env, &
-                      nelectron_spin=nelectron_spin, &
-                      mscfg_env=mscfg_env, &
-                      rho=rho, &
                       sab_orb=sab_orb)
-
-      CALL qs_rho_get(rho, rho_ao=rho_ao)
-      CPASSERT(ASSOCIATED(mscfg_env))
 
       nspin = dft_control%nspins
 
@@ -587,77 +557,6 @@ CONTAINS
             CALL cp_dbcsr_set(matrix_ks(ispin)%matrix, 0.0_dp)
          ENDDO
          CALL set_ks_env(ks_env, matrix_ks=matrix_ks)
-      ENDIF
-
-      ! create an initial guess
-      SELECT CASE (almo_scf_env%almo_scf_guess)
-      CASE (molecular_guess)
-
-         DO ispin = 1, nspin
-
-            ! the calculations on "isolated" molecules has already been done
-            ! all we need to do is convert the MOs of molecules into
-            ! the ALMO matrix taking into account different distributions
-            CALL get_matrix_from_submatrices(mscfg_env, &
-                                             almo_scf_env%matrix_t_blk(ispin), ispin)
-            CALL cp_dbcsr_filter(almo_scf_env%matrix_t_blk(ispin), &
-                                 almo_scf_env%eps_filter)
-
-         ENDDO
-
-      CASE (atomic_guess)
-
-         DO ispin = 1, nspin
-            CALL cp_dbcsr_set(rho_ao(ispin)%matrix, 0.0_dp)
-            IF (dft_control%qs_control%dftb .OR. dft_control%qs_control%semi_empirical) THEN
-               CALL calculate_mopac_dm(rho_ao(ispin)%matrix, &
-                                       matrix_s(1)%matrix, has_unit_metric, &
-                                       dft_control, particle_set, atomic_kind_set, qs_kind_set, &
-                                       nspin, nelectron_spin(ispin), &
-                                       para_env)
-            ELSE
-               CALL calculate_atomic_block_dm(rho_ao(ispin)%matrix, &
-                                              matrix_s(1)%matrix, particle_set, atomic_kind_set, qs_kind_set, &
-                                              ispin, nspin, nelectron_spin(ispin), unit_nr)
-            ENDIF
-
-            ! copy the atomic-block dm into matrix_p_blk
-            CALL matrix_qs_to_almo(rho_ao(ispin)%matrix, &
-                                   almo_scf_env%matrix_p_blk(ispin), almo_scf_env, &
-                                   .FALSE.)
-            CALL cp_dbcsr_filter(almo_scf_env%matrix_p_blk(ispin), &
-                                 almo_scf_env%eps_filter)
-
-         ENDDO
-
-         ! obtain orbitals from the density matrix
-         ! (the current version of ALMO SCF needs orbitals)
-         CALL almo_scf_p_blk_to_t_blk(almo_scf_env, ionic=.FALSE.)
-
-      END SELECT
-
-      CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
-      CALL almo_scf_t_blk_to_p(almo_scf_env, &
-                               use_sigma_inv_guess=.FALSE.)
-
-      DO ispin = 1, nspin
-         CALL matrix_almo_to_qs(almo_scf_env%matrix_p(ispin), &
-                                rho_ao(ispin)%matrix, &
-                                almo_scf_env)
-      ENDDO
-
-      CALL qs_rho_update_rho(rho, qs_env=qs_env)
-      CALL qs_ks_did_change(qs_env%ks_env, rho_changed=.TRUE.)
-      CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., &
-                               just_energy=.FALSE.)
-
-      IF (unit_nr > 0) THEN
-         IF (almo_scf_env%almo_scf_guess .EQ. molecular_guess) THEN
-            WRITE (unit_nr, '(T2,A38,F40.10)') "Single-molecule energy:", &
-               SUM(mscfg_env%energy_of_frag)
-         ENDIF
-         WRITE (unit_nr, '(T2,A38,F40.10)') "Energy of the initial guess:", energy%total
-         WRITE (unit_nr, '()')
       ENDIF
 
       CALL timestop(handle)

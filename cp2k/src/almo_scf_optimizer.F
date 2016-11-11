@@ -2158,7 +2158,7 @@ CONTAINS
 
             IF (perturbation_only) THEN
 
-               ! step matrix will contain the difference (i.e. excitation amplitudes)
+               ! use step matrix to store excitation amplitudes
                CALL cp_dbcsr_copy(step, matrix_t_0)
                CALL cp_dbcsr_add(step, matrix_t_out(ispin), &
                                  -1.0_dp, 1.0_dp)

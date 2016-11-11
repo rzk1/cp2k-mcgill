@@ -51,6 +51,7 @@ MODULE qs_environment
    USE distribution_1d_types,           ONLY: distribution_1d_release,&
                                               distribution_1d_type
    USE distribution_methods,            ONLY: distribute_molecules_1d
+   USE almo_scf,                        ONLY: almo_scf_env_create
    USE dm_ls_scf,                       ONLY: ls_scf_create
    USE et_coupling_types,               ONLY: et_coupling_create
    USE ewald_environment_types,         ONLY: ewald_env_create,&
@@ -385,6 +386,10 @@ CONTAINS
 
       IF (dft_control%qs_control%do_ls_scf) THEN
          CALL ls_scf_create(qs_env)
+      ENDIF
+      
+      IF (dft_control%qs_control%do_almo_scf) THEN
+         CALL almo_scf_env_create(qs_env)
       ENDIF
 
       ! see if we have atomic relativistic corrections
