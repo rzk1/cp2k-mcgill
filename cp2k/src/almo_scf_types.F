@@ -11,7 +11,7 @@
 ! **************************************************************************************************
 MODULE almo_scf_types
    USE cp_blacs_env,                    ONLY: cp_blacs_env_type
-   USE cp_dbcsr_interface,              ONLY: cp_dbcsr_type
+   USE cp_dbcsr_interface,              ONLY: cp_dbcsr_type, cp_dbcsr_release
    USE cp_para_types,                   ONLY: cp_para_env_type
    USE domain_submatrix_types,          ONLY: domain_map_type,&
                                               domain_submatrix_type
@@ -37,7 +37,7 @@ MODULE almo_scf_types
    REAL(KIND=dp), PARAMETER, PUBLIC :: almo_max_cutoff_multiplier = 2.2_dp
 
    PUBLIC :: almo_scf_env_type, optimizer_options_type, &
-             print_optimizer_options
+             print_optimizer_options, almo_scf_env_release
 
    ! almo-based electronic structure analysis
    TYPE almo_analysis_type
@@ -77,6 +77,12 @@ MODULE almo_scf_types
                         ndiis ! diis history length
 
    END TYPE optimizer_options_type
+   
+   TYPE almo_scf_history_type
+      INTEGER :: istore, nstore
+      TYPE(cp_dbcsr_type), DIMENSION(:, :), ALLOCATABLE :: matrix_p_up_down
+      TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_t
+   END TYPE
 
    ! the structure contains general info about the system
    TYPE almo_scf_env_type
@@ -216,6 +222,15 @@ MODULE almo_scf_types
                                quencher_s0, &
                                quencher_s1, &
                                envelope_amplitude
+
+      ! guess options
+      TYPE(almo_scf_history_type) :: almo_history
+      TYPE(almo_scf_history_type) :: xalmo_history
+      INTEGER :: extrapolation_order
+
+      ! forces
+      LOGICAL :: calc_forces
+
 
       !!!!!!!!!!!!!!!!!!!!!!!
       !!!!!! MATRICES !!!!!!!
@@ -445,6 +460,38 @@ CONTAINS
       ENDIF
 
    END SUBROUTINE print_optimizer_options
+
+! **************************************************************************************************
+!> \brief release the almo scf envirnoment
+!> \param almo_scf_env ...
+!> \par History
+!>       2016.11 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE almo_scf_env_release(almo_scf_env)
+      TYPE(almo_scf_env_type), POINTER                     :: almo_scf_env
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_env_release', routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, ispin, istore
+
+      CALL timeset(routineN, handle)
+
+      ! delete history
+      DO ispin = 1, SIZE(almo_scf_env%almo_history%matrix_t)
+         DO istore = 1, MIN(almo_scf_env%almo_history%istore, almo_scf_env%almo_history%nstore)
+            CALL cp_dbcsr_release(almo_scf_env%almo_history%matrix_p_up_down(ispin, istore))
+         ENDDO
+         CALL cp_dbcsr_release(almo_scf_env%almo_history%matrix_t(ispin))
+      ENDDO
+      DEALLOCATE (almo_scf_env%almo_history%matrix_p_up_down)
+      DEALLOCATE (almo_scf_env%almo_history%matrix_t)
+
+      DEALLOCATE (almo_scf_env)
+
+      CALL timestop(handle)
+
+   END SUBROUTINE almo_scf_env_release
 
 END MODULE almo_scf_types
 
