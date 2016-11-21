@@ -1645,14 +1645,45 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_post', &
       routineP = moduleN//':'//routineN
 
+    TYPE(cp_dbcsr_type), DIMENSION(:)        :: matrix_t_orthogonal
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
       POINTER                                :: matrix_w
-    INTEGER                                  :: handle
+    INTEGER                                  :: handle, ispin
 
     CALL timeset(routineN,handle)
 
     ! store the matrices for a next scf run
     CALL almo_scf_store_result(almo_scf_env)
+
+    ! orthogonalize orbitals before returning them to QS
+    ALLOCATE(matrix_t_orthogonal(almo_scf_env%nspins))
+    
+    DO ispin = 1, almo_scf_env%nspins
+
+       CALL cp_dbcsr_init(matrix_t_orthogonal(ispin))
+       CALL cp_dbcsr_create(matrix_t_orthogonal(ispin), &
+               template=almo_scf_env%matrix_t(ispin), &
+               matrix_type=dbcsr_type_no_symmetry)
+   
+       CALL cp_dbcsr_copy(almo_scf_env%matrix_t_orthogonal(ispin), &
+                            almo_scf_env%matrix_t(ispin))
+
+       CALL orthogonalize_mos(ket=matrix_t_ortogonal(ispin), &
+               overlap = almo_scf_env%matrix_sigma(ispin), &
+               metric = almo_scf_env%matrix_s(1), &
+               retain_locality = .FALSE., &
+               only_normalize = .FALSE., &
+               eps_filter = almo_scf_env%eps_filter, &
+               order_lanczos = almo_scf_env%order_lanczos, &
+               eps_lanczos = almo_scf_env%eps_lanczos, &
+               max_iter_lanczos = almo_scf_env%max_iter_lanczos)
+    ENDDO
+
+    ! return orthogonal orbitals to QS
+    DO ispin = 1, almo_scf_env%nspins
+       CALL cp_dbcsr_release(matrix_t_orthogonal(ispin))
+    ENDDO
+    DEALLOCATE(matrix_t_orthogonal)
 
     ! compute the W matrix if associated
     IF (almo_scf_env%calc_forces) THEN
