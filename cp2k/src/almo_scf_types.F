@@ -257,7 +257,8 @@ MODULE almo_scf_types
                                                         matrix_sigma_inv, &
                                                         matrix_sigma_sqrt, &
                                                         matrix_sigma_sqrt_inv, &
-                                                        matrix_sigma_blk
+                                                        matrix_sigma_blk, &
+                                                        matrix_sigma_inv_blk
 
       ! error vector (alpha,beta - if necessary)
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_err_blk
@@ -295,15 +296,16 @@ MODULE almo_scf_types
 
       ! kohn-sham matrix (alpha,beta - if necessary)
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_ks
+      ! the diff between ks_blk and ks_0deloc is that blk is a blocked matrix
+      ! 0deloc stores the matrix that correponds to zero-delocalization state
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_ks_blk
+      TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_ks_0deloc
       ! density NxN (alpha,beta - if necessary)
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_p
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_p_blk
 
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_eoo
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_evv_full
-      TYPE(cp_dbcsr_type), DIMENSION(:), &
-         ALLOCATABLE                  :: matrix_ks_almo_scf_converged
 
       ! preconditioner for k-optimization
       ! RZK-warning: do they have to be stored?
@@ -486,6 +488,17 @@ CONTAINS
       ENDDO
       DEALLOCATE (almo_scf_env%almo_history%matrix_p_up_down)
       DEALLOCATE (almo_scf_env%almo_history%matrix_t)
+      ! delete xalmo history
+      IF (almo_scf_env%deloc_method .NE. almo_deloc_none) THEN
+         DO ispin = 1, SIZE(almo_scf_env%xalmo_history%matrix_t)
+            DO istore = 1, MIN(almo_scf_env%xalmo_history%istore, almo_scf_env%xalmo_history%nstore)
+               CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
+            ENDDO
+            CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_t(ispin))
+         ENDDO
+         DEALLOCATE (almo_scf_env%almo_history%matrix_p_up_down)
+         DEALLOCATE (almo_scf_env%almo_history%matrix_t)
+      ENDIF
 
       DEALLOCATE (almo_scf_env)
 

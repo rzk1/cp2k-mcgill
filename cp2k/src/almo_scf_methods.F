@@ -3714,5 +3714,176 @@ CONTAINS
 
    END SUBROUTINE construct_test
 
+! **************************************************************************************************
+!> \brief create the initial guess for XALMOs
+!> \par History
+!>       2016.11 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE xalmo_initial_guess(m_guess, m_t0, m_quench_t, m_overlap, m_sigma_tmpl, nspins, &
+      xalmo_history, assume_t0_q0x, &
+      optimize_theta, envelope_amplitude, eps_filter, order_lanczos, eps_lanczos, &
+      max_iter_lanczos)
+
+      INTEGER, INTENT(IN)                                :: nspins, &
+                                                            order_lanczos, &
+                                                            max_iter_lanczos
+      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT)   :: m_guess
+      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)      :: m_t0, m_quench_t,
+                                                            m_sigma_tmpl
+      TYPE(almo_scf_history_type), INTENT(IN)            :: xalmo_history
+      LOGICAL, INTENT(IN)                                :: assume_t0_q0x, &
+                                                            optimize_theta
+      REAL(KIND=dp), INTENT(IN)                          :: envelope_amplitude, &
+                                                            eps_filter, eps_lanczos
+      TYPE(cp_dbcsr_type), INTENT(IN)                    :: m_overlap
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'xalmo_initial_guess', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, iaspc, &
+                                                            ispin, istore, naspc, unit_nr
+      REAL(KIND=dp)                                      :: alpha, norm
+      TYPE(cp_logger_type), POINTER                      :: logger
+      LOGICAL                                            :: aspc_guess
+      TYPE(cp_dbcsr_type)                                :: m_extrapolated
+
+      CALL timeset(routineN, handle)
+
+      ! get a useful output_unit
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      ENDIF
+
+      ! if extrapolation order is zero then the standard guess is used
+      ! ... the number of stored history points will remain zero if extrapolation order is zero
+      IF (xalmo_history%istore == 0) THEN
+         aspc_guess = .FALSE.
+      ELSE
+         aspc_guess = .TRUE. 
+      ENDIF
+      
+      ! create initial guess
+      IF (.NOT.aspc_guess) THEN
+
+         DO ispin = 1, nspins
+
+            ! zero initial guess for the delocalization amplitudes
+            ! or T0 guess for orbitals
+            IF (assume_t0_q0x) THEN
+               CALL cp_dbcsr_set(m_guess(ispin), 0.0_dp)
+            ELSE
+               ! copy T0 coefficients to m_guess
+               CALL cp_dbcsr_copy(m_guess(ispin), m_t0(ispin))
+            ENDIF
+
+         ENDDO !ispins
+
+      ELSE !aspc_guess
+
+         CALL cite_reference(Kolafa2004)
+
+         naspc = MIN(almo_scf_env%xalmo_history%istore, almo_scf_env%xalmo_history%nstore)
+         IF ( unit_nr > 0 ) THEN
+            WRITE (unit_nr, FMT="(/,T2,A,/,/,T3,A,I0)") &
+               "Parameters for the always stable predictor-corrector (ASPC) method:", &
+               "ASPC order: ", naspc
+         END IF
+
+         DO ispin = 1, nspins
+            
+            ! m_extrapolated - initialize the correct sparsity pattern
+            ! it must be kept throughout extrapolation 
+            CALL cp_dbcsr_init(m_extrapolated)
+            CALL cp_dbcsr_create(m_extrapolated, &
+                    template=quench_t(ispin), matrix_type=dbcsr_type_no_symmetry)
+            CALL cp_dbcsr_copy(m_extrapolated, quench_t(ispin))
+
+            ! extrapolation of the density matrix
+            DO iaspc = 1, naspc
+               istore = MOD(almo_scf_env%xalmo_history%istore-iaspc, almo_scf_env%xalmo_history%nstore)+1
+               alpha = (-1.0_dp)**(iaspc+1)*REAL(iaspc, KIND=dp)* &
+                       binomial(2*naspc, naspc-iaspc)/binomial(2*naspc-2, naspc-1)
+               IF ( unit_nr > 0 ) THEN
+                  WRITE (unit_nr, FMT="(T3,A2,I0,A4,F10.6)") &
+                     "B(", iaspc, ") = ", alpha
+               END IF
+               IF ( iaspc == 1 ) THEN
+                  CALL cp_dbcsr_copy(m_extrapolated, &
+                          almo_scf_env%xalmo_history%matrix_t(ispin), keep_sparsity=.TRUE.)
+                  CALL cp_dbcsr_scale(m_extrapolated,alpha)
+               ELSE
+                  CPWARN("Untested deep-history extrapolation. Recommended EXTRAPOLATE_ORDER=1")
+                  CALL cp_dbcsr_multiply("N", "N", alpha, &
+                          almo_scf_env%xalmo_history%matrix_p_up_down(ispin,istore), &
+                          almo_scf_env%xalmo_history%matrix_t(ispin), &
+                          1.0_dp, m_extrapolated, &
+                          retain_sparsity=.TRUE.)
+               ENDIF
+            ENDDO !iaspc
+   
+            CALL cp_dbcsr_init(m_sigma_tmp)
+            CALL cp_dbcsr_create(m_sigma_tmp, &
+                    template=m_sigma_tmpl(ispin), matrix_type=dbcsr_type_no_symmetry)
+
+            CALL orthogonalize_mos(ket=m_extrapolated, &
+                    overlap = m_sigma_tmp, &
+                    metric = m_overlap, &
+                    retain_locality = .TRUE., &
+                    only_normalize = .FALSE., &
+                    eps_filter = eps_filter, &
+                    order_lanczos = order_lanczos, &
+                    eps_lanczos = eps_lanczos, &
+                    max_iter_lanczos = max_iter_lanczos)
+            
+            CALL cp_dbcsr_release(m_sigma_tmp)
+
+            IF (assume_t0_q0x) THEN
+               CALL cp_dbcsr_copy(m_guess(ispin), m_extrapolated)
+               CALL cp_dbcsr_add(m_guess(ispin), m_t0(ispin), 1.0_dp, -1.0_dp)
+               ! DANGER: or warning?
+               ! delocalization amplitudes are not projected onto q0 yet
+            ELSE
+               ! simply copy extrapolated coefficients to m_guess
+               CALL cp_dbcsr_copy(m_guess(ispin), m_extrapolated)
+            ENDIF
+            
+            CALL cp_dbcsr_release(m_extrapolated)
+
+         ENDDO !ispin
+
+      ENDIF !aspc_guess?
+
+      ! check that all MO coefficients of the guess are less
+      ! than the maximum allowed amplitude
+      IF (optimize_theta) THEN
+
+         DO ispin = 1, nspins
+            CALL cp_dbcsr_norm(m_guess(ispin), &
+                               dbcsr_norm_maxabsnorm, norm_scalar=norm)
+            IF (unit_nr>0) THEN
+               WRITE(unit_nr,*) "Maximum norm of the initial guess: ", norm
+               WRITE(unit_nr,*) "Maximum allowed amplitude: ", envelope_amplitude
+            ENDIF
+            IF (norm .GT. envelope_amplitude) THEN
+               CPABORT("Max norm of the initial guess is too large")
+            ENDIF
+            ! use artanh to tame the initial guess
+            CALL cp_dbcsr_function_of_elements(m_guess(ispin), &
+                                               func=dbcsr_func_artanh, &
+                                               a0=0.0_dp, &
+                                               a1=1.0_dp/envelope_amplitude)
+            CALL cp_dbcsr_scale(m_guess(ispin), envelope_amplitude)
+         ENDDO !ispin
+
+      ENDIF
+
+      CALL timestop(handle)
+
+   END SUBROUTINE xalmo_initial_guess
+
 END MODULE almo_scf_methods
 
