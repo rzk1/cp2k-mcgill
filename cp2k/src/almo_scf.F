@@ -1004,6 +1004,7 @@ CONTAINS
          unit_nr = -1
       ENDIF
 
+
       IF (almo_scf_env%almo_history%nstore > 0) THEN
 
          almo_scf_env%almo_history%istore = almo_scf_env%almo_history%istore+1
