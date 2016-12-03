@@ -10,7 +10,11 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_methods
-   USE almo_scf_types,                  ONLY: almo_scf_env_type
+   USE mathlib,                         ONLY: binomial
+   USE bibliography,                    ONLY: Kolafa2004, &
+                                              cite_reference
+   USE almo_scf_types,                  ONLY: almo_scf_env_type, &
+                                              almo_scf_history_type
    USE cp_dbcsr_interface,              ONLY: &
         cp_dbcsr_add, cp_dbcsr_add_on_diag, cp_dbcsr_col_block_sizes, cp_dbcsr_copy, &
         cp_dbcsr_create, cp_dbcsr_desymmetrize, cp_dbcsr_distribution, cp_dbcsr_filter, &
@@ -22,7 +26,8 @@ MODULE almo_scf_methods
         cp_dbcsr_reserve_block2d, cp_dbcsr_row_block_sizes, cp_dbcsr_scale, cp_dbcsr_set, &
         cp_dbcsr_set_diag, cp_dbcsr_transposed, cp_dbcsr_type, cp_dbcsr_work_create, &
         dbcsr_distribution_mp, dbcsr_mp_group, dbcsr_mp_numnodes, dbcsr_norm_maxabsnorm, &
-        dbcsr_type_no_symmetry, dbcsr_type_symmetric
+        dbcsr_type_no_symmetry, dbcsr_type_symmetric, cp_dbcsr_function_of_elements, &
+        dbcsr_func_artanh
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
@@ -63,7 +68,8 @@ MODULE almo_scf_methods
       construct_domain_s_sqrt, &
       distribute_domains, &
       almo_scf_ks_to_ks_xx, &
-      construct_domain_r_down
+      construct_domain_r_down, &
+      xalmo_initial_guess
 
 CONTAINS
 
@@ -3720,23 +3726,24 @@ CONTAINS
 !>       2016.11 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE xalmo_initial_guess(m_guess, m_t0, m_quench_t, m_overlap, m_sigma_tmpl, nspins, &
-      xalmo_history, assume_t0_q0x, &
+   SUBROUTINE xalmo_initial_guess(m_guess, m_t_in, m_t0, m_quench_t, &
+      m_overlap, m_sigma_tmpl, nspins, xalmo_history, assume_t0_q0x, &
       optimize_theta, envelope_amplitude, eps_filter, order_lanczos, eps_lanczos, &
       max_iter_lanczos)
 
+      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT)   :: m_guess
+      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)      :: m_t_in, m_t0, &
+                                                            m_quench_t, &
+                                                            m_sigma_tmpl
+      TYPE(cp_dbcsr_type), INTENT(IN)                    :: m_overlap
+      TYPE(almo_scf_history_type), INTENT(IN)            :: xalmo_history
       INTEGER, INTENT(IN)                                :: nspins, &
                                                             order_lanczos, &
                                                             max_iter_lanczos
-      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT)   :: m_guess
-      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)      :: m_t0, m_quench_t,
-                                                            m_sigma_tmpl
-      TYPE(almo_scf_history_type), INTENT(IN)            :: xalmo_history
       LOGICAL, INTENT(IN)                                :: assume_t0_q0x, &
                                                             optimize_theta
       REAL(KIND=dp), INTENT(IN)                          :: envelope_amplitude, &
                                                             eps_filter, eps_lanczos
-      TYPE(cp_dbcsr_type), INTENT(IN)                    :: m_overlap
 
       CHARACTER(len=*), PARAMETER :: routineN = 'xalmo_initial_guess', &
          routineP = moduleN//':'//routineN
@@ -3746,7 +3753,8 @@ CONTAINS
       REAL(KIND=dp)                                      :: alpha, norm
       TYPE(cp_logger_type), POINTER                      :: logger
       LOGICAL                                            :: aspc_guess
-      TYPE(cp_dbcsr_type)                                :: m_extrapolated
+      TYPE(cp_dbcsr_type)                                :: m_extrapolated, &
+                                                            m_sigma_tmp  
 
       CALL timeset(routineN, handle)
 
@@ -3772,12 +3780,12 @@ CONTAINS
          DO ispin = 1, nspins
 
             ! zero initial guess for the delocalization amplitudes
-            ! or T0 guess for orbitals
+            ! or the supplied guess for orbitals
             IF (assume_t0_q0x) THEN
                CALL cp_dbcsr_set(m_guess(ispin), 0.0_dp)
             ELSE
-               ! copy T0 coefficients to m_guess
-               CALL cp_dbcsr_copy(m_guess(ispin), m_t0(ispin))
+               ! copy coefficients to m_guess
+               CALL cp_dbcsr_copy(m_guess(ispin), m_t_in(ispin))
             ENDIF
 
          ENDDO !ispins
@@ -3786,7 +3794,7 @@ CONTAINS
 
          CALL cite_reference(Kolafa2004)
 
-         naspc = MIN(almo_scf_env%xalmo_history%istore, almo_scf_env%xalmo_history%nstore)
+         naspc = MIN(xalmo_history%istore, xalmo_history%nstore)
          IF ( unit_nr > 0 ) THEN
             WRITE (unit_nr, FMT="(/,T2,A,/,/,T3,A,I0)") &
                "Parameters for the always stable predictor-corrector (ASPC) method:", &
@@ -3799,12 +3807,12 @@ CONTAINS
             ! it must be kept throughout extrapolation 
             CALL cp_dbcsr_init(m_extrapolated)
             CALL cp_dbcsr_create(m_extrapolated, &
-                    template=quench_t(ispin), matrix_type=dbcsr_type_no_symmetry)
-            CALL cp_dbcsr_copy(m_extrapolated, quench_t(ispin))
+                    template=m_quench_t(ispin), matrix_type=dbcsr_type_no_symmetry)
+            CALL cp_dbcsr_copy(m_extrapolated, m_quench_t(ispin))
 
             ! extrapolation of the density matrix
             DO iaspc = 1, naspc
-               istore = MOD(almo_scf_env%xalmo_history%istore-iaspc, almo_scf_env%xalmo_history%nstore)+1
+               istore = MOD(xalmo_history%istore-iaspc, xalmo_history%nstore)+1
                alpha = (-1.0_dp)**(iaspc+1)*REAL(iaspc, KIND=dp)* &
                        binomial(2*naspc, naspc-iaspc)/binomial(2*naspc-2, naspc-1)
                IF ( unit_nr > 0 ) THEN
@@ -3813,13 +3821,13 @@ CONTAINS
                END IF
                IF ( iaspc == 1 ) THEN
                   CALL cp_dbcsr_copy(m_extrapolated, &
-                          almo_scf_env%xalmo_history%matrix_t(ispin), keep_sparsity=.TRUE.)
+                          xalmo_history%matrix_t(ispin), keep_sparsity=.TRUE.)
                   CALL cp_dbcsr_scale(m_extrapolated,alpha)
                ELSE
                   CPWARN("Untested deep-history extrapolation. Recommended EXTRAPOLATE_ORDER=1")
                   CALL cp_dbcsr_multiply("N", "N", alpha, &
-                          almo_scf_env%xalmo_history%matrix_p_up_down(ispin,istore), &
-                          almo_scf_env%xalmo_history%matrix_t(ispin), &
+                          xalmo_history%matrix_p_up_down(ispin,istore), &
+                          xalmo_history%matrix_t(ispin), &
                           1.0_dp, m_extrapolated, &
                           retain_sparsity=.TRUE.)
                ENDIF
@@ -3844,8 +3852,8 @@ CONTAINS
             IF (assume_t0_q0x) THEN
                CALL cp_dbcsr_copy(m_guess(ispin), m_extrapolated)
                CALL cp_dbcsr_add(m_guess(ispin), m_t0(ispin), 1.0_dp, -1.0_dp)
-               ! DANGER: or warning?
-               ! delocalization amplitudes are not projected onto q0 yet
+               ! warning: it is important that R0 is projected out
+               ! from the guess on the next step (outside this subroutine)
             ELSE
                ! simply copy extrapolated coefficients to m_guess
                CALL cp_dbcsr_copy(m_guess(ispin), m_extrapolated)

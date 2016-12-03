@@ -11,34 +11,31 @@ Typical development cycle:
 5. All new developments in master git branch are send to the official svn repository.
 
 ================ Sychronization ===============
-# goto dir that contains both .svn and .git
+* goto dir that contains both .svn and .git
 cd CP2K_HOME
 
-# make sure you are on master branch
+* make sure you are on master branch
 git checkout master
 
-# make sure you master branch does not contain any uncomitted developments
-# as indicated above it important not to keep long-term developments in master branch
+* make sure you master branch does not contain any uncomitted developments as indicated above it important not to keep long-term developments in master branch
 git status
 
-# compare your local svn to the official repository
+* compare your local svn to the official repository
 svn status --show-updates
 
-# Get updates from the official repository
+* get updates from the official repository
 svn update
 
-# check what changes git sees
+* check what changes git sees
 git status
 
-# decide which svn updates git master branch is allowed to receive
-# ideally all changes (except for obvious garbage)
-# to stage all modified/deleted files use:
+* decide which svn updates git master branch is allowed to receive, ideally all changes (except for obvious garbage). to stage all modified/deleted files use:
 git add -u
 
-# commit staged files
+* commit staged files
 git commit -m "message here"
 
-# send to github
+* send to github
 git push origin master
 
 ==============================================

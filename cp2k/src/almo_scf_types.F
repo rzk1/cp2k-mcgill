@@ -18,7 +18,7 @@ MODULE almo_scf_types
    USE input_constants,                 ONLY: &
         cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, &
         cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, prec_default, &
-        prec_zero
+        prec_zero, almo_deloc_none
    USE kinds,                           ONLY: dp
 #include "./base/base_uses.f90"
 
@@ -37,7 +37,8 @@ MODULE almo_scf_types
    REAL(KIND=dp), PARAMETER, PUBLIC :: almo_max_cutoff_multiplier = 2.2_dp
 
    PUBLIC :: almo_scf_env_type, optimizer_options_type, &
-             print_optimizer_options, almo_scf_env_release
+             print_optimizer_options, almo_scf_env_release, &
+             almo_scf_history_type
 
    ! almo-based electronic structure analysis
    TYPE almo_analysis_type
@@ -258,7 +259,7 @@ MODULE almo_scf_types
                                                         matrix_sigma_sqrt, &
                                                         matrix_sigma_sqrt_inv, &
                                                         matrix_sigma_blk, &
-                                                        matrix_sigma_inv_blk
+                                                        matrix_sigma_inv_0deloc
 
       ! error vector (alpha,beta - if necessary)
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_err_blk
@@ -489,16 +490,14 @@ CONTAINS
       DEALLOCATE (almo_scf_env%almo_history%matrix_p_up_down)
       DEALLOCATE (almo_scf_env%almo_history%matrix_t)
       ! delete xalmo history
-      IF (almo_scf_env%deloc_method .NE. almo_deloc_none) THEN
-         DO ispin = 1, SIZE(almo_scf_env%xalmo_history%matrix_t)
-            DO istore = 1, MIN(almo_scf_env%xalmo_history%istore, almo_scf_env%xalmo_history%nstore)
-               CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
-            ENDDO
-            CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_t(ispin))
+      DO ispin = 1, SIZE(almo_scf_env%xalmo_history%matrix_t)
+         DO istore = 1, MIN(almo_scf_env%xalmo_history%istore, almo_scf_env%xalmo_history%nstore)
+            CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
          ENDDO
-         DEALLOCATE (almo_scf_env%almo_history%matrix_p_up_down)
-         DEALLOCATE (almo_scf_env%almo_history%matrix_t)
-      ENDIF
+         CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_t(ispin))
+      ENDDO
+      DEALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down)
+      DEALLOCATE (almo_scf_env%xalmo_history%matrix_t)
 
       DEALLOCATE (almo_scf_env)
 

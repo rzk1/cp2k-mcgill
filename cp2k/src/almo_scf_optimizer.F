@@ -22,7 +22,8 @@ MODULE almo_scf_optimizer
         almo_scf_t_blk_to_t_blk_orthonormal, almo_scf_t_to_p, apply_domain_operators, &
         apply_projector, construct_domain_preconditioner, construct_domain_r_down, &
         construct_domain_s_inv, construct_domain_s_sqrt, get_overlap, newton_grad_to_step, &
-        pseudo_invert_diagonal_blk
+        pseudo_invert_diagonal_blk, xalmo_initial_guess
+   USE domain_submatrix_types,          ONLY: domain_map_type
    USE almo_scf_qs,                     ONLY: almo_scf_dm_to_ks,&
                                               almo_scf_update_ks_energy,&
                                               matrix_qs_to_almo
@@ -728,8 +729,11 @@ CONTAINS
 !> \param quench_t ...
 !> \param matrix_t_in ...
 !> \param matrix_t_out ...
-!> \param assume_t0_q0x ...
-!> \param perturbation_only ...
+!> \param assume_t0_q0x - since it is extrememly difficult to converge the iterative
+!>                        procedure using T as an optimized variable, assume
+!>                        T = T_0 + (1-R_0)*X and optimize X
+!>                        T_0 is assumed to be the zero-delocalization reference 
+!> \param perturbation_only - perturbative (do not update Hamiltonian)
 !> \param special_case   to reduce the overhead special cases are implemented:
 !>                       xalmo_case_normal - no special case (i.e. xALMOs)
 !>                       xalmo_case_block_diag
@@ -756,7 +760,7 @@ CONTAINS
       INTEGER :: cg_iteration, dim0, eda_unit, fixed_line_search_niter, handle, ispin, iteration, &
          jj, line_search_iteration, max_iter, my_special_case, ncores, ndomains, occ1, &
          outer_iteration, outer_max_iter, prec_type, precond_domain_projector, unit_nr, &
-         zero_neg_eiv
+         zero_neg_eiv, nspins
       LOGICAL :: converged, do_md, first_md_iteration, just_started, line_search, &
          md_in_theta_space, optimize_theta, outer_prepare_to_exit, prepare_to_exit, &
          reset_conjugator, skip_grad, use_guess, use_preconditioner
@@ -766,9 +770,10 @@ CONTAINS
          t1, t2, t_norm, tau, time_step
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: evals
       TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_ks
-      TYPE(cp_dbcsr_type) :: FTsiginv, fvo_0, grad, inv_eiv, m_theta, m_tmp_nn_1, m_tmp_no_1, &
+      TYPE(cp_dbcsr_type), ALLOCATABLE, DIMENSION(:)     :: m_theta, m_t_in_local
+      TYPE(cp_dbcsr_type) :: FTsiginv, fvo_0, grad, inv_eiv, m_tmp_nn_1, m_tmp_no_1, &
          m_tmp_no_2, m_tmp_no_3, m_tmp_oo_1, matrix_sigma_inv_0, &
-         matrix_t_0, prec_oo, prec_oo_inv, prec_vv, prev_grad, prev_minus_prec_grad, prev_step, &
+         prec_oo, prec_oo_inv, prec_vv, prev_grad, prev_minus_prec_grad, prev_step, &
          siginvTFTsiginv, ST, step, STsiginv_0, velocity
       TYPE(cp_logger_type), POINTER                      :: logger
       TYPE(domain_submatrix_type), ALLOCATABLE, &
@@ -828,11 +833,6 @@ CONTAINS
       ncores = dbcsr_mp_numnodes(dbcsr_distribution_mp( &
                                  cp_dbcsr_distribution(almo_scf_env%matrix_s(1))))
 
-      ! Since it is extrememly difficult to converge the iterative
-      ! procedure using T as an optimized variable, assume
-      ! T = T_0 + (1-R_0)*X and optimize X for both perturbative
-      ! and non-perturbative cases
-
       IF (almo_scf_env%nspins == 1) THEN
          spin_factor = 2.0_dp
       ELSE
@@ -848,17 +848,32 @@ CONTAINS
 
       nspins = almo_scf_env%nspins
 
-      ! init matrices for the initial guess
+      ! create a local copy of matrix_t_in because
+      ! matrix_t_in and matrix_t_out can be the same matrix
+      ! we need to make sure data in matrix_t_in is intact
+      ! after we start writing to matrix_t_out
+      ALLOCATE(m_t_in_local(nspins))
       DO ispin = 1, nspins
-         CALL cp_dbcsr_init(m_theta)
-         CALL cp_dbcsr_create(m_theta, &
+         CALL cp_dbcsr_init(m_t_in_local(ispin))
+         CALL cp_dbcsr_create(m_t_in_local(ispin), &
+                 template=matrix_t_in(ispin), &
+                 matrix_type=dbcsr_type_no_symmetry)
+         CALL cp_dbcsr_copy(m_t_in_local(ispin), matrix_t_in(ispin))
+      ENDDO
+
+      ! init matrices for the initial guess
+      ALLOCATE(m_theta(nspins))
+      DO ispin = 1, nspins
+         CALL cp_dbcsr_init(m_theta(ispin))
+         CALL cp_dbcsr_create(m_theta(ispin), &
                               template=matrix_t_out(ispin), &
                               matrix_type=dbcsr_type_no_symmetry)
-      ENDIF
+      ENDDO
 
       ! create initial guess from the initial orbitals
-      CALL xalmo_initial_guess(m_guess=m_theta, 
-              m_t0 = almo_scf_env%matrix_t_in, &
+      CALL xalmo_initial_guess(m_guess=m_theta, & 
+              m_t_in = m_t_in_local, &
+              m_t0 = almo_scf_env%matrix_t_blk, &
               m_quench_t = quench_t, &
               m_overlap = almo_scf_env%matrix_s(1), &
               m_sigma_tmpl = almo_scf_env%matrix_sigma_inv, &
@@ -867,7 +882,7 @@ CONTAINS
               assume_t0_q0x = assume_t0_q0x, &
               optimize_theta = optimize_theta, &
               envelope_amplitude = almo_scf_env%envelope_amplitude, &
-              eps_filter = almo_scf_enf%eps_filter, &
+              eps_filter = almo_scf_env%eps_filter, &
               order_lanczos=almo_scf_env%order_lanczos,&
               eps_lanczos=almo_scf_env%eps_lanczos,&
               max_iter_lanczos=almo_scf_env%max_iter_lanczos)
@@ -876,7 +891,6 @@ CONTAINS
 
          ! init temporary storage
          CALL cp_dbcsr_init(prec_vv)
-         CALL cp_dbcsr_init(fvo_0)
          CALL cp_dbcsr_init(STsiginv_0)
          CALL cp_dbcsr_init(m_tmp_no_1)
          CALL cp_dbcsr_init(m_tmp_no_2)
@@ -909,9 +923,6 @@ CONTAINS
                               template=almo_scf_env%matrix_sigma(ispin), &
                               matrix_type=dbcsr_type_no_symmetry)
          CALL cp_dbcsr_create(STsiginv_0, &
-                              template=matrix_t_out(ispin), &
-                              matrix_type=dbcsr_type_no_symmetry)
-         CALL cp_dbcsr_create(fvo_0, &
                               template=matrix_t_out(ispin), &
                               matrix_type=dbcsr_type_no_symmetry)
          CALL cp_dbcsr_create(m_tmp_no_1, &
@@ -949,23 +960,6 @@ CONTAINS
          ALLOCATE (domain_r_down(ndomains))
          CALL init_submatrices(domain_r_down)
 
-         ! create matrices to store the initial state
-         CALL cp_dbcsr_init(matrix_t_0)
-         CALL cp_dbcsr_init(matrix_sigma_inv_0)
-         !CALL cp_dbcsr_init(matrix_sigma_0)
-         !CALL cp_dbcsr_init(matrix_p_0)
-         CALL cp_dbcsr_create(matrix_t_0, &
-                              template=matrix_t_out(ispin), &
-                              matrix_type=dbcsr_type_no_symmetry)
-         CALL cp_dbcsr_create(matrix_sigma_inv_0, &
-                              template=almo_scf_env%matrix_sigma_inv(ispin), &
-                              matrix_type=dbcsr_type_no_symmetry)
-         !CALL cp_dbcsr_create(matrix_sigma_0, &
-         !                     template=almo_scf_env%matrix_sigma_inv(ispin), &
-         !                     matrix_type=dbcsr_type_no_symmetry)
-         !CALL cp_dbcsr_create(matrix_p_0, &
-         !                     template=almo_scf_env%matrix_ks(ispin))
-
          CALL cp_dbcsr_set(step, 0.0_dp)
 
          md_in_theta_space = .FALSE. ! turn on later after several minimization steps
@@ -991,102 +985,36 @@ CONTAINS
                node_of_domain=almo_scf_env%cpu_of_domain)
          ENDIF
 
-         ! save the initial state and S*T_0*siginv_0
-         CALL cp_dbcsr_copy(matrix_t_0, matrix_t_in(ispin))
-         CALL cp_dbcsr_desymmetrize(almo_scf_env%matrix_sigma_inv(ispin), &
-                                    matrix_sigma_inv_0)
-         !IF (assume_t0_q0x.AND. special_case .EQ. xalmo_case_fully_deloc) THEN
-            CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                                   almo_scf_env%matrix_s(1), &
-                                   matrix_t_in(ispin), &
-                                   0.0_dp, ST, &
-                                   filter_eps=almo_scf_env%eps_filter)
-            CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                                   ST, &
-                                   matrix_sigma_inv_0, &
-                                   0.0_dp, STsiginv_0, &
-                                   filter_eps=almo_scf_env%eps_filter)
-         !ENDIF
+         IF (assume_t0_q0x) THEN
 
-         ! construct domain-projector
-         IF (my_special_case .EQ. xalmo_case_normal .AND. prec_type .EQ. 4) THEN
-            IF (assume_t0_q0x) THEN
+            ! save S.T_0.siginv_0
+            IF (special_case.eq.xalmo_case_fully_deloc) THEN
+               CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                                      almo_scf_env%matrix_s(1), &
+                                      almo_scf_env%matrix_t_blk(ispin), &
+                                      0.0_dp, ST, &
+                                      filter_eps=almo_scf_env%eps_filter)
+               CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                                      ST, &
+                                      almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
+                                      0.0_dp, STsiginv_0, &
+                                      filter_eps=almo_scf_env%eps_filter)
+            ENDIF
+
+            ! construct domain-projector
+            IF (my_special_case .EQ. xalmo_case_normal .AND. prec_type .EQ. 4) THEN
                CALL construct_domain_r_down( &
-                  matrix_t=matrix_t_0, &
-                  matrix_sigma_inv=matrix_sigma_inv_0, &
+                  matrix_t=almo_scf_env%matrix_t_blk(ispin), &
+                  matrix_sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   matrix_s=almo_scf_env%matrix_s(1), &
                   subm_r_down=domain_r_down(:), &
                   dpattern=quench_t(ispin), &
                   map=almo_scf_env%domain_map(ispin), &
                   node_of_domain=almo_scf_env%cpu_of_domain, &
                   filter_eps=almo_scf_env%eps_filter)
-            ENDIF ! assume_t0_q0x
-         ENDIF
+            ENDIF
 
-         ! construct all necessary zero-order matrices
-         ! note that the guess orbitals are not necessarily t_0
-         IF ( perturbation_only ) THEN
-            ! compute the density matrix
-            CALL almo_scf_t_to_p( &
-               t=matrix_t_0, &
-               p=almo_scf_env%matrix_p(ispin), &
-               eps_filter=almo_scf_env%eps_filter, &
-               orthog_orbs=.FALSE., &
-               s=almo_scf_env%matrix_s(1), &
-               sigma=almo_scf_env%matrix_sigma(ispin), &
-               sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
-               use_guess=.FALSE.)
-            CALL cp_dbcsr_scale(almo_scf_env%matrix_p(ispin), &
-                                spin_factor)
-            ! RZK-warning part of the procedure must be outside the spin loop
-            CALL almo_scf_dm_to_ks(qs_env, almo_scf_env, energy_new)
-            CALL get_qs_env(qs_env, matrix_ks=matrix_ks)
-            CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
-                                   almo_scf_env%matrix_ks(ispin), &
-                                   almo_scf_env, .FALSE.)
-            CALL cp_dbcsr_filter(almo_scf_env%matrix_ks(ispin), &
-                                 almo_scf_env%eps_filter)
-compute initial gradient to save as fvo0                  
-            CALL compute_gradient(&
-                   m_grad_out=grad(ispin),&
-                   m_tmp_no_2=m_tmp_no_2,&
-                    m_ks=almo_scf_env%matrix_ks(ispin),&
-                    m_s=almo_scf_env%matrix_s(1),&
-                   m_t=matrix_t_out(ispin),&
-                    m_t0=matrix_t_0,&
-                    m_siginv=almo_scf_env%matrix_sigma_inv(ispin),&
-                    m_quench_t=quench_t(ispin),&
-                   m_FTsiginv=FTsiginv(ispin),&
-                   m_siginvTFTsiginv=siginvTFTsiginv(ispin),&
-                    m_ST=ST(ispin),&
-                    m_STsiginv0=STsiginv_0,&
-                    m_theta=m_theta,&
-                    !m_sig_sqrti_ii=m_sig_sqrti_ii(ispin),&
-                    domain_s_inv=almo_scf_env%domain_s_inv(:,ispin),&
-                    domain_r_down=domain_r_down(:,ispin),&
-                    cpu_of_domain=almo_scf_env%cpu_of_domain,&
-                    domain_map=almo_scf_env%domain_map(ispin),&
-                    assume_t0_q0x=assume_t0_q0x,&
-                    optimize_theta=optimize_theta,&
-                    perturbation_only=perturbation_only,&
-                    normalize_orbitals=.FALSE.,&
-                    penalty_occ_vol=.FALSE.,&
-                    penalty_occ_vol_prefactor=0.0_dp,&
-                    !normalize_orbitals=normalize_orbitals,&
-                    !penalty_occ_vol=penalty_occ_vol,&
-                    !penalty_occ_vol_prefactor=penalty_occ_vol_g_prefactor,&
-                    envelope_amplitude=almo_scf_env%envelope_amplitude,&
-                    eps_filter=almo_scf_env%eps_filter,&
-                    spin_factor=spin_factor,&
-                    special_case=my_special_case)
-
-                  !NEW    ! save the first gradient
-                  !NEW    ! it is equal to F_vo and necessary to compute
-                  !NEW    ! the correction to the energy
-                  NEW    CALL cp_dbcsr_copy(fvo_0, m_tmp_no_2)
-                  !NEW    CALL cp_dbcsr_scale(fvo_0, 0.5_dp/spin_factor)
-         ENDIF
-
+         ENDIF ! assume_t0_q0x
 
          ! start the outer SCF loop
          outer_max_iter = optimizer%max_iter_outer_loop
@@ -1124,26 +1052,8 @@ compute initial gradient to save as fvo0
                ENDIF
 
                ! compute the MO coefficients from theta
-               !NEW IF (assume_t0_q0x .AND. just_started) THEN
-               !NEW    CALL cp_dbcsr_set(matrix_t_out(ispin), 0.0_dp)
-               !NEW ENDIF
                IF (optimize_theta) THEN
-                  CALL cp_dbcsr_norm(m_theta, &
-                                     dbcsr_norm_maxabsnorm, norm_scalar=t_norm)
-                  !IF (unit_nr>0) THEN
-                  !   WRITE(unit_nr,*) "VAR1: |T|: ", t_norm
-                  !   !WRITE(unit_nr,*) "VAR1: SIN(|T|/A), COS(|T|/A), A*SIN(|T|/A): ",&
-                  !   !   SIN(t_norm/almo_scf_env%envelope_amplitude),&
-                  !   !   COS(t_norm/almo_scf_env%envelope_amplitude),&
-                  !   !   almo_scf_env%envelope_amplitude*SIN(t_norm/almo_scf_env%envelope_amplitude)
-                  !   WRITE(unit_nr,*) "VAR1: TANH(|T|/A), D(A*TANH(|T|/A)), A*TANH(|T|/A): ",&
-                  !      TANH(t_norm/almo_scf_env%envelope_amplitude),&
-                  !      1.0_dp-(TANH(t_norm/almo_scf_env%envelope_amplitude))**2,&
-                  !      almo_scf_env%envelope_amplitude*TANH(t_norm/almo_scf_env%envelope_amplitude)
-                  !ENDIF
-               ENDIF
-               IF (optimize_theta) THEN
-                  CALL cp_dbcsr_copy(m_tmp_no_1, m_theta)
+                  CALL cp_dbcsr_copy(m_tmp_no_1, m_theta(ispin))
                   CALL cp_dbcsr_function_of_elements(m_tmp_no_1, &
                                                      !func=dbcsr_func_sin,&
                                                      func=dbcsr_func_tanh, &
@@ -1152,26 +1062,13 @@ compute initial gradient to save as fvo0
                   CALL cp_dbcsr_scale(m_tmp_no_1, &
                                       almo_scf_env%envelope_amplitude)
                ELSE
-                  CALL cp_dbcsr_copy(m_tmp_no_1, m_theta)
+                  CALL cp_dbcsr_copy(m_tmp_no_1, m_theta(ispin))
                ENDIF
                CALL cp_dbcsr_hadamard_product(m_tmp_no_1, &
                                               quench_t(ispin), &
                                               matrix_t_out(ispin))
-               CALL cp_dbcsr_norm(matrix_t_out(ispin), &
-                                  dbcsr_norm_maxabsnorm, norm_scalar=t_norm)
-
-               !IF (optimize_theta) THEN
-               !   IF (unit_nr>0) THEN
-               !      WRITE(unit_nr,*) "VAR1: |B*A*TANH(T/A)|: ", t_norm
-               !   ENDIF
-               !ELSE
-               !   IF (unit_nr>0) THEN
-               !      WRITE(unit_nr,*) "VAR1: |B*X|: ", t_norm
-               !   ENDIF
-               !ENDIF
 
                ! project out R_0
-               ! NEW IF (assume_t0_q0x .AND. (.NOT. just_started)) THEN
                IF (assume_t0_q0x) THEN
                   IF (my_special_case .EQ. xalmo_case_fully_deloc) THEN
                      CALL cp_dbcsr_multiply("T", "N", 1.0_dp, &
@@ -1180,7 +1077,7 @@ compute initial gradient to save as fvo0
                                             0.0_dp, m_tmp_oo_1, &
                                             filter_eps=almo_scf_env%eps_filter)
                      CALL cp_dbcsr_multiply("N", "N", -1.0_dp, &
-                                            matrix_t_0, &
+                                            almo_scf_env%matrix_t_blk(ispin), &
                                             m_tmp_oo_1, &
                                             1.0_dp, matrix_t_out(ispin), &
                                             filter_eps=almo_scf_env%eps_filter)
@@ -1203,33 +1100,9 @@ compute initial gradient to save as fvo0
                      CALL cp_dbcsr_copy(matrix_t_out(ispin), &
                                         m_tmp_no_1)
                   ENDIF ! special case
-                  !NEW CALL cp_dbcsr_norm(matrix_t_out(ispin), &
-                  !NEW                    dbcsr_norm_maxabsnorm, norm_scalar=t_norm)
-                  !IF (unit_nr>0) THEN
-                  !   WRITE(unit_nr,*) "VAR1: |Q.X|: ", t_norm
-                  !ENDIF
-               ENDIF ! end assume_t0_q0x
-
-               IF (assume_t0_q0x) THEN
                   CALL cp_dbcsr_add(matrix_t_out(ispin), &
-                                    matrix_t_0, 1.0_dp, 1.0_dp)
-                  CALL cp_dbcsr_norm(matrix_t_out(ispin), &
-                                     dbcsr_norm_maxabsnorm, norm_scalar=t_norm)
-                  !IF (unit_nr>0) THEN
-                  !   WRITE(unit_nr,*) "VAR1: |T0+Q.X|: ", t_norm
-                  !ENDIF
+                                    almo_scf_env%matrix_t_blk(ispin), 1.0_dp, 1.0_dp)
                ENDIF
-
-               !! RZK-warning simple orthogonalization for block-diagonal ALMOs
-               !CALL orthogonalize_mos(ket=matrix_t_out(ispin),&
-               !        overlap=almo_scf_env%matrix_sigma_blk(ispin),&
-               !        metric=almo_scf_env%matrix_s(1),&
-               !        retain_locality=.TRUE.,&
-               !        only_normalize=.TRUE.,&
-               !        eps_filter=almo_scf_env%eps_filter,&
-               !        order_lanczos=almo_scf_env%order_lanczos,&
-               !        eps_lanczos=almo_scf_env%eps_lanczos,&
-               !        max_iter_lanczos=almo_scf_env%max_iter_lanczos)
 
                CALL cp_dbcsr_filter(matrix_t_out(ispin), &
                                     eps=almo_scf_env%eps_filter)
@@ -1247,40 +1120,15 @@ compute initial gradient to save as fvo0
                CALL cp_dbcsr_scale(almo_scf_env%matrix_p(ispin), &
                                    spin_factor)
 
-               !! RZK-warning to debug lets see eigenvalues of the ALMO overlap
-               !CALL cp_dbcsr_copy(almo_scf_env%matrix_sigma_blk(ispin),&
-               !               almo_scf_env%matrix_sigma(ispin),&
-               !               keep_sparsity=.TRUE.)
-               !CALL cp_dbcsr_init(u_sigma)
-               !CALL cp_dbcsr_create(u_sigma,template=almo_scf_env%matrix_sigma(ispin),&
-               !        matrix_type=dbcsr_type_no_symmetry)
-               !CALL cp_dbcsr_get_info(almo_scf_env%matrix_sigma_blk(ispin), nfullrows_total=occ1 )
-               !ALLOCATE(evals(occ1))
-               !CALL cp_dbcsr_syevd(almo_scf_env%matrix_sigma_blk(ispin),u_sigma,evals,&
-               !        almo_scf_env%para_env,almo_scf_env%blacs_env)
-               !WRITE(*,*) 'SIGMA_BLCK: ', evals
-               !DEALLOCATE(evals)
-               !CALL cp_dbcsr_create(u_sigma,template=almo_scf_env%matrix_sigma(ispin),&
-               !        matrix_type=dbcsr_type_no_symmetry)
-               !CALL cp_dbcsr_get_info(almo_scf_env%matrix_sigma(ispin), nfullrows_total=occ1 )
-               !ALLOCATE(evals(occ1))
-               !CALL cp_dbcsr_get_diag(almo_scf_env%matrix_sigma(ispin),evals)
-               !WRITE(*,*) 'TRACE: ', SUM(evals)
-               !CALL cp_dbcsr_syevd(almo_scf_env%matrix_sigma(ispin),u_sigma,evals,&
-               !        almo_scf_env%para_env,almo_scf_env%blacs_env)
-               !WRITE(*,*) 'SIGMA_FULL: ', evals
-               !WRITE(*,*) 'SUMEI: ', SUM(evals)
-               !DEALLOCATE(evals)
-               !CALL cp_dbcsr_release(u_sigma)
-
                ! update the KS matrix and energy if necessary
-               !NEW IF (.NOT. (perturbation_only .AND. (.NOT. just_started))) THEN
-               IF ( .NOT.perturbation_only ) THEN
+               IF ( perturbation_only ) THEN
+                  IF (just_started) THEN
+                     CALL cp_dbcsr_copy(almo_scf_env%matrix_ks(ispin), &
+                             almo_scf_env%matrix_ks_0deloc(ispin))
+                  ENDIF
+               ELSE
                   !!! RZK-warning the KS matrix must be updated outside the spin loop
                   !!! Now the code works only for restricted orbitals
-                  !IF (unit_nr>0) THEN
-                  !   WRITE(unit_nr,*) "....updating KS matrix...."
-                  !ENDIF
                   CALL almo_scf_dm_to_ks(qs_env, almo_scf_env, energy_new)
                   CALL get_qs_env(qs_env, matrix_ks=matrix_ks)
                   CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
@@ -1290,51 +1138,18 @@ compute initial gradient to save as fvo0
                                        almo_scf_env%eps_filter)
                ENDIF
 
-               !NEW ! save the initial state
-               !NEW IF (just_started) THEN
-               !NEW    CALL cp_dbcsr_copy(matrix_p_0, almo_scf_env%matrix_p(ispin))
-               !NEW    CALL cp_dbcsr_desymmetrize(almo_scf_env%matrix_sigma(ispin), &
-               !NEW                               matrix_sigma_0)
-               !NEW    CALL cp_dbcsr_desymmetrize(almo_scf_env%matrix_sigma_inv(ispin), &
-               !NEW                               matrix_sigma_inv_0)
-               !NEW ENDIF
+               CALL compute_frequently_used_matrices(&
+                       filter_eps=almo_scf_env%eps_filter,&
+                       m_T_in=matrix_t_out(ispin),&
+                       m_siginv_in=almo_scf_env%matrix_sigma_inv(ispin),&
+                       m_S_in=almo_scf_env%matrix_s(1),&
+                       m_F_in=almo_scf_env%matrix_ks(ispin),&
+                       m_FTsiginv_out=FTsiginv,&
+                       m_siginvTFTsiginv_out=siginvTFTsiginv,&
+                       m_ST_out=ST)
 
-               !NEW IF (my_special_case .EQ. xalmo_case_normal .AND. prec_type .EQ. 4) THEN
-               !NEW    ! construct domain-projector
-               !NEW    IF (assume_t0_q0x .AND. just_started) THEN
-               !NEW       CALL construct_domain_r_down( &
-               !NEW          matrix_t=matrix_t_0, &
-               !NEW          matrix_sigma_inv=matrix_sigma_inv_0, &
-               !NEW          matrix_s=almo_scf_env%matrix_s(1), &
-               !NEW          subm_r_down=domain_r_down(:), &
-               !NEW          dpattern=quench_t(ispin), &
-               !NEW          map=almo_scf_env%domain_map(ispin), &
-               !NEW          node_of_domain=almo_scf_env%cpu_of_domain, &
-               !NEW          filter_eps=almo_scf_env%eps_filter)
-               !NEW       !CALL construct_domain_r_down(&
-               !NEW       !        matrix_t=matrix_t_out(ispin),&
-               !NEW       !        matrix_sigma_inv=almo_scf_env%matrix_sigma_inv(ispin),&
-               !NEW       !        matrix_s=almo_scf_env%matrix_s(1),&
-               !NEW       !        subm_r_down=domain_r_down(:),&
-               !NEW       !        dpattern=quench_t(ispin),&
-               !NEW       !        map=almo_scf_env%domain_map(ispin),&
-               !NEW       !        node_of_domain=almo_scf_env%cpu_of_domain,&
-               !NEW       !        filter_eps=almo_scf_env%eps_filter)
-               !NEW    ENDIF ! assume_t0_q0x
-               !NEW ENDIF ! debug condition
-
-               IF (perturbation_only) THEN
+               IF ( perturbation_only ) THEN
                   ! calculate objective function Tr(F_0 R)
-                  CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                                         almo_scf_env%matrix_ks(ispin), &
-                                         matrix_t_out(ispin), &
-                                         0.0_dp, m_tmp_no_1, &
-                                         filter_eps=almo_scf_env%eps_filter)
-                  CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                                         m_tmp_no_1, &
-                                         almo_scf_env%matrix_sigma_inv(ispin), &
-                                         0.0_dp, FTsiginv, &
-                                         filter_eps=almo_scf_env%eps_filter)
                   CALL cp_dbcsr_trace(matrix_t_out(ispin), &
                                       FTsiginv, energy_new, "T", "N")
                   energy_new = energy_new*spin_factor
@@ -1353,26 +1168,23 @@ compute initial gradient to save as fvo0
 
                IF (.NOT. skip_grad) THEN
 
-                  !IF (unit_nr>0) THEN
-                  !   WRITE(unit_nr,*) "....computing gradient...."
-                  !ENDIF
                   CALL compute_gradient(&
-                          m_grad_out=m_tmp_no_2,&
-                          !m_grad_out=grad(ispin),&
+                          !m_grad_out=m_tmp_no_2,&
+                          m_grad_out=grad,&
                           m_ks=almo_scf_env%matrix_ks(ispin),&
                           m_s=almo_scf_env%matrix_s(1),&
                           m_t=matrix_t_out(ispin),&
-                          m_t0=matrix_t_0,&
+                          m_t0=almo_scf_env%matrix_t_blk(ispin),&
                           m_siginv=almo_scf_env%matrix_sigma_inv(ispin),&
                           m_quench_t=quench_t(ispin),&
-                          m_FTsiginv=FTsiginv(ispin),&
-                          m_siginvTFTsiginv=siginvTFTsiginv(ispin),&
-                          m_ST=ST(ispin),&
+                          m_FTsiginv=FTsiginv,&
+                          m_siginvTFTsiginv=siginvTFTsiginv,&
+                          m_ST=ST,&
                           m_STsiginv0=STsiginv_0,&
-                          m_theta=m_theta,&
+                          m_theta=m_theta(ispin),&
                           !m_sig_sqrti_ii=m_sig_sqrti_ii(ispin),&
                           domain_s_inv=almo_scf_env%domain_s_inv(:,ispin),&
-                          domain_r_down=domain_r_down(:,ispin),&
+                          domain_r_down=domain_r_down(:),&
                           cpu_of_domain=almo_scf_env%cpu_of_domain,&
                           domain_map=almo_scf_env%domain_map(ispin),&
                           assume_t0_q0x=assume_t0_q0x,&
@@ -1389,143 +1201,10 @@ compute initial gradient to save as fvo0
                           spin_factor=spin_factor,&
                           special_case=my_special_case)
 
-
-                  !! do d_E/d_theta first
-                  !IF (.NOT. perturbation_only) THEN
-                  !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                  !                          almo_scf_env%matrix_ks(ispin), &
-                  !                          matrix_t_out(ispin), &
-                  !                          0.0_dp, m_tmp_no_1, &
-                  !                          filter_eps=almo_scf_env%eps_filter)
-                  !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                  !                          m_tmp_no_1, &
-                  !                          almo_scf_env%matrix_sigma_inv(ispin), &
-                  !                          0.0_dp, FTsiginv, &
-                  !                          filter_eps=almo_scf_env%eps_filter)
-                  !   !CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-                  !   !        m_tmp_no_1,&
-                  !   !        almo_scf_env%matrix_sigma_inv(ispin),&
-                  !   !        0.0_dp,m_tmp_no_2,&
-                  !   !        retain_sparsity=.TRUE.)
-                  !ENDIF
-                  !CALL cp_dbcsr_copy(m_tmp_no_2, quench_t(ispin))
-                  !CALL cp_dbcsr_copy(m_tmp_no_2, &
-                  !                   FTsiginv, keep_sparsity=.TRUE.)
-                  !CALL cp_dbcsr_multiply("T", "N", 1.0_dp, &
-                  !                       matrix_t_out(ispin), &
-                  !                       FTsiginv, &
-                  !                       0.0_dp, m_tmp_oo_1, &
-                  !                       filter_eps=almo_scf_env%eps_filter)
-                  !!CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-                  !!        m_tmp_oo_1,&
-                  !!        almo_scf_env%matrix_sigma_inv(ispin),&
-                  !!        0.0_dp,m_tmp_oo_2,&
-                  !!        filter_eps=almo_scf_env%eps_filter)
-                  !CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                  !                       almo_scf_env%matrix_sigma_inv(ispin), &
-                  !                       m_tmp_oo_1, &
-                  !                       0.0_dp, siginvTFTsiginv, &
-                  !                       filter_eps=almo_scf_env%eps_filter)
-                  !CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                  !                       almo_scf_env%matrix_s(1), &
-                  !                       matrix_t_out(ispin), &
-                  !                       0.0_dp, ST, &
-                  !                       filter_eps=almo_scf_env%eps_filter)
-                  !!NEW ! save S*T_0*siginv_0
-                  !!NEW IF (assume_t0_q0x .AND. just_started &
-                  !!NEW     .AND. special_case .EQ. xalmo_case_fully_deloc) THEN
-                  !!NEW    CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                  !!NEW                           ST, &
-                  !!NEW                           almo_scf_env%matrix_sigma_inv(ispin), &
-                  !!NEW                           0.0_dp, STsiginv_0, &
-                  !!NEW                           filter_eps=almo_scf_env%eps_filter)
-                  !!NEW ENDIF
-                  !CALL cp_dbcsr_multiply("N", "N", -1.0_dp, &
-                  !                       ST, &
-                  !                       siginvTFTsiginv, &
-                  !                       1.0_dp, m_tmp_no_2, &
-                  !                       retain_sparsity=.TRUE.)
-                  !CALL cp_dbcsr_scale(m_tmp_no_2, &
-                  !                    2.0_dp*spin_factor)
-                  !CALL cp_dbcsr_filter(m_tmp_no_2, &
-                  !                     eps=almo_scf_env%eps_filter)
-
-                  !!NEW IF (perturbation_only .AND. just_started) THEN
-                  !!NEW    ! save the first gradient
-                  !!NEW    ! it is equal to F_vo and necessary to compute
-                  !!NEW    ! the correction to the energy
-                  !!NEW    CALL cp_dbcsr_copy(fvo_0, m_tmp_no_2)
-                  !!NEW    CALL cp_dbcsr_scale(fvo_0, 0.5_dp/spin_factor)
-                  !!NEW ENDIF
-
-                  !! a short print-out
-                  !CALL cp_dbcsr_norm(m_tmp_no_2, &
-                  !                   dbcsr_norm_maxabsnorm, norm_scalar=t_norm)
-                  !!IF (unit_nr>0) THEN
-                  !!   WRITE(unit_nr,*) "Maximum norm of dE/dT: ", t_norm
-                  !!ENDIF
-
-                  !! project out the occupied space from the gradient
-                  !IF (assume_t0_q0x) THEN
-                  !   IF (my_special_case .EQ. xalmo_case_fully_deloc) THEN
-                  !      CALL cp_dbcsr_copy(grad, m_tmp_no_2)
-                  !      CALL cp_dbcsr_multiply("T", "N", 1.0_dp, &
-                  !                             matrix_t_0, &
-                  !                             grad, &
-                  !                             0.0_dp, m_tmp_oo_1, &
-                  !                             filter_eps=almo_scf_env%eps_filter)
-                  !      CALL cp_dbcsr_multiply("N", "N", -1.0_dp, &
-                  !                             STsiginv_0, &
-                  !                             m_tmp_oo_1, &
-                  !                             1.0_dp, grad, &
-                  !                             filter_eps=almo_scf_env%eps_filter)
-                  !   ELSE IF (my_special_case .EQ. xalmo_case_block_diag) THEN
-                  !      ! should not be here - cannot project the zero-order space from itself
-                  !      CPABORT("")
-                  !   ELSE
-                  !      ! no special case: normal xALMOs
-                  !      CALL apply_domain_operators( &
-                  !         matrix_in=m_tmp_no_2, &
-                  !         matrix_out=grad, &
-                  !         operator2=domain_r_down(:), &
-                  !         operator1=almo_scf_env%domain_s_inv(:, ispin), &
-                  !         dpattern=quench_t(ispin), &
-                  !         map=almo_scf_env%domain_map(ispin), &
-                  !         node_of_domain=almo_scf_env%cpu_of_domain, &
-                  !         my_action=1, &
-                  !         filter_eps=almo_scf_env%eps_filter, &
-                  !         !matrix_trimmer=,&
-                  !         use_trimmer=.FALSE.)
-                  !   ENDIF ! my_special_case
-                  !   CALL cp_dbcsr_copy(m_tmp_no_2, grad)
-                  !ENDIF
-
-                  !! transform d_E/d_T to d_E/d_theta
-                  !IF (optimize_theta) THEN
-                  !   CALL cp_dbcsr_copy(m_tmp_no_1, m_theta)
-                  !   CALL cp_dbcsr_function_of_elements(m_tmp_no_1, &
-                  !                                      !func=dbcsr_func_cos,&
-                  !                                      func=dbcsr_func_dtanh, &
-                  !                                      a0=0.0_dp, &
-                  !                                      a1=1.0_dp/almo_scf_env%envelope_amplitude)
-                  !   CALL cp_dbcsr_scale(m_tmp_no_1, &
-                  !                       almo_scf_env%envelope_amplitude)
-                  !   CALL cp_dbcsr_set(m_tmp_no_3, 0.0_dp)
-                  !   CALL cp_dbcsr_filter(m_tmp_no_3, &
-                  !                        eps=almo_scf_env%eps_filter)
-                  !   CALL cp_dbcsr_hadamard_product(m_tmp_no_2, &
-                  !                                  m_tmp_no_1, &
-                  !                                  m_tmp_no_3, &
-                  !                                  b_assume_value=1.0_dp)
-                  !   CALL cp_dbcsr_hadamard_product(m_tmp_no_3, &
-                  !                                  quench_t(ispin), &
-                  !                                  grad)
-                  !ELSE ! simply copy
-                  !   CALL cp_dbcsr_hadamard_product(m_tmp_no_2, &
-                  !                                  quench_t(ispin), &
-                  !                                  grad)
-                  !ENDIF
-                  !CALL cp_dbcsr_filter(grad, eps=almo_scf_env%eps_filter)
+                  ! RZK-warning:
+                  ! some obsolete routines require gradient in m_tmp_no_2
+                  ! these must be removed and the line below deleted
+                  CALL cp_dbcsr_copy(m_tmp_no_2, grad)
 
                ENDIF ! skip_grad
 
@@ -1560,9 +1239,9 @@ compute initial gradient to save as fvo0
                   kin_energy = 0.5_dp*kin_energy*kin_energy
 
                   ! update positions theta(i) = theta(i-1) + dT*v(i-1) + 0.5*dT*dT*a(i-1)
-                  CALL cp_dbcsr_add(m_theta, &
+                  CALL cp_dbcsr_add(m_theta(ispin), &
                                     velocity, 1.0_dp, time_step)
-                  CALL cp_dbcsr_add(m_theta, &
+                  CALL cp_dbcsr_add(m_theta(ispin), &
                                     step, 1.0_dp, 0.5_dp*time_step*time_step)
 
                   iter_type = "MD"
@@ -1873,7 +1552,7 @@ compute initial gradient to save as fvo0
                                  matrix_t=matrix_t_out(ispin), &
                                  matrix_sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                                  !matrix_ks=matrix_ks_0,&
-                                 !matrix_t=matrix_t_0,&
+                                 !matrix_t=almo_scf_env%matrix_t_blk(ispin),&
                                  !matrix_sigma_inv=matrix_sigma_inv_0,&
                                  quench_t=quench_t(ispin), &
                                  spin_factor=spin_factor, &
@@ -2163,7 +1842,7 @@ compute initial gradient to save as fvo0
                      ENDIF
 
                      ! update theta
-                     CALL cp_dbcsr_add(m_theta, step, 1.0_dp, step_size)
+                     CALL cp_dbcsr_add(m_theta(ispin), step, 1.0_dp, step_size)
 
                   ENDIF ! not.prepare_to_exit
 
@@ -2211,81 +1890,43 @@ compute initial gradient to save as fvo0
          ! post SCF-loop calculations
          IF (converged) THEN
 
-            ! obtain MO coefficients from final theta
-            ! RZK-warning: if decide to uncomment make sure that Theta->T
-            ! procedure is consistent with the procedure in the loop
-            !IF (optimize_theta) THEN
-            !   CALL cp_dbcsr_copy(m_tmp_no_1,m_theta)
-            !   CALL cp_dbcsr_function_of_elements(m_tmp_no_1,&
-            !           func=dbcsr_func_tanh,&
-            !           a0=0.0_dp,&
-            !           a1=1.0_dp/almo_scf_env%envelope_amplitude)
-            !   CALL cp_dbcsr_hadamard_product(m_tmp_no_1,&
-            !           quench_t(ispin),&
-            !           matrix_t_out(ispin))
-            !   CALL cp_dbcsr_scale(matrix_t_out(ispin),&
-            !           almo_scf_env%envelope_amplitude)
-            !ELSE
-            !   CALL cp_dbcsr_copy(m_tmp_no_1,m_theta)
-            !   CALL cp_dbcsr_hadamard_product(m_tmp_no_1,&
-            !           quench_t(ispin),&
-            !           matrix_t_out(ispin))
-            !ENDIF
-            !IF (perturbation_only) THEN
-            !   CALL cp_dbcsr_add(matrix_t_out(ispin),&
-            !           matrix_t_0,1.0_dp,1.0_dp)
-            !ENDIF
-            !CALL cp_dbcsr_filter(matrix_t_out(ispin),&
-            !        eps=almo_scf_env%eps_filter)
-            !CALL cp_dbcsr_norm(matrix_t_out(ispin),&
-            !        dbcsr_norm_maxabsnorm, norm_scalar=grad_norm)
-            !IF (unit_nr>0) THEN
-            !   WRITE(unit_nr,*) "Maximum norm of the ALMOs: ", grad_norm
-            !ENDIF
-
-            !!!!! experiment: bump final amplitudes and get T
-            !!!!IF (.NOT.optimize_theta.AND.perturbation_only) THEN
-            !!!!   CALL cp_dbcsr_copy(m_tmp_no_1,m_theta)
-            !!!!   CALL cp_dbcsr_hadamard_product(m_tmp_no_1,&
-            !!!!           quench_t_saved,&
-            !!!!           matrix_t_out(ispin))
-            !!!!   IF (use_projector) THEN
-            !!!!      CALL almo_scf_domain_operations(&
-            !!!!              matrix_in=matrix_t_out(ispin),&
-            !!!!              matrix_out=m_tmp_no_1,&
-            !!!!              quench_t=quench_t(ispin),&
-            !!!!              my_action=2,&
-            !!!!              matrix_s=almo_scf_env%matrix_s(1),&
-            !!!!              matrix_sigma_inv=matrix_sigma_inv_0,&
-            !!!!              matrix_t=matrix_t_0)
-            !!!!
-            !!!!      CALL cp_dbcsr_copy(matrix_t_out(ispin),&
-            !!!!              m_tmp_no_1)
-            !!!!   ENDIF
-            !!!!   IF (perturbation_only) THEN
-            !!!!      CALL cp_dbcsr_add(matrix_t_out(ispin),&
-            !!!!              matrix_t_0,1.0_dp,1.0_dp)
-            !!!!
-            !!!!   ENDIF
-            !!!!ENDIF
-            !!!!
-            !!!!IF (.NOT.optimize_theta) THEN
-            !!!!   CALL cp_dbcsr_copy(quench_t(ispin),quench_t_saved)
-            !!!!ENDIF
+            ! RZK-warning: must obtain MO coefficients from final theta
 
             IF (perturbation_only) THEN
 
+               ! compute Fvo for the zero-delocalization state
+               CALL cp_dbcsr_init(fvo_0)
+               CALL cp_dbcsr_create(fvo_0, &
+                       template=matrix_t_out(ispin), &
+                       matrix_type=dbcsr_type_no_symmetry)
+               CALL compute_frequently_used_matrices(&
+                       filter_eps=almo_scf_env%eps_filter,&
+                       m_T_in=almo_scf_env%matrix_t_blk(ispin),&
+                       m_siginv_in=almo_scf_env%matrix_sigma_inv_0deloc(ispin),&
+                       m_S_in=almo_scf_env%matrix_s(1),&
+                       m_F_in=almo_scf_env%matrix_ks_0deloc(ispin),&
+                       m_FTsiginv_out=FTsiginv,&
+                       m_siginvTFTsiginv_out=siginvTFTsiginv,&
+                       m_ST_out=ST)
+               CALL cp_dbcsr_copy(fvo_0,quench_t(ispin))
+               CALL cp_dbcsr_copy(fvo_0,FTsiginv,keep_sparsity=.TRUE.)
+               CALL cp_dbcsr_multiply("N","N",-1.0_dp,&
+                       ST,&
+                       siginvTFTsiginv,&
+                       1.0_dp,fvo_0,&
+                       retain_sparsity=.TRUE.)
+
                ! use step matrix to store excitation amplitudes
-               CALL cp_dbcsr_copy(step, matrix_t_0)
+               CALL cp_dbcsr_copy(step, almo_scf_env%matrix_t_blk(ispin))
                CALL cp_dbcsr_add(step, matrix_t_out(ispin), &
                                  -1.0_dp, 1.0_dp)
 
                CALL cp_dbcsr_scale(fvo_0, spin_factor)
                CALL cp_dbcsr_trace(step, fvo_0, energy_new, "T", "N")
 
-               !CALL cp_dbcsr_add(matrix_t_0,matrix_t_out(ispin),&
+               !CALL cp_dbcsr_add(almo_scf_env%matrix_t_blk(ispin),matrix_t_out(ispin),&
                !        -1.0_dp,1.0_dp)
-               !CALL cp_dbcsr_trace(matrix_t_0,&
+               !CALL cp_dbcsr_trace(almo_scf_env%matrix_t_blk(ispin),&
                !        fvo_0,energy_new,"T","N")
 
                ! print out the energy lowering
@@ -2311,7 +1952,7 @@ compute initial gradient to save as fvo0
 
                   CALL cp_dbcsr_hadamard_product(step, &
                                                  fvo_0, m_tmp_no_1)
-                  !CALL cp_dbcsr_hadamard_product(matrix_t_0,&
+                  !CALL cp_dbcsr_hadamard_product(almo_scf_env%matrix_t_blk(ispin), &
                   !        fvo_0,m_tmp_no_1)
                   CALL cp_dbcsr_filter(m_tmp_no_1, almo_scf_env%eps_filter)
 
@@ -2328,19 +1969,14 @@ compute initial gradient to save as fvo0
                   IF (unit_nr > 0) THEN
                      WRITE (unit_nr, '(T2,A)') "DECOMPOSITION OF CHARGE TRANSFER TERMS"
                   ENDIF
-                  !NEW ! first, compute [QR'R]_mu^i = [(S-SRS).X.siginv']_mu^i
-                  !NEW ! a. tmp1 = S.T0
-                  !NEW CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                  !NEW                        almo_scf_env%matrix_s(1), &
-                  !NEW                        matrix_t_0, &
-                  !NEW                        0.0_dp, m_tmp_no_1, &
-                  !NEW                        filter_eps=almo_scf_env%eps_filter)
-                  !NEW ! b. tmp3 = tmp1.siginv0 = S.T0.siginv0
-                  !NEW CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                  !NEW                        m_tmp_no_1, &
-                  !NEW                        matrix_sigma_inv_0, &
-                  !NEW                        0.0_dp, m_tmp_no_3, &
-                  !NEW                        filter_eps=almo_scf_env%eps_filter)
+
+                  ! first, compute [QR'R]_mu^i = [(S-SRS).X.siginv']_mu^i
+                  ! a. STsiginv_0 = S.T0*siginv0
+                  CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                                         ST, &
+                                         almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
+                                         0.0_dp, STsiginv_0, &
+                                         filter_eps=almo_scf_env%eps_filter)
                   ! c. tmp1 = S.X
                   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
                                          almo_scf_env%matrix_s(1), &
@@ -2349,19 +1985,18 @@ compute initial gradient to save as fvo0
                                          filter_eps=almo_scf_env%eps_filter)
                   ! d. tmp2 = tr(T0).tmp1 = tr(T0).S.X
                   CALL cp_dbcsr_multiply("T", "N", 1.0_dp, &
-                                         matrix_t_0, &
+                                         almo_scf_env%matrix_t_blk(ispin), &
                                          m_tmp_no_1, &
                                          0.0_dp, m_tmp_oo_1, &
                                          filter_eps=almo_scf_env%eps_filter)
-                  ! e. tmp1 = tmp1 - tmp3.tmp2 = S.X - S.T0.siginv0.tr(T0).S.X
+                  ! e. tmp1 = tmp1 - tmp3.tmp2 = S.X - S.T0.siginv0*tr(T0).S.X
                   !         = (1-S.R0).S.X
                   CALL cp_dbcsr_multiply("N", "N", -1.0_dp, &
-                  !NEW                        m_tmp_no_3, &
                                          STsiginv_0, &
                                          m_tmp_oo_1, &
                                          1.0_dp, m_tmp_no_1, &
                                          filter_eps=almo_scf_env%eps_filter)
-                  ! f. tmp2 = tmp1.siginv
+                  ! f. tmp2 = tmp1*siginv
                   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
                                          m_tmp_no_1, &
                                          almo_scf_env%matrix_sigma_inv(ispin), &
@@ -2381,6 +2016,8 @@ compute initial gradient to save as fvo0
 
                ENDIF ! do ALMO EDA/CTA
 
+               CALL cp_dbcsr_release(fvo_0)
+               
             ELSE
 
                CALL almo_scf_update_ks_energy(qs_env, &
@@ -2393,12 +2030,10 @@ compute initial gradient to save as fvo0
          IF (md_in_theta_space) THEN
             CALL cp_dbcsr_release(velocity)
          ENDIF
-         CALL cp_dbcsr_release(m_theta)
          CALL cp_dbcsr_release(prec_vv)
          CALL cp_dbcsr_release(prec_oo)
          CALL cp_dbcsr_release(prec_oo_inv)
          CALL cp_dbcsr_release(m_tmp_no_1)
-         CALL cp_dbcsr_release(fvo_0)
          CALL cp_dbcsr_release(STsiginv_0)
          CALL cp_dbcsr_release(m_tmp_no_2)
          CALL cp_dbcsr_release(m_tmp_no_3)
@@ -2412,10 +2047,6 @@ compute initial gradient to save as fvo0
          CALL cp_dbcsr_release(grad)
          CALL cp_dbcsr_release(step)
          CALL cp_dbcsr_release(prev_minus_prec_grad)
-         !CALL cp_dbcsr_release(matrix_p_0)
-         CALL cp_dbcsr_release(matrix_t_0)
-         !CALL cp_dbcsr_release(matrix_sigma_0)
-         CALL cp_dbcsr_release(matrix_sigma_inv_0)
 
          IF (.NOT. converged) THEN
             CPABORT("Optimization not converged! ")
@@ -2425,9 +2056,93 @@ compute initial gradient to save as fvo0
 
       ENDDO ! ispin
 
+      DO ispin = 1,  nspins
+         CALL cp_dbcsr_release(m_theta(ispin))
+         CALL cp_dbcsr_release(m_t_in_local(ispin))
+      ENDDO ! ispin
+      DEALLOCATE(m_theta,m_t_in_local)
+
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_xalmo_pcg
+
+! **************************************************************************************************
+!> \brief Compute matrices that are used often in various parts of the 
+!>        optimization procedure
+!> \param almo_scf_env ...
+!> \par History
+!>       2016.12 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE compute_frequently_used_matrices(filter_eps, &
+                 m_T_in, m_siginv_in, m_S_in, m_F_in, m_FTsiginv_out, &
+                 m_siginvTFTsiginv_out, m_ST_out)
+    
+    REAL(KIND=dp), INTENT(IN)                   :: filter_eps
+    TYPE(cp_dbcsr_type), INTENT(IN)             :: m_T_in
+    TYPE(cp_dbcsr_type), INTENT(IN)             :: m_siginv_in
+    TYPE(cp_dbcsr_type), INTENT(IN)             :: m_F_in
+    TYPE(cp_dbcsr_type), INTENT(IN)             :: m_S_in
+    TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_FTsiginv_out
+    TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_siginvTFTsiginv_out
+    TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_ST_out
+    
+    CHARACTER(len=*), PARAMETER :: &
+      routineN = 'compute_frequently_used_matrices', &
+      routineP = moduleN//':'//routineN
+
+    TYPE(cp_dbcsr_type)                         :: m_tmp_no_1,&
+                                                   m_tmp_oo_1
+    INTEGER                                     :: handle
+    
+    CALL timeset(routineN,handle)
+
+    CALL cp_dbcsr_init(m_tmp_no_1)
+    CALL cp_dbcsr_create(m_tmp_no_1,&
+            template=m_T_in,&
+            matrix_type=dbcsr_type_no_symmetry)
+    CALL cp_dbcsr_init(m_tmp_oo_1)
+    CALL cp_dbcsr_create(m_tmp_oo_1,&
+            template=m_siginv_in,&
+            matrix_type=dbcsr_type_no_symmetry)
+
+    CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                           m_F_in, &
+                           m_T_in, &
+                           0.0_dp, m_tmp_no_1, &
+                           filter_eps=filter_eps)
+    
+    CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                           m_tmp_no_1, &
+                           m_siginv_in, &
+                           0.0_dp, m_FTsiginv_out, &
+                           filter_eps=filter_eps)
+    
+    CALL cp_dbcsr_multiply("T", "N", 1.0_dp, &
+                           m_T_in, &
+                           m_FTsiginv_out, &
+                           0.0_dp, m_tmp_oo_1, &
+                           filter_eps=filter_eps)
+    
+    CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                           m_siginv_in, &
+                           m_tmp_oo_1, &
+                           0.0_dp, m_siginvTFTsiginv_out, &
+                           filter_eps=filter_eps)
+    
+    CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                           m_S_in, &
+                           m_T_in, &
+                           0.0_dp, m_ST_out, &
+                           filter_eps=filter_eps)
+
+    CALL cp_dbcsr_release(m_tmp_no_1)
+    CALL cp_dbcsr_release(m_tmp_oo_1)
+
+    CALL timestop(handle)
+
+   END SUBROUTINE compute_frequently_used_matrices
+
 
 ! **************************************************************************************************
 !> \brief Split the matrix of virtual orbitals into two:
@@ -5209,181 +4924,6 @@ compute initial gradient to save as fvo0
 !
 !  END SUBROUTINE truncate_subspace_v_blk
 
-!UNMERGED ! *****************************************************************************
-!UNMERGED !> \brief Compute MO coeffs from the main optimized variable (e.g. Theta, X) 
-!UNMERGED !> \par History
-!UNMERGED !>       2015.03 created [Rustam Z Khaliullin]
-!UNMERGED !> \author Rustam Z Khaliullin
-!UNMERGED ! *****************************************************************************
-!UNMERGED   SUBROUTINE compute_xalmos_from_main_var(m_var_in, m_t_out, m_quench_t, &
-!UNMERGED      m_t0, m_siginv, m_STsiginv0, m_s, m_sig_sqrti_ii_out, domain_r_down, &
-!UNMERGED      domain_s_inv, domain_map, cpu_of_domain, assume_t0_q0x, just_started, &
-!UNMERGED      optimize_theta, normalize_orbitals, envelope_amplitude, eps_filter, &
-!UNMERGED      special_case, error)
-!UNMERGED 
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_var_in
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_t_out
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_quench_t
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_t0
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_siginv
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_STsiginv0
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_s
-!UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_sig_sqrti_ii_out
-!UNMERGED     TYPE(domain_submatrix_type), DIMENSION(:),&
-!UNMERGED        INTENT(IN)                               :: domain_s_inv
-!UNMERGED     TYPE(domain_submatrix_type), DIMENSION(:),&
-!UNMERGED        INTENT(IN)                               :: domain_r_down
-!UNMERGED     INTEGER, DIMENSION(:), INTENT(IN)           :: cpu_of_domain
-!UNMERGED     TYPE(domain_map_type), INTENT(IN)           :: domain_map
-!UNMERGED     LOGICAL, INTENT(IN)                         :: assume_t0_q0x
-!UNMERGED     LOGICAL, INTENT(IN)                         :: just_started
-!UNMERGED     LOGICAL, INTENT(IN)                         :: optimize_theta
-!UNMERGED     LOGICAL, INTENT(IN)                         :: normalize_orbitals
-!UNMERGED     REAL(KIND=dp), INTENT(IN)                   :: envelope_amplitude
-!UNMERGED     REAL(KIND=dp), INTENT(IN)                   :: eps_filter
-!UNMERGED     INTEGER, INTENT(IN)                         :: special_case
-!UNMERGED     TYPE(cp_error_type), INTENT(INOUT)          :: error
-!UNMERGED     
-!UNMERGED     CHARACTER(len=*), PARAMETER :: &
-!UNMERGED       routineN = 'compute_xalmos_from_main_var', &
-!UNMERGED       routineP = moduleN//':'//routineN
-!UNMERGED 
-!UNMERGED     INTEGER                                     :: handle
-!UNMERGED     LOGICAL                                     :: failure
-!UNMERGED     TYPE(cp_dbcsr_type)                         :: m_tmp_no_1,&
-!UNMERGED                                                    m_tmp_oo_1
-!UNMERGED     CALL timeset(routineN,handle)
-!UNMERGED     
-!UNMERGED     CALL cp_dbcsr_init(m_tmp_no_1,error=error)
-!UNMERGED     CALL cp_dbcsr_create(m_tmp_no_1,&
-!UNMERGED             template=m_quench_t,&
-!UNMERGED             matrix_type=dbcsr_type_no_symmetry,&
-!UNMERGED             error=error)
-!UNMERGED     CALL cp_dbcsr_init(m_tmp_oo_1,error=error)
-!UNMERGED     CALL cp_dbcsr_create(m_tmp_oo_1,&
-!UNMERGED             template=m_siginv,&
-!UNMERGED             matrix_type=dbcsr_type_no_symmetry,&
-!UNMERGED             error=error)
-!UNMERGED                   
-!UNMERGED     ! compute the MO coefficients from theta
-!UNMERGED     IF (assume_t0_q0x.AND.just_started) THEN
-!UNMERGED        CALL cp_dbcsr_set(m_t_out,0.0_dp,error=error)
-!UNMERGED     ENDIF
-!UNMERGED     !IF (optimize_theta) THEN
-!UNMERGED        !CALL cp_dbcsr_norm(m_var_in,&
-!UNMERGED        !        dbcsr_norm_maxabsnorm, norm_scalar=t_norm, error=error)
-!UNMERGED        !IF (unit_nr>0) THEN
-!UNMERGED        !   WRITE(unit_nr,*) "VAR1: |T|: ", t_norm
-!UNMERGED        !   !WRITE(unit_nr,*) "VAR1: SIN(|T|/A), COS(|T|/A), A*SIN(|T|/A): ",&
-!UNMERGED        !   !   SIN(t_norm/envelope_amplitude),&
-!UNMERGED        !   !   COS(t_norm/envelope_amplitude),&
-!UNMERGED        !   !   envelope_amplitude*SIN(t_norm/envelope_amplitude)
-!UNMERGED        !   WRITE(unit_nr,*) "VAR1: TANH(|T|/A), D(A*TANH(|T|/A)), A*TANH(|T|/A): ",&
-!UNMERGED        !      TANH(t_norm/envelope_amplitude),&
-!UNMERGED        !      1.0_dp-(TANH(t_norm/envelope_amplitude))**2,&
-!UNMERGED        !      envelope_amplitude*TANH(t_norm/envelope_amplitude)
-!UNMERGED        !ENDIF
-!UNMERGED     !ENDIF
-!UNMERGED     CALL cp_dbcsr_copy(m_tmp_no_1,m_var_in,error=error)
-!UNMERGED     IF (optimize_theta) THEN
-!UNMERGED        CALL cp_dbcsr_function_of_elements(m_tmp_no_1,&
-!UNMERGED                !func=dbcsr_func_sin,&
-!UNMERGED                func=dbcsr_func_tanh,&
-!UNMERGED                a0=0.0_dp,&
-!UNMERGED                a1=1.0_dp/envelope_amplitude,&
-!UNMERGED                error=error)
-!UNMERGED        CALL cp_dbcsr_scale(m_tmp_no_1,&
-!UNMERGED                envelope_amplitude,error=error)
-!UNMERGED     ENDIF
-!UNMERGED     CALL cp_dbcsr_hadamard_product(m_tmp_no_1,m_quench_t,&
-!UNMERGED             m_t_out,error=error)
-!UNMERGED     
-!UNMERGED     !CALL cp_dbcsr_norm(m_t_out,&
-!UNMERGED     !        dbcsr_norm_maxabsnorm, norm_scalar=t_norm, error=error)
-!UNMERGED     !IF (optimize_theta) THEN
-!UNMERGED     !   IF (unit_nr>0) THEN
-!UNMERGED     !      WRITE(unit_nr,*) "VAR1: |B*A*TANH(T/A)|: ", t_norm
-!UNMERGED     !   ENDIF
-!UNMERGED     !ELSE
-!UNMERGED     !   IF (unit_nr>0) THEN
-!UNMERGED     !      WRITE(unit_nr,*) "VAR1: |B*X|: ", t_norm
-!UNMERGED     !   ENDIF
-!UNMERGED     !ENDIF
-!UNMERGED     
-!UNMERGED     ! project out R_0
-!UNMERGED     IF (assume_t0_q0x.AND.(.NOT.just_started)) THEN
-!UNMERGED        IF (special_case.eq.xalmo_case_fully_deloc) THEN
-!UNMERGED           CALL cp_dbcsr_multiply("T","N",1.0_dp,&
-!UNMERGED                   m_STsiginv0,&
-!UNMERGED                   m_t_out,&
-!UNMERGED                   0.0_dp,m_tmp_oo_1,&
-!UNMERGED                   filter_eps=eps_filter,&
-!UNMERGED                   error=error)
-!UNMERGED           CALL cp_dbcsr_multiply("N","N",-1.0_dp,&
-!UNMERGED                   m_t0,&
-!UNMERGED                   m_tmp_oo_1,&
-!UNMERGED                   1.0_dp,m_t_out,&
-!UNMERGED                   filter_eps=eps_filter,&
-!UNMERGED                   error=error)
-!UNMERGED        ELSE IF (special_case.eq.xalmo_case_block_diag) THEN
-!UNMERGED           ! cannot use projector with block-daigonal ALMOs
-!UNMERGED           CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!UNMERGED        ELSE
-!UNMERGED           ! no special case
-!UNMERGED           CALL apply_domain_operators(&
-!UNMERGED                   matrix_in=m_t_out,&
-!UNMERGED                   matrix_out=m_tmp_no_1,&
-!UNMERGED                   operator1=domain_r_down,&
-!UNMERGED                   operator2=domain_s_inv,&
-!UNMERGED                   dpattern=m_quench_t,&
-!UNMERGED                   map=domain_map,&
-!UNMERGED                   node_of_domain=cpu_of_domain,&
-!UNMERGED                   my_action=1,&
-!UNMERGED                   filter_eps=eps_filter,&
-!UNMERGED                   use_trimmer=.FALSE.,&
-!UNMERGED                   error=error)
-!UNMERGED           CALL cp_dbcsr_copy(m_t_out,&
-!UNMERGED                   m_tmp_no_1,error=error)
-!UNMERGED        ENDIF ! special case
-!UNMERGED        !CALL cp_dbcsr_norm(m_t_out,&
-!UNMERGED        !        dbcsr_norm_maxabsnorm, norm_scalar=t_norm, error=error)
-!UNMERGED        !IF (unit_nr>0) THEN
-!UNMERGED        !   WRITE(unit_nr,*) "VAR1: |Q.X|: ", t_norm
-!UNMERGED        !ENDIF
-!UNMERGED     ENDIF ! end assume_t0_q0x
-!UNMERGED 
-!UNMERGED     IF (assume_t0_q0x) THEN
-!UNMERGED        CALL cp_dbcsr_add(m_t_out,&
-!UNMERGED                m_t0,1.0_dp,1.0_dp,&
-!UNMERGED                error=error)
-!UNMERGED        !CALL cp_dbcsr_norm(m_t_out,&
-!UNMERGED        !        dbcsr_norm_maxabsnorm, norm_scalar=t_norm, error=error)
-!UNMERGED        !IF (unit_nr>0) THEN
-!UNMERGED        !   WRITE(unit_nr,*) "VAR1: |T0+Q.X|: ", t_norm
-!UNMERGED        !ENDIF
-!UNMERGED     ENDIF
-!UNMERGED 
-!UNMERGED     IF (normalize_orbitals) THEN
-!UNMERGED        CALL orthogonalize_mos(&
-!UNMERGED                ket=m_t_out,&
-!UNMERGED                overlap=m_tmp_oo_1,&
-!UNMERGED                metric=m_s,&
-!UNMERGED                retain_locality=.TRUE.,&
-!UNMERGED                only_normalize=.TRUE.,&
-!UNMERGED                eps_filter=eps_filter,&
-!UNMERGED                overlap_sqrti=m_sig_sqrti_ii_out,&
-!UNMERGED                error=error)
-!UNMERGED     ENDIF
-!UNMERGED 
-!UNMERGED     CALL cp_dbcsr_filter(m_t_out,eps=eps_filter,error=error)
-!UNMERGED     
-!UNMERGED     CALL cp_dbcsr_release(m_tmp_no_1,error=error)
-!UNMERGED     CALL cp_dbcsr_release(m_tmp_oo_1,error=error)
-!UNMERGED 
-!UNMERGED     CALL timestop(handle)
-!UNMERGED   
-!UNMERGED   END SUBROUTINE compute_xalmos_from_main_var
-
 ! *****************************************************************************
 !> \brief Compute the gradient wrt the main variable (e.g. Theta, X) 
 !> \par History
@@ -5406,9 +4946,9 @@ compute initial gradient to save as fvo0
     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_t0
     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_siginv
     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_quench_t
-    TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_FTsiginv
-    TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_siginvTFTsiginv
-    TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_ST
+    TYPE(cp_dbcsr_type), INTENT(IN)             :: m_FTsiginv
+    TYPE(cp_dbcsr_type), INTENT(IN)             :: m_siginvTFTsiginv
+    TYPE(cp_dbcsr_type), INTENT(IN)             :: m_ST
     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_STsiginv0
     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_theta
     TYPE(domain_submatrix_type), DIMENSION(:),&
@@ -5474,35 +5014,43 @@ compute initial gradient to save as fvo0
             matrix_type=dbcsr_type_no_symmetry)
 
     ! do d_E/d_T first
-    IF (.NOT.perturbation_only) THEN
-       CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-               m_ks,&
-               m_t,&
-               0.0_dp,m_tmp_no_1,&
-               filter_eps=eps_filter)
-       CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-               m_tmp_no_1,&
-               m_siginv,&
-               0.0_dp,m_FTsiginv,&
-               filter_eps=eps_filter)
-    ENDIF
+    !IF (.NOT.PRESENT(m_FTsiginv)) THEN
+    !   CALL cp_dbcsr_multiply("N","N",1.0_dp,&
+    !           m_ks,&
+    !           m_t,&
+    !           0.0_dp,m_tmp_no_1,&
+    !           filter_eps=eps_filter)
+    !   CALL cp_dbcsr_multiply("N","N",1.0_dp,&
+    !           m_tmp_no_1,&
+    !           m_siginv,&
+    !           0.0_dp,m_FTsiginv,&
+    !           filter_eps=eps_filter)
+    !ENDIF
+
     CALL cp_dbcsr_copy(m_tmp_no_2,m_quench_t)
     CALL cp_dbcsr_copy(m_tmp_no_2,m_FTsiginv,keep_sparsity=.TRUE.)
-    CALL cp_dbcsr_multiply("T","N",1.0_dp,&
-            m_t,&
-            m_FTsiginv,&
-            0.0_dp,m_tmp_oo_1,&
-            filter_eps=eps_filter)
-    CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-            m_siginv,&
-            m_tmp_oo_1,&
-            0.0_dp,m_siginvTFTsiginv,&
-            filter_eps=eps_filter)
-    CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-            m_s,&
-            m_t,&
-            0.0_dp,m_ST,&
-            filter_eps=eps_filter)
+
+    !IF (.NOT.PRESENT(m_siginvTFTsiginv)) THEN
+    !   CALL cp_dbcsr_multiply("T","N",1.0_dp,&
+    !           m_t,&
+    !           m_FTsiginv,&
+    !           0.0_dp,m_tmp_oo_1,&
+    !           filter_eps=eps_filter)
+    !   CALL cp_dbcsr_multiply("N","N",1.0_dp,&
+    !           m_siginv,&
+    !           m_tmp_oo_1,&
+    !           0.0_dp,m_siginvTFTsiginv,&
+    !           filter_eps=eps_filter)
+    !ENDIF
+
+    !IF (.NOT.PRESENT(m_ST)) THEN
+    !   CALL cp_dbcsr_multiply("N","N",1.0_dp,&
+    !           m_s,&
+    !           m_t,&
+    !           0.0_dp,m_ST,&
+    !           filter_eps=eps_filter)
+    !ENDIF
+
     CALL cp_dbcsr_multiply("N","N",-1.0_dp,&
             m_ST,&
             m_siginvTFTsiginv,&
@@ -5697,2160 +5245,6 @@ CALL cp_dbcsr_add(m_tmp_no_2,m_tmp_no_1,1.0_dp,1.0_dp)
     CALL timestop(handle)
   
   END SUBROUTINE compute_gradient
-
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED !> \brief Compute the preconditioner matrices and invert them if necessary 
-!FROM UNMERGED !> \par History
-!FROM UNMERGED !>       2015.03 created [Rustam Z Khaliullin]
-!FROM UNMERGED !> \author Rustam Z Khaliullin
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED   SUBROUTINE compute_preconditioner(domain_prec_out, m_prec_out, m_ks, m_s, &
-!FROM UNMERGED      m_siginv, m_quench_t,  m_FTsiginv, m_siginvTFTsiginv, m_ST, &
-!FROM UNMERGED      m_STsiginv_out, m_s_vv_out, m_f_vv_out, para_env, &
-!FROM UNMERGED      blacs_env, nocc_of_domain, domain_s_inv, domain_r_down, cpu_of_domain, &
-!FROM UNMERGED      domain_map, assume_t0_q0x, penalty_occ_vol, penalty_occ_vol_prefactor, &
-!FROM UNMERGED      eps_filter, spin_factor, special_case, error)
-!FROM UNMERGED 
-!FROM UNMERGED     TYPE(domain_submatrix_type), DIMENSION(:),&
-!FROM UNMERGED        INTENT(INOUT)                            :: domain_prec_out
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_prec_out
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_ks
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_s
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_siginv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: m_quench_t
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_FTsiginv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_siginvTFTsiginv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)             :: m_ST
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_STsiginv_out
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_s_vv_out
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_f_vv_out
-!FROM UNMERGED     TYPE(cp_para_env_type),  POINTER            :: para_env
-!FROM UNMERGED     TYPE(cp_blacs_env_type), POINTER            :: blacs_env
-!FROM UNMERGED 
-!FROM UNMERGED     INTEGER, DIMENSION(:), INTENT(IN)           :: nocc_of_domain 
-!FROM UNMERGED     TYPE(domain_submatrix_type), DIMENSION(:),&
-!FROM UNMERGED        INTENT(IN)                               :: domain_s_inv
-!FROM UNMERGED     TYPE(domain_submatrix_type), DIMENSION(:),&
-!FROM UNMERGED        INTENT(IN)                               :: domain_r_down
-!FROM UNMERGED     INTEGER, DIMENSION(:), INTENT(IN)           :: cpu_of_domain
-!FROM UNMERGED     TYPE(domain_map_type), INTENT(IN)           :: domain_map
-!FROM UNMERGED     LOGICAL, INTENT(IN)                         :: assume_t0_q0x
-!FROM UNMERGED     LOGICAL, INTENT(IN)                         :: penalty_occ_vol
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                   :: penalty_occ_vol_prefactor
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                   :: eps_filter
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                   :: spin_factor
-!FROM UNMERGED     INTEGER, INTENT(IN)                         :: special_case
-!FROM UNMERGED     TYPE(cp_error_type), INTENT(INOUT)          :: error
-!FROM UNMERGED     
-!FROM UNMERGED     CHARACTER(len=*), PARAMETER :: &
-!FROM UNMERGED       routineN = 'compute_preconditioner', &
-!FROM UNMERGED       routineP = moduleN//':'//routineN
-!FROM UNMERGED 
-!FROM UNMERGED     INTEGER                                     :: handle,&
-!FROM UNMERGED                                                    precond_domain_projector
-!FROM UNMERGED     LOGICAL                                     :: failure
-!FROM UNMERGED     TYPE(cp_dbcsr_type)                         :: m_tmp_nn_1,&
-!FROM UNMERGED                                                    m_tmp_no_3
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timeset(routineN,handle)
-!FROM UNMERGED     
-!FROM UNMERGED     CALL cp_dbcsr_init(m_tmp_nn_1,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(m_tmp_nn_1,&
-!FROM UNMERGED             template=m_s,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     CALL cp_dbcsr_init(m_tmp_no_3,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(m_tmp_no_3,&
-!FROM UNMERGED             template=m_quench_t,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ! calculate (1-R)F(1-R) and S-SRS
-!FROM UNMERGED     ! RZK-warning take advantage: some elements will be removed by the quencher
-!FROM UNMERGED     ! RZK-warning S operations can be performed outside the spin loop to save time
-!FROM UNMERGED     ! IT IS REQUIRED THAT PRECONDITIONER DOES NOT BREAK THE LOCALITY!!!!
-!FROM UNMERGED     ! RZK-warning: further optimization is ABSOLUTELY NECESSARY
-!FROM UNMERGED     
-!FROM UNMERGED     ! First S-SRS
-!FROM UNMERGED     CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED             m_ST,&
-!FROM UNMERGED             m_siginv,&
-!FROM UNMERGED             0.0_dp,m_tmp_no_3,&
-!FROM UNMERGED             filter_eps=eps_filter,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     CALL cp_dbcsr_desymmetrize(m_s,&
-!FROM UNMERGED             m_tmp_nn_1,error=error)
-!FROM UNMERGED     ! return STsiginv if necessary
-!FROM UNMERGED     IF (PRESENT(m_STsiginv_out)) THEN
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_STsiginv_out,m_tmp_no_3,error=error)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED !!    IF (special_case.eq.xalmo_case_fully_deloc) THEN
-!FROM UNMERGED !!       ! use S instead of S-SRS
-!FROM UNMERGED !!    ELSE
-!FROM UNMERGED !!       CALL cp_dbcsr_multiply("N","T",-1.0_dp,&
-!FROM UNMERGED !!!       CALL cp_dbcsr_multiply("N","T",1.0_dp,&
-!FROM UNMERGED !!               m_ST,&
-!FROM UNMERGED !!               m_tmp_no_3,&
-!FROM UNMERGED !!!               0.0_dp,m_tmp_nn_1,&
-!FROM UNMERGED !!               1.0_dp,m_tmp_nn_1,&
-!FROM UNMERGED !!               filter_eps=eps_filter,&
-!FROM UNMERGED !!               error=error)
-!FROM UNMERGED !!    ENDIF
-!FROM UNMERGED     ! return S_vv = (S or S-SRS) if necessary
-!FROM UNMERGED     IF (PRESENT(m_s_vv_out)) THEN
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_s_vv_out,m_tmp_nn_1,error=error)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED     
-!FROM UNMERGED     ! Second (1-R)F(1-R)
-!FROM UNMERGED     ! re-create matrix because desymmetrize is buggy -
-!FROM UNMERGED     ! it will create multiple copies of blocks
-!FROM UNMERGED     CALL cp_dbcsr_desymmetrize(m_ks,m_prec_out,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_multiply("N","T",-1.0_dp,&
-!FROM UNMERGED             m_FTsiginv,&
-!FROM UNMERGED             m_ST,&
-!FROM UNMERGED             1.0_dp,m_prec_out,&
-!FROM UNMERGED             filter_eps=eps_filter,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     CALL cp_dbcsr_multiply("N","T",-1.0_dp,&
-!FROM UNMERGED             m_ST,&
-!FROM UNMERGED             m_FTsiginv,&
-!FROM UNMERGED             1.0_dp,m_prec_out,&
-!FROM UNMERGED             filter_eps=eps_filter,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED             m_ST,&
-!FROM UNMERGED             m_siginvTFTsiginv,&
-!FROM UNMERGED             0.0_dp,m_tmp_no_3,&
-!FROM UNMERGED             filter_eps=eps_filter,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     CALL cp_dbcsr_multiply("N","T",1.0_dp,&
-!FROM UNMERGED             m_tmp_no_3,&
-!FROM UNMERGED             m_ST,&
-!FROM UNMERGED             1.0_dp,m_prec_out,&
-!FROM UNMERGED             filter_eps=eps_filter,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     ! return F_vv = (I-SR)F(I-RS) if necessary
-!FROM UNMERGED     IF (PRESENT(m_f_vv_out)) THEN
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_f_vv_out,m_prec_out,error=error)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED #if 0
-!FROM UNMERGED !penalty_only=.TRUE.
-!FROM UNMERGED     WRITE(*,*) "prefactor0:", penalty_occ_vol_prefactor
-!FROM UNMERGED     !IF (penalty_occ_vol) THEN
-!FROM UNMERGED        CALL cp_dbcsr_desymmetrize(m_s,&
-!FROM UNMERGED                m_prec_out,error=error)
-!FROM UNMERGED        !CALL cp_dbcsr_scale(m_prec_out,-penalty_occ_vol_prefactor,error=error)
-!FROM UNMERGED     !ENDIF
-!FROM UNMERGED #else
-!FROM UNMERGED     ! sum up the F_vv and S_vv terms
-!FROM UNMERGED     CALL cp_dbcsr_add(m_prec_out,m_tmp_nn_1,&
-!FROM UNMERGED             1.0_dp,1.0_dp,error=error)
-!FROM UNMERGED     ! Scale to obtain unit step length
-!FROM UNMERGED     CALL cp_dbcsr_scale(m_prec_out,2.0_dp*spin_factor,error=error)
-!FROM UNMERGED     
-!FROM UNMERGED     ! add the contribution from the penalty on the occupied volume
-!FROM UNMERGED     IF (penalty_occ_vol) THEN
-!FROM UNMERGED        CALL cp_dbcsr_add(m_prec_out,m_tmp_nn_1,&
-!FROM UNMERGED                1.0_dp,penalty_occ_vol_prefactor,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED #endif
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_copy(m_tmp_nn_1,m_prec_out,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ! invert using various algorithms
-!FROM UNMERGED     IF (special_case.eq.xalmo_case_block_diag) THEN ! non-overlapping diagonal blocks
-!FROM UNMERGED 
-!FROM UNMERGED        CALL pseudo_invert_diagonal_blk(&
-!FROM UNMERGED                matrix_in=m_tmp_nn_1,&
-!FROM UNMERGED                matrix_out=m_prec_out,&
-!FROM UNMERGED                nocc=nocc_of_domain(:),&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ELSE IF (special_case.eq.xalmo_case_fully_deloc) THEN ! the entire system is a block
-!FROM UNMERGED 
-!FROM UNMERGED        ! invert using cholesky (works with S matrix, will not work with S-SRS matrix)
-!FROM UNMERGED        CALL cp_dbcsr_cholesky_decompose(m_prec_out,&
-!FROM UNMERGED                para_env=para_env,&
-!FROM UNMERGED                blacs_env=blacs_env,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_cholesky_invert(m_prec_out,&
-!FROM UNMERGED                para_env=para_env,&
-!FROM UNMERGED                blacs_env=blacs_env,&
-!FROM UNMERGED                upper_to_full=.TRUE.,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_filter(m_prec_out,&
-!FROM UNMERGED                eps=eps_filter,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ELSE
-!FROM UNMERGED        
-!FROM UNMERGED        !!! use a true domain preconditioner with overlapping domains
-!FROM UNMERGED        IF (assume_t0_q0x) THEN
-!FROM UNMERGED           precond_domain_projector=-1
-!FROM UNMERGED        ELSE
-!FROM UNMERGED           precond_domain_projector=0
-!FROM UNMERGED        ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED !CALL copy_submatrices(domain_s_inv(:),&
-!FROM UNMERGED !        domain_prec_out(:),&
-!FROM UNMERGED !        copy_data=.TRUE.,&
-!FROM UNMERGED !        error=error)
-!FROM UNMERGED        CALL construct_domain_preconditioner(&
-!FROM UNMERGED           matrix_main=m_tmp_nn_1,&
-!FROM UNMERGED           subm_s_inv=domain_s_inv(:),&
-!FROM UNMERGED           subm_r_down=domain_r_down(:),&
-!FROM UNMERGED           matrix_trimmer=m_quench_t,&
-!FROM UNMERGED           dpattern=m_quench_t,&
-!FROM UNMERGED           map=domain_map,&
-!FROM UNMERGED           node_of_domain=cpu_of_domain,&
-!FROM UNMERGED           preconditioner=domain_prec_out(:),&
-!FROM UNMERGED           use_trimmer=.FALSE.,&
-!FROM UNMERGED           my_action=precond_domain_projector,&
-!FROM UNMERGED           eps_zero_eigenvalues=eps_filter,&
-!FROM UNMERGED           error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_release(m_tmp_nn_1,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_release(m_tmp_no_3,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timestop(handle)
-!FROM UNMERGED   
-!FROM UNMERGED   END SUBROUTINE compute_preconditioner
-!FROM UNMERGED 
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED !> \brief Compute beta for conjugate gradient algorithms 
-!FROM UNMERGED !> \par History
-!FROM UNMERGED !>       2015.04 created [Rustam Z Khaliullin]
-!FROM UNMERGED !> \author Rustam Z Khaliullin
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED   SUBROUTINE compute_cg_beta(beta, numer, denom, reset_conjugator, conjugator,&
-!FROM UNMERGED      grad, prev_grad, step, prev_step, prev_minus_prec_grad, error) 
-!FROM UNMERGED 
-!FROM UNMERGED     REAL(KIND=dp), INTENT(INOUT)                :: beta
-!FROM UNMERGED     REAL(KIND=dp), INTENT(INOUT), OPTIONAL      :: numer, denom
-!FROM UNMERGED     LOGICAL, INTENT(INOUT)                      :: reset_conjugator
-!FROM UNMERGED     INTEGER, INTENT(IN)                         :: conjugator
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: grad
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: prev_grad
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: step
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT)          :: prev_step
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT), OPTIONAL &
-!FROM UNMERGED                                                 :: prev_minus_prec_grad
-!FROM UNMERGED     TYPE(cp_error_type), INTENT(INOUT)          :: error
-!FROM UNMERGED     
-!FROM UNMERGED     CHARACTER(len=*), PARAMETER :: &
-!FROM UNMERGED       routineN = 'compute_cg_beta', &
-!FROM UNMERGED       routineP = moduleN//':'//routineN
-!FROM UNMERGED 
-!FROM UNMERGED     INTEGER                                     :: handle
-!FROM UNMERGED     LOGICAL                                     :: failure
-!FROM UNMERGED     TYPE(cp_dbcsr_type)                         :: m_tmp_no_1
-!FROM UNMERGED     REAL(KIND=dp)                               :: my_numer, my_denom, &
-!FROM UNMERGED                                                    kappa, tau
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timeset(routineN,handle)
-!FROM UNMERGED 
-!FROM UNMERGED     IF (.NOT.PRESENT(prev_minus_prec_grad)) THEN
-!FROM UNMERGED        IF (conjugator.EQ.cg_fletcher_reeves .OR. &
-!FROM UNMERGED            conjugator.EQ.cg_polak_ribiere .OR. &
-!FROM UNMERGED            conjugator.EQ.cg_hager_zhang ) THEN
-!FROM UNMERGED           CPErrorMessage(cp_failure_level,routineP,"conjugator needs more input",error)
-!FROM UNMERGED           CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED        ENDIF
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     IF (PRESENT(numer).OR.PRESENT(denom)) THEN
-!FROM UNMERGED        IF (conjugator.EQ.cg_hestenes_stiefel .OR. &
-!FROM UNMERGED            conjugator.EQ.cg_dai_yuan .OR. &
-!FROM UNMERGED            conjugator.EQ.cg_hager_zhang ) THEN
-!FROM UNMERGED           CPErrorMessage(cp_failure_level,routineP,"cannot return numer/denom",error)
-!FROM UNMERGED           CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED        ENDIF
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_init(m_tmp_no_1,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(m_tmp_no_1,&
-!FROM UNMERGED             template=grad,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     SELECT CASE (conjugator)
-!FROM UNMERGED     CASE (cg_hestenes_stiefel)
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_tmp_no_1,grad,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_add(m_tmp_no_1,prev_grad,&
-!FROM UNMERGED                1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,step,my_numer,&
-!FROM UNMERGED                "T","N",error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,prev_step,my_denom,&
-!FROM UNMERGED                "T","N",error=error)
-!FROM UNMERGED        beta=-1.0_dp*my_numer/my_denom
-!FROM UNMERGED     CASE (cg_fletcher_reeves)
-!FROM UNMERGED        CALL cp_dbcsr_trace(grad,step,my_numer,"T","N",error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(prev_grad,prev_minus_prec_grad,my_denom,"T","N",error=error)
-!FROM UNMERGED        beta=my_numer/my_denom
-!FROM UNMERGED     CASE (cg_polak_ribiere)
-!FROM UNMERGED        CALL cp_dbcsr_trace(prev_grad,prev_minus_prec_grad,my_denom,"T","N",error=error)
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_tmp_no_1,grad,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_add(m_tmp_no_1,prev_grad,1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,step,my_numer,"T","N",error=error)
-!FROM UNMERGED        beta=my_numer/my_denom
-!FROM UNMERGED     CASE (cg_fletcher)
-!FROM UNMERGED        CALL cp_dbcsr_trace(grad,step,my_numer,"T","N",error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(prev_grad,prev_step,my_denom,"T","N",error=error)
-!FROM UNMERGED        beta=my_numer/my_denom
-!FROM UNMERGED     CASE (cg_liu_storey)
-!FROM UNMERGED        CALL cp_dbcsr_trace(prev_grad,prev_step,my_denom,"T","N",error=error)
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_tmp_no_1,grad,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_add(m_tmp_no_1,prev_grad,1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,step,my_numer,"T","N",error=error)
-!FROM UNMERGED        beta=my_numer/my_denom
-!FROM UNMERGED     CASE (cg_dai_yuan)
-!FROM UNMERGED        CALL cp_dbcsr_trace(grad,step,my_numer,"T","N",error=error)
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_tmp_no_1,grad,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_add(m_tmp_no_1,prev_grad,1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,prev_step,my_denom,"T","N",error=error)
-!FROM UNMERGED        beta=-1.0_dp*my_numer/my_denom
-!FROM UNMERGED     CASE (cg_hager_zhang)
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_tmp_no_1,grad,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_add(m_tmp_no_1,prev_grad,1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,prev_step,my_denom,"T","N",error=error)
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,prev_minus_prec_grad,my_numer,"T","N",error=error)
-!FROM UNMERGED        kappa=-2.0_dp*my_numer/my_denom
-!FROM UNMERGED        CALL cp_dbcsr_trace(m_tmp_no_1,step,my_numer,"T","N",error=error)
-!FROM UNMERGED        tau=-1.0_dp*my_numer/my_denom
-!FROM UNMERGED        CALL cp_dbcsr_trace(prev_step,grad,my_numer,"T","N",error=error)
-!FROM UNMERGED        beta=tau-kappa*my_numer/my_denom
-!FROM UNMERGED     CASE (cg_zero)
-!FROM UNMERGED        beta=0.0_dp
-!FROM UNMERGED     CASE DEFAULT
-!FROM UNMERGED        CPErrorMessage(cp_failure_level,routineP,"illegal conjugator",error)
-!FROM UNMERGED        CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     END SELECT
-!FROM UNMERGED     
-!FROM UNMERGED     IF (beta.lt.0.0_dp) THEN
-!FROM UNMERGED        !IF (unit_nr>0) THEN
-!FROM UNMERGED        !   WRITE(unit_nr,*) "Beta is negative: ", beta
-!FROM UNMERGED        !ENDIF
-!FROM UNMERGED        reset_conjugator=.TRUE.
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED     
-!FROM UNMERGED     CALL cp_dbcsr_release(m_tmp_no_1,error=error)
-!FROM UNMERGED     
-!FROM UNMERGED     IF (PRESENT(numer)) THEN
-!FROM UNMERGED        numer=my_numer
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED     IF (PRESENT(denom)) THEN
-!FROM UNMERGED        denom=my_denom
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timestop(handle)
-!FROM UNMERGED   
-!FROM UNMERGED   END SUBROUTINE compute_cg_beta
-!FROM UNMERGED 
-!FROM UNMERGED 
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED !> \brief computes the step matrix from the gradient and Hessian using
-!FROM UNMERGED !>         the Newton-Raphson method
-!FROM UNMERGED !> \par History
-!FROM UNMERGED !>       2015.04 created [Rustam Z. Khaliullin]
-!FROM UNMERGED !> \author Rustam Z. Khaliullin
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED   SUBROUTINE newton_grad_to_step(optimizer, m_grad, m_delta, m_s, m_ks, &
-!FROM UNMERGED     m_siginv, m_quench_t, m_FTsiginv, m_siginvTFTsiginv, m_ST, m_t, &
-!FROM UNMERGED     m_sig_sqrti_ii, domain_s_inv, domain_r_down, domain_map, cpu_of_domain, &
-!FROM UNMERGED     nocc_of_domain, para_env, blacs_env, eps_filter, optimize_theta, &
-!FROM UNMERGED     penalty_occ_vol, normalize_orbitals, penalty_occ_vol_prefactor, &
-!FROM UNMERGED     penalty_occ_vol_pf2, special_case, error)
-!FROM UNMERGED 
-!FROM UNMERGED     TYPE(optimizer_options_type)             :: optimizer
-!FROM UNMERGED     TYPE(cp_dbcsr_type), &
-!FROM UNMERGED        DIMENSION(:), INTENT(IN)              :: m_grad
-!FROM UNMERGED     TYPE(cp_dbcsr_type), &
-!FROM UNMERGED        DIMENSION(:), INTENT(INOUT)           :: m_delta, &
-!FROM UNMERGED                                                 m_s, m_ks
-!FROM UNMERGED     TYPE(cp_dbcsr_type), &
-!FROM UNMERGED        DIMENSION(:), INTENT(INOUT)           :: m_siginv, &
-!FROM UNMERGED                                                 m_quench_t
-!FROM UNMERGED     TYPE(cp_dbcsr_type), &
-!FROM UNMERGED        DIMENSION(:), INTENT(IN)              :: m_FTsiginv,&
-!FROM UNMERGED                                                 m_siginvTFTsiginv,&
-!FROM UNMERGED                                                 m_ST, m_t, &
-!FROM UNMERGED                                                 m_sig_sqrti_ii
-!FROM UNMERGED     TYPE(domain_submatrix_type), &
-!FROM UNMERGED        DIMENSION(:,:), INTENT(IN)            :: domain_s_inv, &
-!FROM UNMERGED                                                 domain_r_down
-!FROM UNMERGED     TYPE(domain_map_type), &
-!FROM UNMERGED        DIMENSION(:), INTENT(IN)              :: domain_map
-!FROM UNMERGED     INTEGER, DIMENSION(:), INTENT(IN)        :: cpu_of_domain
-!FROM UNMERGED     INTEGER, DIMENSION(:,:), INTENT(IN)      :: nocc_of_domain 
-!FROM UNMERGED     TYPE(cp_para_env_type),  POINTER         :: para_env
-!FROM UNMERGED     TYPE(cp_blacs_env_type), POINTER         :: blacs_env
-!FROM UNMERGED 
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                :: eps_filter
-!FROM UNMERGED     LOGICAL, INTENT(IN)                      :: optimize_theta
-!FROM UNMERGED     LOGICAL, INTENT(IN)                      :: penalty_occ_vol
-!FROM UNMERGED     LOGICAL, INTENT(IN)                      :: normalize_orbitals
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                :: penalty_occ_vol_prefactor
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                :: penalty_occ_vol_pf2
-!FROM UNMERGED     INTEGER, INTENT(IN)                      :: special_case
-!FROM UNMERGED     TYPE(cp_error_type), INTENT(INOUT)       :: error
-!FROM UNMERGED 
-!FROM UNMERGED     CHARACTER(len=*), PARAMETER :: routineN = 'newton_grad_to_step', &
-!FROM UNMERGED       routineP = moduleN//':'//routineN
-!FROM UNMERGED 
-!FROM UNMERGED     INTEGER                                  :: handle, nspins, unit_nr,&
-!FROM UNMERGED                                                 ndomains, ispin, &
-!FROM UNMERGED                                                 outer_max_iter, max_iter, &
-!FROM UNMERGED                                                 outer_iteration, iteration
-!FROM UNMERGED     TYPE(cp_logger_type), POINTER            :: logger
-!FROM UNMERGED     CHARACTER(LEN=20)                        :: iter_type
-!FROM UNMERGED     REAL(KIND=dp), DIMENSION(:), ALLOCATABLE :: residue_max_norm
-!FROM UNMERGED     REAL(KIND=dp)                            :: spin_factor, residue_norm, &
-!FROM UNMERGED                                                 t1, t2, numer, denom, alpha, &
-!FROM UNMERGED                                                 beta, numer_ispin, &
-!FROM UNMERGED                                                 denom_ispin, beta_ispin, &
-!FROM UNMERGED                                                 eps_error_target
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), &
-!FROM UNMERGED        ALLOCATABLE                           :: m_residue, m_step, &
-!FROM UNMERGED                                                 m_zet, m_prec,&
-!FROM UNMERGED                                                 m_s_vv, m_f_vv, m_f_vo, &
-!FROM UNMERGED                                                 m_Hstep, m_residue_prev, &
-!FROM UNMERGED                                                 m_zet_prev, m_STsiginv
-!FROM UNMERGED     LOGICAL                                  :: outer_prepare_to_exit, &
-!FROM UNMERGED                                                 prepare_to_exit, converged, &
-!FROM UNMERGED                                                 reset_conjugator, failure, &
-!FROM UNMERGED                                                 use_preconditioner, &
-!FROM UNMERGED                                                 do_exact_inversion
-!FROM UNMERGED     TYPE(domain_submatrix_type), &
-!FROM UNMERGED        DIMENSION(:,:), ALLOCATABLE           :: domain_prec
-!FROM UNMERGED     TYPE(cp_dbcsr_type)                      :: m_tmp_oo_1, m_tmp_oo_2
-!FROM UNMERGED 
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timeset(routineN,handle)
-!FROM UNMERGED 
-!FROM UNMERGED     ! get a useful output_unit
-!FROM UNMERGED     logger => cp_error_get_logger(error)
-!FROM UNMERGED     IF (logger%para_env%mepos==logger%para_env%source) THEN
-!FROM UNMERGED        unit_nr=cp_logger_get_default_unit_nr(logger,local=.TRUE.)
-!FROM UNMERGED     ELSE
-!FROM UNMERGED        unit_nr=-1
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     !!! Currently for non-theta only
-!FROM UNMERGED     IF (optimize_theta) THEN
-!FROM UNMERGED        CPErrorMessage(cp_failure_level,routineP,"theta is NYI",error)
-!FROM UNMERGED        CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     ! set optimizer options
-!FROM UNMERGED     use_preconditioner = (optimizer%preconditioner.ne.prec_zero)
-!FROM UNMERGED     outer_max_iter=optimizer%max_iter_outer_loop
-!FROM UNMERGED     max_iter=optimizer%max_iter
-!FROM UNMERGED     eps_error_target=optimizer%eps_error
-!FROM UNMERGED 
-!FROM UNMERGED     ! set key dimensions
-!FROM UNMERGED     nspins=SIZE(m_ks)
-!FROM UNMERGED     ndomains=SIZE(domain_s_inv,1)
-!FROM UNMERGED 
-!FROM UNMERGED     IF (nspins == 1) THEN
-!FROM UNMERGED        spin_factor = 2.0_dp
-!FROM UNMERGED     ELSE
-!FROM UNMERGED        spin_factor = 1.0_dp
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     ALLOCATE(domain_prec(ndomains,nspins))
-!FROM UNMERGED     CALL init_submatrices(domain_prec,error)
-!FROM UNMERGED 
-!FROM UNMERGED     ! allocate matrices
-!FROM UNMERGED     ALLOCATE(m_residue(nspins))
-!FROM UNMERGED     ALLOCATE(m_residue_prev(nspins))
-!FROM UNMERGED     ALLOCATE(m_step(nspins))
-!FROM UNMERGED     ALLOCATE(m_zet(nspins))
-!FROM UNMERGED     ALLOCATE(m_zet_prev(nspins))
-!FROM UNMERGED     ALLOCATE(m_Hstep(nspins))
-!FROM UNMERGED     ALLOCATE(m_prec(nspins))
-!FROM UNMERGED     ALLOCATE(m_s_vv(nspins))
-!FROM UNMERGED     ALLOCATE(m_f_vv(nspins))
-!FROM UNMERGED     ALLOCATE(m_f_vo(nspins))
-!FROM UNMERGED     ALLOCATE(m_STsiginv(nspins))
-!FROM UNMERGED 
-!FROM UNMERGED     ALLOCATE(residue_max_norm(nspins))
-!FROM UNMERGED 
-!FROM UNMERGED     ! initiate objects before iterations 
-!FROM UNMERGED     DO ispin=1,nspins
-!FROM UNMERGED 
-!FROM UNMERGED        ! init matrices 
-!FROM UNMERGED        CALL cp_dbcsr_init(m_residue(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_residue(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_residue_prev(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_residue_prev(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_step(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_step(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_zet_prev(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_zet_prev(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_zet(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_zet(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_Hstep(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_Hstep(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_f_vo(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_f_vo(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_STsiginv(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_STsiginv(ispin),&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_f_vv(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_f_vv(ispin),&
-!FROM UNMERGED                template=m_ks(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_s_vv(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_s_vv(ispin),&
-!FROM UNMERGED                template=m_s(1),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_prec(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_prec(ispin),&
-!FROM UNMERGED                template=m_ks(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED        ! compute the full "gradient" - it is necessary to
-!FROM UNMERGED        ! evaluate Hessian.X
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_f_vo(ispin),m_FTsiginv(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_multiply("N","N",-1.0_dp,&
-!FROM UNMERGED                m_ST(ispin),&
-!FROM UNMERGED                m_siginvTFTsiginv(ispin),&
-!FROM UNMERGED                1.0_dp,m_f_vo(ispin),&
-!FROM UNMERGED                filter_eps=eps_filter,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED 
-!FROM UNMERGED ! RZK-warning
-!FROM UNMERGED ! compute preconditioner even if we do not use it 
-!FROM UNMERGED ! this is for debugging because compute_preconditioner includes 
-!FROM UNMERGED ! computing F_vv and S_vv necessary for 
-!FROM UNMERGED !       IF ( use_preconditioner ) THEN
-!FROM UNMERGED 
-!FROM UNMERGED ! domain_s_inv and domain_r_down are never used with assume_t0_q0x=FALSE          
-!FROM UNMERGED           CALL compute_preconditioner(&
-!FROM UNMERGED                   domain_prec_out=domain_prec(:,ispin),&
-!FROM UNMERGED                   m_prec_out=m_prec(ispin),&
-!FROM UNMERGED                   m_ks=m_ks(ispin),&
-!FROM UNMERGED                   m_s=m_s(1),&
-!FROM UNMERGED                   m_siginv=m_siginv(ispin),&
-!FROM UNMERGED                   m_quench_t=m_quench_t(ispin),&
-!FROM UNMERGED                   m_FTsiginv=m_FTsiginv(ispin),&
-!FROM UNMERGED                   m_siginvTFTsiginv=m_siginvTFTsiginv(ispin),&
-!FROM UNMERGED                   m_ST=m_ST(ispin),&
-!FROM UNMERGED                   m_STsiginv_out=m_STsiginv(ispin),&
-!FROM UNMERGED                   m_s_vv_out=m_s_vv(ispin),&
-!FROM UNMERGED                   m_f_vv_out=m_f_vv(ispin),&
-!FROM UNMERGED                   para_env=para_env,&
-!FROM UNMERGED                   blacs_env=blacs_env,&
-!FROM UNMERGED                   nocc_of_domain=nocc_of_domain(:,ispin),&
-!FROM UNMERGED                   domain_s_inv=domain_s_inv(:,ispin),&
-!FROM UNMERGED                   domain_r_down=domain_r_down(:,ispin),&
-!FROM UNMERGED                   cpu_of_domain=cpu_of_domain(:),&
-!FROM UNMERGED                   domain_map=domain_map(ispin),&
-!FROM UNMERGED                   assume_t0_q0x=.FALSE.,&
-!FROM UNMERGED                   penalty_occ_vol=penalty_occ_vol,&
-!FROM UNMERGED                   penalty_occ_vol_prefactor=penalty_occ_vol_prefactor,&
-!FROM UNMERGED                   eps_filter=eps_filter,&
-!FROM UNMERGED                   spin_factor=spin_factor,&
-!FROM UNMERGED                   special_case=special_case,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED        
-!FROM UNMERGED !       ENDIF ! use_preconditioner
-!FROM UNMERGED        
-!FROM UNMERGED        ! initial guess
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_delta(ispin),m_quench_t(ispin),error=error)
-!FROM UNMERGED        ! in order to use cp_dbcsr_set matrix blocks must exist
-!FROM UNMERGED        CALL cp_dbcsr_set(m_delta(ispin),0.0_dp,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_residue(ispin),m_grad(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_scale(m_residue(ispin),-1.0_dp,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED do_exact_inversion=.FALSE.
-!FROM UNMERGED IF (do_exact_inversion) THEN
-!FROM UNMERGED 
-!FROM UNMERGED    ! copy grad to m_step temporarily
-!FROM UNMERGED    ! use m_step as input to the inversion routine
-!FROM UNMERGED    CALL cp_dbcsr_copy(m_step(ispin),m_grad(ispin),error=error)
-!FROM UNMERGED 
-!FROM UNMERGED    ! expensive "exact" inversion of the "nearly-exact" Hessian
-!FROM UNMERGED    ! hopefully returns Z=-H^(-1).G
-!FROM UNMERGED    CALL hessian_diag_apply(&
-!FROM UNMERGED            matrix_grad=m_step(ispin),&
-!FROM UNMERGED            matrix_step=m_zet(ispin),&
-!FROM UNMERGED            matrix_S_ao=m_s_vv(ispin),&
-!FROM UNMERGED            matrix_F_ao=m_f_vv(ispin),&
-!FROM UNMERGED            !matrix_S_ao=m_s(ispin),&
-!FROM UNMERGED            !matrix_F_ao=m_ks(ispin),&
-!FROM UNMERGED            matrix_S_mo=m_siginv(ispin),&
-!FROM UNMERGED            matrix_F_mo=m_siginvTFTsiginv(ispin),&
-!FROM UNMERGED            matrix_S_vo=m_STsiginv(ispin),&
-!FROM UNMERGED            matrix_F_vo=m_f_vo(ispin),&
-!FROM UNMERGED            quench_t=m_quench_t(ispin),&
-!FROM UNMERGED            spin_factor=spin_factor,&
-!FROM UNMERGED            eps_zero=eps_filter*10.0_dp,&
-!FROM UNMERGED            penalty_occ_vol=penalty_occ_vol,&
-!FROM UNMERGED            penalty_occ_vol_prefactor=penalty_occ_vol_prefactor,&
-!FROM UNMERGED            penalty_occ_vol_pf2=penalty_occ_vol_pf2,&
-!FROM UNMERGED            m_s=m_s(1),&
-!FROM UNMERGED            para_env=para_env,&
-!FROM UNMERGED            blacs_env=blacs_env,&
-!FROM UNMERGED            error=error)
-!FROM UNMERGED     ! correct solution by the spin factor
-!FROM UNMERGED     !CALL cp_dbcsr_scale(m_zet(ispin),1.0_dp/(2.0_dp*spin_factor),error=error)
-!FROM UNMERGED 
-!FROM UNMERGED        
-!FROM UNMERGED ELSE ! use PCG to solve H.D=-G
-!FROM UNMERGED 
-!FROM UNMERGED        IF ( use_preconditioner ) THEN
-!FROM UNMERGED 
-!FROM UNMERGED           IF (special_case.eq.xalmo_case_block_diag .OR. &
-!FROM UNMERGED               special_case.eq.xalmo_case_fully_deloc) THEN
-!FROM UNMERGED 
-!FROM UNMERGED              CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                      m_prec(ispin),&
-!FROM UNMERGED                      m_residue(ispin),&
-!FROM UNMERGED                      0.0_dp,m_zet(ispin),&
-!FROM UNMERGED                      filter_eps=eps_filter,&
-!FROM UNMERGED                      error=error)
-!FROM UNMERGED 
-!FROM UNMERGED           ELSE
-!FROM UNMERGED 
-!FROM UNMERGED              CALL apply_domain_operators(&
-!FROM UNMERGED                      matrix_in=m_residue(ispin),&
-!FROM UNMERGED                      matrix_out=m_zet(ispin),&
-!FROM UNMERGED                      operator1=domain_prec(:,ispin),&
-!FROM UNMERGED                      dpattern=m_quench_t(ispin),&
-!FROM UNMERGED                      map=domain_map(ispin),&
-!FROM UNMERGED                      node_of_domain=cpu_of_domain(:),&
-!FROM UNMERGED                      my_action=0,&
-!FROM UNMERGED                      filter_eps=eps_filter,&
-!FROM UNMERGED                      !matrix_trimmer=,&
-!FROM UNMERGED                      !use_trimmer=.FALSE.,&
-!FROM UNMERGED                      error=error)
-!FROM UNMERGED 
-!FROM UNMERGED           ENDIF ! special_case
-!FROM UNMERGED    
-!FROM UNMERGED        ELSE ! do not use preconditioner
-!FROM UNMERGED 
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_zet(ispin),m_residue(ispin),error=error)
-!FROM UNMERGED 
-!FROM UNMERGED        ENDIF ! use_preconditioner
-!FROM UNMERGED 
-!FROM UNMERGED ENDIF ! do_exact_inversion
-!FROM UNMERGED 
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_step(ispin),m_zet(ispin),error=error)
-!FROM UNMERGED        
-!FROM UNMERGED     ENDDO !ispin
-!FROM UNMERGED 
-!FROM UNMERGED 
-!FROM UNMERGED     ! start the outer SCF loop
-!FROM UNMERGED     outer_prepare_to_exit=.FALSE.
-!FROM UNMERGED     outer_iteration=0
-!FROM UNMERGED     residue_norm=0.0_dp
-!FROM UNMERGED 
-!FROM UNMERGED     DO
-!FROM UNMERGED 
-!FROM UNMERGED        ! start the inner SCF loop
-!FROM UNMERGED        prepare_to_exit=.FALSE.
-!FROM UNMERGED        converged=.FALSE.
-!FROM UNMERGED        iteration=0
-!FROM UNMERGED        t1 = m_walltime()
-!FROM UNMERGED 
-!FROM UNMERGED        DO
-!FROM UNMERGED 
-!FROM UNMERGED           ! apply hessian to the step matrix
-!FROM UNMERGED           CALL apply_hessian(&
-!FROM UNMERGED                   m_x_in=m_step,&
-!FROM UNMERGED                   m_x_out=m_Hstep,&
-!FROM UNMERGED                   m_ks=m_ks,&
-!FROM UNMERGED                   m_s=m_s,&
-!FROM UNMERGED                   m_siginv=m_siginv,&
-!FROM UNMERGED                   m_quench_t=m_quench_t,&
-!FROM UNMERGED                   m_FTsiginv=m_FTsiginv,&
-!FROM UNMERGED                   m_siginvTFTsiginv=m_siginvTFTsiginv,&
-!FROM UNMERGED                   m_ST=m_ST,&
-!FROM UNMERGED                   m_STsiginv=m_STsiginv,&
-!FROM UNMERGED                   m_s_vv=m_s_vv,&
-!FROM UNMERGED                   m_ks_vv=m_f_vv,&
-!FROM UNMERGED                   !m_s_vv=m_s,&
-!FROM UNMERGED                   !m_ks_vv=m_ks,&
-!FROM UNMERGED                   m_g_full=m_f_vo,&
-!FROM UNMERGED                   m_t=m_t,&
-!FROM UNMERGED                   m_sig_sqrti_ii=m_sig_sqrti_ii,&
-!FROM UNMERGED                   penalty_occ_vol=penalty_occ_vol,&
-!FROM UNMERGED                   normalize_orbitals=normalize_orbitals,&
-!FROM UNMERGED                   penalty_occ_vol_prefactor=penalty_occ_vol_prefactor,&
-!FROM UNMERGED                   eps_filter=eps_filter,&
-!FROM UNMERGED                   path_num=hessian_path_reuse,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED 
-!FROM UNMERGED           ! alpha is computed outside the spin loop
-!FROM UNMERGED           numer = 0.0_dp
-!FROM UNMERGED           denom = 0.0_dp
-!FROM UNMERGED           DO ispin=1,nspins
-!FROM UNMERGED 
-!FROM UNMERGED              CALL cp_dbcsr_trace(m_residue(ispin),m_zet(ispin),numer_ispin,&
-!FROM UNMERGED                      "T","N",error=error)
-!FROM UNMERGED              CALL cp_dbcsr_trace(m_step(ispin),m_Hstep(ispin),denom_ispin,&
-!FROM UNMERGED                      "T","N",error=error)
-!FROM UNMERGED 
-!FROM UNMERGED              numer = numer + numer_ispin
-!FROM UNMERGED              denom = denom + denom_ispin
-!FROM UNMERGED 
-!FROM UNMERGED           ENDDO !ispin
-!FROM UNMERGED           
-!FROM UNMERGED           alpha = numer/denom
-!FROM UNMERGED 
-!FROM UNMERGED           DO ispin=1,nspins
-!FROM UNMERGED          
-!FROM UNMERGED              ! update the variable
-!FROM UNMERGED              CALL cp_dbcsr_add(m_delta(ispin),m_step(ispin),1.0_dp,alpha,&
-!FROM UNMERGED                      error=error)
-!FROM UNMERGED              CALL cp_dbcsr_copy(m_residue_prev(ispin),m_residue(ispin),&
-!FROM UNMERGED                      error=error)
-!FROM UNMERGED              CALL cp_dbcsr_add(m_residue(ispin),m_Hstep(ispin),&
-!FROM UNMERGED                      1.0_dp, -1.0_dp*alpha, error=error)
-!FROM UNMERGED           
-!FROM UNMERGED              CALL cp_dbcsr_norm(m_residue(ispin), dbcsr_norm_maxabsnorm,&
-!FROM UNMERGED                   norm_scalar=residue_max_norm(ispin), error=error)
-!FROM UNMERGED 
-!FROM UNMERGED           ENDDO ! ispin
-!FROM UNMERGED 
-!FROM UNMERGED           ! check convergence and other exit criteria
-!FROM UNMERGED           residue_norm=MAXVAL(residue_max_norm)
-!FROM UNMERGED           converged=(residue_norm.lt.eps_error_target)
-!FROM UNMERGED           IF (converged.OR.(iteration.ge.max_iter)) THEN
-!FROM UNMERGED              prepare_to_exit=.TRUE.
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED           IF (.NOT.prepare_to_exit) THEN
-!FROM UNMERGED     
-!FROM UNMERGED              denom=0.0_dp
-!FROM UNMERGED              numer=0.0_dp
-!FROM UNMERGED              DO ispin=1,nspins
-!FROM UNMERGED                 
-!FROM UNMERGED                 ! save current z before the update
-!FROM UNMERGED                 CALL cp_dbcsr_copy(m_zet_prev(ispin),m_zet(ispin),&
-!FROM UNMERGED                         error=error)
-!FROM UNMERGED     
-!FROM UNMERGED                 ! compute the new step (apply preconditioner if available)
-!FROM UNMERGED                 IF (use_preconditioner) THEN
-!FROM UNMERGED                    
-!FROM UNMERGED                    !IF (unit_nr>0) THEN
-!FROM UNMERGED                    !   WRITE(unit_nr,*) "....applying preconditioner...."
-!FROM UNMERGED                    !ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED                    IF (special_case.eq.xalmo_case_block_diag .OR. &
-!FROM UNMERGED                        special_case.eq.xalmo_case_fully_deloc) THEN
-!FROM UNMERGED 
-!FROM UNMERGED                       CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                               m_prec(ispin),&
-!FROM UNMERGED                               m_residue(ispin),&
-!FROM UNMERGED                               0.0_dp,m_zet(ispin),&
-!FROM UNMERGED                               filter_eps=eps_filter,&
-!FROM UNMERGED                               error=error)
-!FROM UNMERGED 
-!FROM UNMERGED                    ELSE
-!FROM UNMERGED                       
-!FROM UNMERGED                       CALL apply_domain_operators(&
-!FROM UNMERGED                               matrix_in=m_residue(ispin),&
-!FROM UNMERGED                               matrix_out=m_zet(ispin),&
-!FROM UNMERGED                               operator1=domain_prec(:,ispin),&
-!FROM UNMERGED                               dpattern=m_quench_t(ispin),&
-!FROM UNMERGED                               map=domain_map(ispin),&
-!FROM UNMERGED                               node_of_domain=cpu_of_domain(:),&
-!FROM UNMERGED                               my_action=0,&
-!FROM UNMERGED                               filter_eps=eps_filter,&
-!FROM UNMERGED                               !matrix_trimmer=,&
-!FROM UNMERGED                               !use_trimmer=.FALSE.,&
-!FROM UNMERGED                               error=error)
-!FROM UNMERGED    
-!FROM UNMERGED                    ENDIF ! special case
-!FROM UNMERGED           
-!FROM UNMERGED                 ELSE
-!FROM UNMERGED 
-!FROM UNMERGED                    CALL cp_dbcsr_copy(m_zet(ispin),m_residue(ispin),error=error)
-!FROM UNMERGED 
-!FROM UNMERGED                 ENDIF
-!FROM UNMERGED              
-!FROM UNMERGED                 ! compute the conjugation coefficient - beta
-!FROM UNMERGED                 CALL compute_cg_beta(&
-!FROM UNMERGED                         beta=beta_ispin,&
-!FROM UNMERGED                         numer=numer_ispin,&
-!FROM UNMERGED                         denom=denom_ispin,&
-!FROM UNMERGED                         reset_conjugator=reset_conjugator,&
-!FROM UNMERGED                         conjugator=cg_fletcher,&
-!FROM UNMERGED                         grad=m_residue(ispin),&
-!FROM UNMERGED                         prev_grad=m_residue_prev(ispin),&
-!FROM UNMERGED                         step=m_zet(ispin),&
-!FROM UNMERGED                         prev_step=m_zet_prev(ispin),&
-!FROM UNMERGED                         error=error)
-!FROM UNMERGED              
-!FROM UNMERGED                 numer = numer + numer_ispin
-!FROM UNMERGED                 denom = denom + denom_ispin
-!FROM UNMERGED 
-!FROM UNMERGED              ENDDO !ispin
-!FROM UNMERGED    
-!FROM UNMERGED              ! compute beta from ispin values
-!FROM UNMERGED              beta = numer/denom
-!FROM UNMERGED 
-!FROM UNMERGED              DO ispin=1,nspins
-!FROM UNMERGED              
-!FROM UNMERGED                 ! conjugate the step direction
-!FROM UNMERGED                 CALL cp_dbcsr_add(m_step(ispin),m_zet(ispin),beta,1.0_dp,error=error)
-!FROM UNMERGED              
-!FROM UNMERGED              ENDDO !ispin
-!FROM UNMERGED 
-!FROM UNMERGED           ENDIF ! not.prepare_to_exit
-!FROM UNMERGED           
-!FROM UNMERGED           t2 = m_walltime()
-!FROM UNMERGED           IF (unit_nr>0) THEN
-!FROM UNMERGED              !iter_type=TRIM("ALMO SCF "//iter_type)
-!FROM UNMERGED              iter_type=TRIM("NR STEP")
-!FROM UNMERGED              WRITE(unit_nr,'(T6,A9,I6,F14.5,F14.5,F15.10,F9.2)') &
-!FROM UNMERGED                      iter_type,iteration,&
-!FROM UNMERGED                      alpha,beta,residue_norm,&
-!FROM UNMERGED                      t2-t1
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED           t1 = m_walltime()
-!FROM UNMERGED 
-!FROM UNMERGED           iteration=iteration+1
-!FROM UNMERGED           IF (prepare_to_exit) EXIT
-!FROM UNMERGED 
-!FROM UNMERGED        ENDDO ! inner loop
-!FROM UNMERGED 
-!FROM UNMERGED        IF (converged.OR.(outer_iteration.ge.outer_max_iter)) THEN
-!FROM UNMERGED           outer_prepare_to_exit=.TRUE.
-!FROM UNMERGED        ENDIF
-!FROM UNMERGED        
-!FROM UNMERGED        outer_iteration=outer_iteration+1
-!FROM UNMERGED        IF (outer_prepare_to_exit) EXIT
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO ! outer loop
-!FROM UNMERGED 
-!FROM UNMERGED ! is not necessary if penalty_occ_vol_pf2=0.0
-!FROM UNMERGED #if 0
-!FROM UNMERGED 
-!FROM UNMERGED IF (penalty_occ_vol) THEN
-!FROM UNMERGED 
-!FROM UNMERGED    DO ispin=1, nspins
-!FROM UNMERGED    
-!FROM UNMERGED       CALL cp_dbcsr_copy(m_zet(ispin),m_grad(ispin),error=error)
-!FROM UNMERGED       CALL cp_dbcsr_trace(m_delta(ispin),m_zet(ispin),alpha,&
-!FROM UNMERGED               "T","N",error=error)
-!FROM UNMERGED       WRITE(*,*) "trace(grad.delta): ", alpha
-!FROM UNMERGED       alpha=-1.0_dp/(penalty_occ_vol_pf2*alpha-1.0_dp)
-!FROM UNMERGED       WRITE(*,*) "correction alpha: ", alpha
-!FROM UNMERGED       CALL cp_dbcsr_scale(m_delta(ispin),alpha,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED    ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED #endif
-!FROM UNMERGED 
-!FROM UNMERGED     DO ispin=1, nspins
-!FROM UNMERGED        
-!FROM UNMERGED        ! check whether the step lies entirely in R or Q
-!FROM UNMERGED        CALL cp_dbcsr_init(m_tmp_oo_1,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_tmp_oo_1,&
-!FROM UNMERGED                template=m_siginv(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_tmp_oo_2,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_tmp_oo_2,&
-!FROM UNMERGED                template=m_siginv(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_multiply("T","N",1.0_dp,&
-!FROM UNMERGED                m_ST(ispin),&
-!FROM UNMERGED                m_delta(ispin),&
-!FROM UNMERGED                0.0_dp,m_tmp_oo_1,&
-!FROM UNMERGED                filter_eps=eps_filter,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED        CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                m_siginv(ispin),&
-!FROM UNMERGED                m_tmp_oo_1,&
-!FROM UNMERGED                0.0_dp,m_tmp_oo_2,&
-!FROM UNMERGED                filter_eps=eps_filter,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED        CALL cp_dbcsr_copy(m_zet(ispin),m_quench_t(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                m_t(ispin),&
-!FROM UNMERGED                m_tmp_oo_2,&
-!FROM UNMERGED                0.0_dp,m_zet(ispin),&
-!FROM UNMERGED                retain_sparsity=.TRUE.,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED        CALL cp_dbcsr_norm(m_zet(ispin), dbcsr_norm_maxabsnorm,&
-!FROM UNMERGED                norm_scalar=alpha, error=error)
-!FROM UNMERGED        WRITE(*,"(A50,2F20.10)") "Occupied-space projection of the step", alpha
-!FROM UNMERGED        CALL cp_dbcsr_add(m_zet(ispin),m_delta(ispin),-1.0_dp,1.0_dp,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_norm(m_zet(ispin), dbcsr_norm_maxabsnorm,&
-!FROM UNMERGED                norm_scalar=alpha, error=error)
-!FROM UNMERGED        WRITE(*,"(A50,2F20.10)") "Virtual-space projection of the step", alpha
-!FROM UNMERGED        CALL cp_dbcsr_norm(m_delta(ispin), dbcsr_norm_maxabsnorm,&
-!FROM UNMERGED                norm_scalar=alpha, error=error)
-!FROM UNMERGED        WRITE(*,"(A50,2F20.10)") "Full step", alpha 
-!FROM UNMERGED        CALL cp_dbcsr_release(m_tmp_oo_1,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_tmp_oo_2,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED     ! clean up
-!FROM UNMERGED     DO ispin=1,nspins
-!FROM UNMERGED        CALL release_submatrices(domain_prec(:,ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_residue(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_residue_prev(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_step(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_zet(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_zet_prev(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_Hstep(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_f_vo(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_f_vv(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_s_vv(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_prec(ispin),error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_STsiginv(ispin),error=error)
-!FROM UNMERGED     ENDDO !ispin
-!FROM UNMERGED     DEALLOCATE(domain_prec)
-!FROM UNMERGED     DEALLOCATE(m_residue)
-!FROM UNMERGED     DEALLOCATE(m_residue_prev)
-!FROM UNMERGED     DEALLOCATE(m_step)
-!FROM UNMERGED     DEALLOCATE(m_zet)
-!FROM UNMERGED     DEALLOCATE(m_zet_prev)
-!FROM UNMERGED     DEALLOCATE(m_prec)
-!FROM UNMERGED     DEALLOCATE(m_Hstep)
-!FROM UNMERGED     DEALLOCATE(m_s_vv)
-!FROM UNMERGED     DEALLOCATE(m_f_vv)
-!FROM UNMERGED     DEALLOCATE(m_f_vo)
-!FROM UNMERGED     DEALLOCATE(m_STsiginv)
-!FROM UNMERGED     DEALLOCATE(residue_max_norm)
-!FROM UNMERGED     
-!FROM UNMERGED     IF (.NOT.converged)  THEN
-!FROM UNMERGED        IF (unit_nr>0) WRITE(unit_nr,'(T2,A)') "Optimization not converged! "
-!FROM UNMERGED        CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED     
-!FROM UNMERGED     ! check that the step satisfies H.step=-grad
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timestop(handle)
-!FROM UNMERGED   
-!FROM UNMERGED   END SUBROUTINE newton_grad_to_step
-!FROM UNMERGED 
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED !> \brief Computes Hessian.X 
-!FROM UNMERGED !> \par History
-!FROM UNMERGED !>       2015.04 created [Rustam Z Khaliullin]
-!FROM UNMERGED !> \author Rustam Z Khaliullin
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED   SUBROUTINE apply_hessian(m_x_in, m_x_out, m_ks, m_s, m_siginv, &
-!FROM UNMERGED      m_quench_t,  m_FTsiginv, m_siginvTFTsiginv, m_ST, m_STsiginv, m_s_vv, &
-!FROM UNMERGED      m_ks_vv, m_g_full, m_t, m_sig_sqrti_ii, penalty_occ_vol, &
-!FROM UNMERGED      normalize_orbitals, penalty_occ_vol_prefactor, eps_filter, path_num, error)
-!FROM UNMERGED 
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_x_in
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_x_out
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_ks
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_s
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)    :: m_siginv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_quench_t
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)    :: m_FTsiginv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)    :: m_siginvTFTsiginv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)    :: m_ST
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)    :: m_STsiginv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_s_vv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_ks_vv
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT) :: m_g_full
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)    :: m_t
-!FROM UNMERGED     TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)    :: m_sig_sqrti_ii
-!FROM UNMERGED     LOGICAL, INTENT(IN)                              :: penalty_occ_vol, &
-!FROM UNMERGED                                                         normalize_orbitals
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                        :: penalty_occ_vol_prefactor
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)                        :: eps_filter
-!FROM UNMERGED     INTEGER, INTENT(IN)                              :: path_num 
-!FROM UNMERGED     TYPE(cp_error_type), INTENT(INOUT)               :: error
-!FROM UNMERGED     
-!FROM UNMERGED     CHARACTER(len=*), PARAMETER :: &
-!FROM UNMERGED       routineN = 'apply_hessian', &
-!FROM UNMERGED       routineP = moduleN//':'//routineN
-!FROM UNMERGED 
-!FROM UNMERGED     INTEGER                                     :: handle,nspins,&
-!FROM UNMERGED                                                    ispin, dim0
-!FROM UNMERGED     REAL(KIND=dp)                               :: spin_factor,&
-!FROM UNMERGED                                                    penalty_prefactor_local
-!FROM UNMERGED     REAL(KIND=dp), DIMENSION(:), ALLOCATABLE    :: tg_diagonal
-!FROM UNMERGED     LOGICAL                                     :: failure
-!FROM UNMERGED     TYPE(cp_dbcsr_type)                         :: m_tmp_oo_1,&
-!FROM UNMERGED                                                    m_tmp_no_1,&
-!FROM UNMERGED                                                    m_tmp_no_2,&
-!FROM UNMERGED                                                    m_tmp_x_in
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timeset(routineN,handle)
-!FROM UNMERGED 
-!FROM UNMERGED     nspins=SIZE(m_ks)
-!FROM UNMERGED     
-!FROM UNMERGED     IF (nspins.eq.1) THEN
-!FROM UNMERGED        spin_factor = 2.0_dp
-!FROM UNMERGED     ELSE
-!FROM UNMERGED        spin_factor = 1.0_dp
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     penalty_prefactor_local=penalty_occ_vol_prefactor/(2.0_dp*spin_factor)
-!FROM UNMERGED 
-!FROM UNMERGED     DO ispin=1,nspins
-!FROM UNMERGED 
-!FROM UNMERGED        CALL cp_dbcsr_init(m_tmp_oo_1,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_tmp_oo_1,&
-!FROM UNMERGED                template=m_siginv(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_tmp_no_1,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_tmp_no_1,&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_tmp_no_2,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_tmp_no_2,&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED        CALL cp_dbcsr_init(m_tmp_x_in,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_create(m_tmp_x_in,&
-!FROM UNMERGED                template=m_quench_t(ispin),&
-!FROM UNMERGED                matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED                error=error)
-!FROM UNMERGED 
-!FROM UNMERGED        ! transform the input X to take into account the normalization constraint
-!FROM UNMERGED        IF (normalize_orbitals) THEN
-!FROM UNMERGED           
-!FROM UNMERGED           ! H.D = ( (H.D) - ST.[tr(T).(H.D)]_ii ) . [sig_sqrti]_ii
-!FROM UNMERGED           
-!FROM UNMERGED           ! get [tr(T).HD]_ii
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_tmp_oo_1,m_sig_sqrti_ii(ispin),error=error)
-!FROM UNMERGED           CALL cp_dbcsr_multiply("T","N",1.0_dp,&
-!FROM UNMERGED                   m_x_in(ispin),&
-!FROM UNMERGED                   m_ST(ispin),&
-!FROM UNMERGED                   0.0_dp,m_tmp_oo_1,&
-!FROM UNMERGED                   retain_sparsity=.TRUE.,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED           CALL cp_dbcsr_get_info(m_sig_sqrti_ii(ispin), nfullrows_total=dim0 )
-!FROM UNMERGED           ALLOCATE(tg_diagonal(dim0))
-!FROM UNMERGED           CALL cp_dbcsr_get_diag(m_tmp_oo_1,tg_diagonal,error=error)
-!FROM UNMERGED           CALL cp_dbcsr_set(m_tmp_oo_1,0.0_dp,error=error)
-!FROM UNMERGED           CALL cp_dbcsr_set_diag(m_tmp_oo_1,tg_diagonal,error=error)
-!FROM UNMERGED           DEALLOCATE(tg_diagonal)
-!FROM UNMERGED           
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_tmp_no_1,m_x_in(ispin),error=error)
-!FROM UNMERGED           CALL cp_dbcsr_multiply("N","N",-1.0_dp,&
-!FROM UNMERGED                   m_t(ispin),&
-!FROM UNMERGED                   m_tmp_oo_1,&
-!FROM UNMERGED                   1.0_dp,m_tmp_no_1,&
-!FROM UNMERGED                   filter_eps=eps_filter,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED           CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                   m_tmp_no_1,&
-!FROM UNMERGED                   m_sig_sqrti_ii(ispin),&
-!FROM UNMERGED                   0.0_dp,m_tmp_x_in,&
-!FROM UNMERGED                   filter_eps=eps_filter,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED        
-!FROM UNMERGED        ELSE
-!FROM UNMERGED 
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_tmp_x_in,m_x_in(ispin),error=error)
-!FROM UNMERGED 
-!FROM UNMERGED        ENDIF ! normalize_orbitals
-!FROM UNMERGED 
-!FROM UNMERGED        IF (path_num.EQ.hessian_path_reuse) THEN
-!FROM UNMERGED           
-!FROM UNMERGED           ! apply pre-computed F_vv and S_vv to X
-!FROM UNMERGED 
-!FROM UNMERGED #if 0
-!FROM UNMERGED ! RZK-warning: negative sign at penalty_prefactor_local is that 
-!FROM UNMERGED ! magical fix for the negative definite problem
-!FROM UNMERGED ! (since penalty_prefactor_local<0 the coeff before S_vv must
-!FROM UNMERGED ! be multiplied by -1 to take the step in the right direction)
-!FROM UNMERGED !CALL cp_dbcsr_multiply("N","N",-4.0_dp*penalty_prefactor_local,&
-!FROM UNMERGED !        m_s_vv(ispin),&
-!FROM UNMERGED !        m_tmp_x_in,&
-!FROM UNMERGED !        0.0_dp,m_tmp_no_1,&
-!FROM UNMERGED !        filter_eps=eps_filter,&
-!FROM UNMERGED !        error=error)
-!FROM UNMERGED !CALL cp_dbcsr_copy(m_x_out(ispin),m_quench_t(ispin),error=error)
-!FROM UNMERGED !CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !        m_tmp_no_1,&
-!FROM UNMERGED !        m_siginv(ispin),&
-!FROM UNMERGED !        0.0_dp,m_x_out(ispin),&
-!FROM UNMERGED !        retain_sparsity=.TRUE.,&
-!FROM UNMERGED !        error=error)
-!FROM UNMERGED 
-!FROM UNMERGED CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED         m_s(1),&
-!FROM UNMERGED         m_tmp_x_in,&
-!FROM UNMERGED         0.0_dp,m_tmp_no_1,&
-!FROM UNMERGED         filter_eps=eps_filter,&
-!FROM UNMERGED         error=error)
-!FROM UNMERGED CALL cp_dbcsr_copy(m_x_out(ispin),m_quench_t(ispin),error=error)
-!FROM UNMERGED CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED         m_tmp_no_1,&
-!FROM UNMERGED         m_siginv(ispin),&
-!FROM UNMERGED         0.0_dp,m_x_out(ispin),&
-!FROM UNMERGED         retain_sparsity=.TRUE.,&
-!FROM UNMERGED         error=error)
-!FROM UNMERGED 
-!FROM UNMERGED !CALL cp_dbcsr_copy(m_x_out(ispin),m_quench_t(ispin),error=error)
-!FROM UNMERGED !CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !        m_s(1),&
-!FROM UNMERGED !        m_tmp_x_in,&
-!FROM UNMERGED !        0.0_dp,m_x_out(ispin),&
-!FROM UNMERGED !        retain_sparsity=.TRUE.,&
-!FROM UNMERGED !        error=error)
-!FROM UNMERGED        
-!FROM UNMERGED        
-!FROM UNMERGED #else
-!FROM UNMERGED 
-!FROM UNMERGED           ! debugging: only vv matrices, oo matrices are kronecker
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_x_out(ispin),m_quench_t(ispin),error=error)
-!FROM UNMERGED           CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                   m_ks_vv(ispin),&
-!FROM UNMERGED                   m_tmp_x_in,&
-!FROM UNMERGED                   0.0_dp,m_x_out(ispin),&
-!FROM UNMERGED                   retain_sparsity=.TRUE.,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED        
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_tmp_no_2,m_quench_t(ispin),error=error)
-!FROM UNMERGED           CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                   m_s_vv(ispin),&
-!FROM UNMERGED                   m_tmp_x_in,&
-!FROM UNMERGED                   0.0_dp,m_tmp_no_2,&
-!FROM UNMERGED                   retain_sparsity=.TRUE.,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED           CALL cp_dbcsr_add(m_x_out(ispin),m_tmp_no_2,&
-!FROM UNMERGED                   1.0_dp,-4.0_dp*penalty_prefactor_local+1.0_dp,error=error)
-!FROM UNMERGED #endif
-!FROM UNMERGED 
-!FROM UNMERGED !          ! F_vv.X.S_oo
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !                  m_ks_vv(ispin),&
-!FROM UNMERGED !                  m_tmp_x_in,&
-!FROM UNMERGED !                  0.0_dp,m_tmp_no_1,&
-!FROM UNMERGED !                  filter_eps=eps_filter,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_copy(m_x_out(ispin),m_quench_t(ispin),error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !                  m_tmp_no_1,&
-!FROM UNMERGED !                  m_siginv(ispin),&
-!FROM UNMERGED !                  0.0_dp,m_x_out(ispin),&
-!FROM UNMERGED !                  retain_sparsity=.TRUE.,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !       
-!FROM UNMERGED !          ! S_vv.X.F_oo
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !                  m_s_vv(ispin),&
-!FROM UNMERGED !                  m_tmp_x_in,&
-!FROM UNMERGED !                  0.0_dp,m_tmp_no_1,&
-!FROM UNMERGED !                  filter_eps=eps_filter,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_copy(m_tmp_no_2,m_quench_t(ispin),error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !                  m_tmp_no_1,&
-!FROM UNMERGED !                  m_siginvTFTsiginv(ispin),&
-!FROM UNMERGED !                  0.0_dp,m_tmp_no_2,&
-!FROM UNMERGED !                  retain_sparsity=.TRUE.,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_add(m_x_out(ispin),m_tmp_no_2,&
-!FROM UNMERGED !               1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED !! we have to add occ voll penalty here (the Svv termi (i.e. both Svv.D.Soo) 
-!FROM UNMERGED !!  and STsiginv terms)
-!FROM UNMERGED !
-!FROM UNMERGED !         ! S_vo.X^t.F_vo
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("T","N",1.0_dp,&
-!FROM UNMERGED !                  m_tmp_x_in,&
-!FROM UNMERGED !                  m_g_full(ispin),&
-!FROM UNMERGED !                  0.0_dp,m_tmp_oo_1,&
-!FROM UNMERGED !                  filter_eps=eps_filter,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_copy(m_tmp_no_2,m_quench_t(ispin),error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !                  m_STsiginv(ispin),&
-!FROM UNMERGED !                  m_tmp_oo_1,&
-!FROM UNMERGED !                  0.0_dp,m_tmp_no_2,&
-!FROM UNMERGED !                  retain_sparsity=.TRUE.,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_add(m_x_out(ispin),m_tmp_no_2,&
-!FROM UNMERGED !                  1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED !
-!FROM UNMERGED !          ! S_vo.X^t.F_vo
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("T","N",1.0_dp,&
-!FROM UNMERGED !                  m_tmp_x_in,&
-!FROM UNMERGED !                  m_STsiginv(ispin),&
-!FROM UNMERGED !                  0.0_dp,m_tmp_oo_1,&
-!FROM UNMERGED !                  filter_eps=eps_filter,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_copy(m_tmp_no_2,m_quench_t(ispin),error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !                  m_g_full(ispin),&
-!FROM UNMERGED !                  m_tmp_oo_1,&
-!FROM UNMERGED !                  0.0_dp,m_tmp_no_2,&
-!FROM UNMERGED !                  retain_sparsity=.TRUE.,&
-!FROM UNMERGED !                  error=error)
-!FROM UNMERGED !          CALL cp_dbcsr_add(m_x_out(ispin),m_tmp_no_2,&
-!FROM UNMERGED !                  1.0_dp,-1.0_dp,error=error)
-!FROM UNMERGED     
-!FROM UNMERGED        ELSE IF (path_num.EQ.hessian_path_assemble) THEN
-!FROM UNMERGED           
-!FROM UNMERGED           ! compute F_vv.X and S_vv.X directly
-!FROM UNMERGED           ! this path will be advantageous if the number
-!FROM UNMERGED           ! of PCG iterations is small
-!FROM UNMERGED           
-!FROM UNMERGED           CPErrorMessage(cp_failure_level,routineP,"path is NYI",error)
-!FROM UNMERGED           CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED 
-!FROM UNMERGED        ELSE
-!FROM UNMERGED           CPErrorMessage(cp_failure_level,routineP,"illegal path",error)
-!FROM UNMERGED           CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED        ENDIF ! path
-!FROM UNMERGED 
-!FROM UNMERGED        ! transform the output to take into account the normalization constraint
-!FROM UNMERGED        IF (normalize_orbitals) THEN
-!FROM UNMERGED           
-!FROM UNMERGED           ! H.D = ( (H.D) - ST.[tr(T).(H.D)]_ii ) . [sig_sqrti]_ii
-!FROM UNMERGED           
-!FROM UNMERGED           ! get [tr(T).HD]_ii
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_tmp_oo_1,m_sig_sqrti_ii(ispin),error=error)
-!FROM UNMERGED           CALL cp_dbcsr_multiply("T","N",1.0_dp,&
-!FROM UNMERGED                   m_t(ispin),&
-!FROM UNMERGED                   m_x_out(ispin),&
-!FROM UNMERGED                   0.0_dp,m_tmp_oo_1,&
-!FROM UNMERGED                   retain_sparsity=.TRUE.,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED           CALL cp_dbcsr_get_info(m_sig_sqrti_ii(ispin), nfullrows_total=dim0 )
-!FROM UNMERGED           ALLOCATE(tg_diagonal(dim0))
-!FROM UNMERGED           CALL cp_dbcsr_get_diag(m_tmp_oo_1,tg_diagonal,error=error)
-!FROM UNMERGED           CALL cp_dbcsr_set(m_tmp_oo_1,0.0_dp,error=error)
-!FROM UNMERGED           CALL cp_dbcsr_set_diag(m_tmp_oo_1,tg_diagonal,error=error)
-!FROM UNMERGED           DEALLOCATE(tg_diagonal)
-!FROM UNMERGED           
-!FROM UNMERGED           CALL cp_dbcsr_multiply("N","N",-1.0_dp,&
-!FROM UNMERGED                   m_ST(ispin),&
-!FROM UNMERGED                   m_tmp_oo_1,&
-!FROM UNMERGED                   1.0_dp,m_x_out(ispin),&
-!FROM UNMERGED                   retain_sparsity=.TRUE.,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED           CALL cp_dbcsr_copy(m_tmp_no_1,m_x_out(ispin),error=error)
-!FROM UNMERGED           CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED                   m_tmp_no_1,&
-!FROM UNMERGED                   m_sig_sqrti_ii(ispin),&
-!FROM UNMERGED                   0.0_dp,m_x_out(ispin),&
-!FROM UNMERGED                   retain_sparsity=.TRUE.,&
-!FROM UNMERGED                   error=error)
-!FROM UNMERGED           
-!FROM UNMERGED        ENDIF ! normalize_orbitals
-!FROM UNMERGED 
-!FROM UNMERGED        CALL cp_dbcsr_scale(m_x_out(ispin),&
-!FROM UNMERGED                2.0_dp*spin_factor,error=error)
-!FROM UNMERGED        
-!FROM UNMERGED        CALL cp_dbcsr_release(m_tmp_oo_1,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_tmp_no_1,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_tmp_no_2,error=error)
-!FROM UNMERGED        CALL cp_dbcsr_release(m_tmp_x_in,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO !ispin
-!FROM UNMERGED 
-!FROM UNMERGED     ! there is one more part of the hessian that comes
-!FROM UNMERGED     ! from T-dependence of the KS matrix
-!FROM UNMERGED     ! it is neglected here
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timestop(handle)
-!FROM UNMERGED   
-!FROM UNMERGED   END SUBROUTINE apply_hessian 
-!FROM UNMERGED 
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED !> \brief Serial code that constructs an approximate Hessian
-!FROM UNMERGED !> \param matrix_grad ...
-!FROM UNMERGED !> \param matrix_step ...
-!FROM UNMERGED !> \param matrix_S_ao ...
-!FROM UNMERGED !> \param matrix_F_ao ...
-!FROM UNMERGED !> \param matrix_S_mo ...
-!FROM UNMERGED !> \param matrix_F_mo ...
-!FROM UNMERGED !> \param matrix_S_vo ...
-!FROM UNMERGED !> \param matrix_F_vo ...
-!FROM UNMERGED !> \param quench_t ...
-!FROM UNMERGED !> \param error ...
-!FROM UNMERGED !> \par History
-!FROM UNMERGED !>       2012.02 created [Rustam Z. Khaliullin]
-!FROM UNMERGED !> \author Rustam Z. Khaliullin
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED   SUBROUTINE hessian_diag_apply(matrix_grad,matrix_step,matrix_S_ao,&
-!FROM UNMERGED     matrix_F_ao,matrix_S_mo,matrix_F_mo,matrix_S_vo,matrix_F_vo,quench_t,&
-!FROM UNMERGED     penalty_occ_vol,penalty_occ_vol_prefactor,penalty_occ_vol_pf2,&
-!FROM UNMERGED     spin_factor,eps_zero,m_s,para_env,blacs_env,error)
-!FROM UNMERGED     
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT) :: matrix_grad, matrix_step, &
-!FROM UNMERGED       matrix_S_ao, matrix_F_ao, matrix_S_mo, matrix_S_vo, &
-!FROM UNMERGED       matrix_F_vo, quench_t
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(IN)    :: matrix_F_mo
-!FROM UNMERGED     LOGICAL, INTENT(IN)                :: penalty_occ_vol
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)          :: penalty_occ_vol_prefactor
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)          :: penalty_occ_vol_pf2
-!FROM UNMERGED     REAL(KIND=dp), INTENT(IN)          :: spin_factor,eps_zero
-!FROM UNMERGED TYPE(cp_dbcsr_type), INTENT(IN)    :: m_s
-!FROM UNMERGED TYPE(cp_para_env_type),  POINTER         :: para_env
-!FROM UNMERGED TYPE(cp_blacs_env_type), POINTER         :: blacs_env
-!FROM UNMERGED     TYPE(cp_error_type), INTENT(INOUT) :: error
-!FROM UNMERGED 
-!FROM UNMERGED     CHARACTER(len=*), PARAMETER :: routineN = 'hessian_diag_apply', &
-!FROM UNMERGED       routineP = moduleN//':'//routineN
-!FROM UNMERGED 
-!FROM UNMERGED     INTEGER :: ao_hori_offset, ao_vert_offset, block_col, block_row, col, &
-!FROM UNMERGED       copy, H_size, handle, ii, INFO, jj, lev1_hori_offset, lev1_vert_offset, &
-!FROM UNMERGED       lev2_hori_offset, lev2_vert_offset, LWORK, nblkcols_tot, nblkrows_tot, &
-!FROM UNMERGED       orb_i, orb_j, row, zero_neg_eiv, ncores
-!FROM UNMERGED     INTEGER, ALLOCATABLE, DIMENSION(:)       :: ao_block_sizes, &
-!FROM UNMERGED                                                 ao_domain_sizes, &
-!FROM UNMERGED                                                 mo_block_sizes
-!FROM UNMERGED     INTEGER, DIMENSION(:), POINTER           :: ao_blk_sizes, mo_blk_sizes
-!FROM UNMERGED     LOGICAL                                  :: failure, found, found2, &
-!FROM UNMERGED                                                 found_col, found_row
-!FROM UNMERGED     REAL(KIND=dp)                            :: test_error, &
-!FROM UNMERGED                                                 penalty_prefactor_local
-!FROM UNMERGED     REAL(KIND=dp), ALLOCATABLE, DIMENSION(:) :: eigenvalues, Grad_vec, &
-!FROM UNMERGED                                                 Step_vec, tmp, tmpr, work
-!FROM UNMERGED     REAL(KIND=dp), ALLOCATABLE, &
-!FROM UNMERGED       DIMENSION(:, :)                        :: F_ao_block, F_mo_block, H, &
-!FROM UNMERGED                                                 H1, H2, Hinv, S_ao_block, &
-!FROM UNMERGED                                                 S_mo_block, test, test2
-!FROM UNMERGED     REAL(KIND=dp), DIMENSION(:, :), POINTER  :: block_p, block_p2, p_new_block
-!FROM UNMERGED     TYPE(cp_dbcsr_type)                      :: matrix_F_ao_sym, &
-!FROM UNMERGED                                                 matrix_F_mo_sym, &
-!FROM UNMERGED                                                 matrix_S_ao_sym, &
-!FROM UNMERGED                                                 matrix_S_mo_sym
-!FROM UNMERGED TYPE(cp_dbcsr_type)                      :: m_prec_out, m_tmp_no_1
-!FROM UNMERGED REAL(KIND=dp), ALLOCATABLE, DIMENSION(:) :: test3 
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timeset(routineN,handle)
-!FROM UNMERGED     
-!FROM UNMERGED     ! serial code only
-!FROM UNMERGED     ncores = dbcsr_mp_numnodes(dbcsr_distribution_mp(&
-!FROM UNMERGED                 cp_dbcsr_distribution(matrix_S_ao)))
-!FROM UNMERGED     IF (ncores.gt.1) THEN                            
-!FROM UNMERGED        CPErrorMessage(cp_failure_level,routineP,"serial code only",error)
-!FROM UNMERGED        CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     nblkrows_tot = cp_dbcsr_nblkrows_total(quench_t)
-!FROM UNMERGED     nblkcols_tot = cp_dbcsr_nblkcols_total(quench_t)
-!FROM UNMERGED     CPPostcondition(nblkrows_tot==nblkcols_tot,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     mo_blk_sizes => array_data(cp_dbcsr_col_block_sizes(quench_t))
-!FROM UNMERGED     ao_blk_sizes => array_data(cp_dbcsr_row_block_sizes(quench_t))
-!FROM UNMERGED     ALLOCATE(mo_block_sizes(nblkcols_tot),ao_block_sizes(nblkcols_tot))
-!FROM UNMERGED     ALLOCATE(ao_domain_sizes(nblkcols_tot))
-!FROM UNMERGED     mo_block_sizes(:)=mo_blk_sizes(:)
-!FROM UNMERGED     ao_block_sizes(:)=ao_blk_sizes(:)
-!FROM UNMERGED     ao_domain_sizes(:)=0
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_init(matrix_S_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_S_ao_sym,&
-!FROM UNMERGED             template=matrix_S_ao,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_desymmetrize(matrix_S_ao,matrix_S_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_scale(matrix_S_ao_sym,2.0_dp*spin_factor,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_init(matrix_F_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_F_ao_sym,&
-!FROM UNMERGED             template=matrix_F_ao,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_desymmetrize(matrix_F_ao,matrix_F_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_scale(matrix_F_ao_sym,2.0_dp*spin_factor,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_init(matrix_S_mo_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_S_mo_sym,&
-!FROM UNMERGED             template=matrix_S_mo,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_desymmetrize(matrix_S_mo,matrix_S_mo_sym,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_init(matrix_F_mo_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_F_mo_sym,&
-!FROM UNMERGED             template=matrix_F_mo,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_desymmetrize(matrix_F_mo,matrix_F_mo_sym,error=error)
-!FROM UNMERGED    
-!FROM UNMERGED     IF (penalty_occ_vol) THEN
-!FROM UNMERGED        penalty_prefactor_local = penalty_occ_vol_prefactor/(2.0_dp*spin_factor)
-!FROM UNMERGED     ELSE
-!FROM UNMERGED        penalty_prefactor_local = 0.0_dp 
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED WRITE(*,*) "penalty_prefactor_local: ", penalty_prefactor_local
-!FROM UNMERGED WRITE(*,*) "penalty_prefactor_2: ", penalty_occ_vol_pf2
-!FROM UNMERGED     
-!FROM UNMERGED     !CALL cp_dbcsr_print(matrix_grad,error=error)
-!FROM UNMERGED     !CALL cp_dbcsr_print(matrix_F_ao_sym,error=error)
-!FROM UNMERGED     !CALL cp_dbcsr_print(matrix_S_ao_sym,error=error)
-!FROM UNMERGED     !CALL cp_dbcsr_print(matrix_F_mo_sym,error=error)
-!FROM UNMERGED     !CALL cp_dbcsr_print(matrix_S_mo_sym,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     ! loop over domains to find the size of the Hessian
-!FROM UNMERGED     H_size=0
-!FROM UNMERGED     DO col = 1, nblkcols_tot
-!FROM UNMERGED 
-!FROM UNMERGED        ! find sizes of AO submatrices
-!FROM UNMERGED        DO row = 1, nblkrows_tot
-!FROM UNMERGED           
-!FROM UNMERGED           CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED                   row, col, block_p, found)
-!FROM UNMERGED           IF (found) THEN
-!FROM UNMERGED             ao_domain_sizes(col)=ao_domain_sizes(col)+ao_blk_sizes(row)
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED        ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED        H_size=H_size+ao_domain_sizes(col)*mo_block_sizes(col)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED     ALLOCATE(H(H_size,H_size))
-!FROM UNMERGED     H(:,:)=0.0_dp
-!FROM UNMERGED 
-!FROM UNMERGED     ! fill the Hessian matrix
-!FROM UNMERGED     lev1_vert_offset=0
-!FROM UNMERGED     ! loop over all pairs of fragments
-!FROM UNMERGED     DO row = 1, nblkcols_tot
-!FROM UNMERGED 
-!FROM UNMERGED        lev1_hori_offset=0
-!FROM UNMERGED        DO col = 1, nblkcols_tot
-!FROM UNMERGED 
-!FROM UNMERGED           ! prepare blocks for the current row-column fragment pair
-!FROM UNMERGED           ALLOCATE(F_ao_block(ao_domain_sizes(row),ao_domain_sizes(col)))
-!FROM UNMERGED           ALLOCATE(S_ao_block(ao_domain_sizes(row),ao_domain_sizes(col)))
-!FROM UNMERGED           ALLOCATE(F_mo_block(mo_block_sizes(row),mo_block_sizes(col)))
-!FROM UNMERGED           ALLOCATE(S_mo_block(mo_block_sizes(row),mo_block_sizes(col)))
-!FROM UNMERGED    
-!FROM UNMERGED           F_ao_block(:,:)=0.0_dp
-!FROM UNMERGED           S_ao_block(:,:)=0.0_dp
-!FROM UNMERGED           F_mo_block(:,:)=0.0_dp
-!FROM UNMERGED           S_mo_block(:,:)=0.0_dp
-!FROM UNMERGED    
-!FROM UNMERGED           ! fill AO submatrices
-!FROM UNMERGED           ! loop over all blocks of the AO dbcsr matrix
-!FROM UNMERGED           ao_vert_offset=0
-!FROM UNMERGED           DO block_row = 1, nblkcols_tot
-!FROM UNMERGED              
-!FROM UNMERGED              CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED                      block_row, row, block_p, found_row)
-!FROM UNMERGED              IF (found_row) THEN
-!FROM UNMERGED       
-!FROM UNMERGED                 ao_hori_offset=0
-!FROM UNMERGED                 DO block_col = 1, nblkcols_tot
-!FROM UNMERGED                    
-!FROM UNMERGED                    CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED                            block_col, col, block_p, found_col)
-!FROM UNMERGED                    IF (found_col) THEN
-!FROM UNMERGED          
-!FROM UNMERGED                       CALL cp_dbcsr_get_block_p(matrix_F_ao_sym,&
-!FROM UNMERGED                               block_row, block_col, block_p, found)
-!FROM UNMERGED                       IF (found) THEN
-!FROM UNMERGED                          ! copy the block into the submatrix
-!FROM UNMERGED                          F_ao_block(ao_vert_offset+1:ao_vert_offset+ao_block_sizes(block_row),&
-!FROM UNMERGED                            ao_hori_offset+1:ao_hori_offset+ao_block_sizes(block_col))&
-!FROM UNMERGED                            =block_p(:,:)
-!FROM UNMERGED                       ENDIF
-!FROM UNMERGED          
-!FROM UNMERGED                       CALL cp_dbcsr_get_block_p(matrix_S_ao_sym,&
-!FROM UNMERGED                               block_row, block_col, block_p, found)
-!FROM UNMERGED                       IF (found) THEN
-!FROM UNMERGED                          ! copy the block into the submatrix
-!FROM UNMERGED                          S_ao_block(ao_vert_offset+1:ao_vert_offset+ao_block_sizes(block_row),&
-!FROM UNMERGED                            ao_hori_offset+1:ao_hori_offset+ao_block_sizes(block_col))&
-!FROM UNMERGED                            =block_p(:,:)
-!FROM UNMERGED                       ENDIF
-!FROM UNMERGED          
-!FROM UNMERGED                       ao_hori_offset=ao_hori_offset+ao_block_sizes(block_col)
-!FROM UNMERGED                    
-!FROM UNMERGED                    ENDIF
-!FROM UNMERGED       
-!FROM UNMERGED                 ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED                 ao_vert_offset=ao_vert_offset+ao_block_sizes(block_row)
-!FROM UNMERGED 
-!FROM UNMERGED              ENDIF
-!FROM UNMERGED    
-!FROM UNMERGED           ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED           ! fill MO submatrices
-!FROM UNMERGED           CALL cp_dbcsr_get_block_p(matrix_F_mo_sym, row, col, block_p, found)
-!FROM UNMERGED           IF (found) THEN
-!FROM UNMERGED              ! copy the block into the submatrix
-!FROM UNMERGED              F_mo_block(1:mo_block_sizes(row),1:mo_block_sizes(col))=block_p(:,:)
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED           CALL cp_dbcsr_get_block_p(matrix_S_mo_sym, row, col, block_p, found)
-!FROM UNMERGED           IF (found) THEN
-!FROM UNMERGED              ! copy the block into the submatrix
-!FROM UNMERGED              S_mo_block(1:mo_block_sizes(row),1:mo_block_sizes(col))=block_p(:,:)
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED           !WRITE(*,*) "F_AO_BLOCK", row, col, ao_domain_sizes(row), ao_domain_sizes(col)
-!FROM UNMERGED           !DO ii=1,ao_domain_sizes(row)
-!FROM UNMERGED           !  WRITE(*,'(100F13.9)') F_ao_block(ii,:)
-!FROM UNMERGED           !ENDDO
-!FROM UNMERGED           !WRITE(*,*) "S_AO_BLOCK", row, col
-!FROM UNMERGED           !DO ii=1,ao_domain_sizes(row)
-!FROM UNMERGED           !  WRITE(*,'(100F13.9)') S_ao_block(ii,:)
-!FROM UNMERGED           !ENDDO
-!FROM UNMERGED           !WRITE(*,*) "F_MO_BLOCK", row, col
-!FROM UNMERGED           !DO ii=1,mo_block_sizes(row)
-!FROM UNMERGED           !  WRITE(*,'(100F13.9)') F_mo_block(ii,:)
-!FROM UNMERGED           !ENDDO
-!FROM UNMERGED           !WRITE(*,*) "S_MO_BLOCK", row, col, mo_block_sizes(row), mo_block_sizes(col)
-!FROM UNMERGED           !DO ii=1,mo_block_sizes(row)
-!FROM UNMERGED           !  WRITE(*,'(100F13.9)') S_mo_block(ii,:)
-!FROM UNMERGED           !ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED           ! construct tensor products for the current row-column fragment pair
-!FROM UNMERGED           lev2_vert_offset=0
-!FROM UNMERGED           DO orb_j=1,mo_block_sizes(row)
-!FROM UNMERGED 
-!FROM UNMERGED              lev2_hori_offset=0
-!FROM UNMERGED              DO orb_i=1,mo_block_sizes(col)
-!FROM UNMERGED IF (orb_i.EQ.orb_j.AND.row.EQ.col) THEN
-!FROM UNMERGED                 H(lev1_vert_offset+lev2_vert_offset+1:lev1_vert_offset+lev2_vert_offset+ao_domain_sizes(row),&
-!FROM UNMERGED                   lev1_hori_offset+lev2_hori_offset+1:lev1_hori_offset+lev2_hori_offset+ao_domain_sizes(col))&
-!FROM UNMERGED != -penalty_prefactor_local*S_ao_block(:,:)
-!FROM UNMERGED =F_ao_block(:,:)+S_ao_block(:,:)
-!FROM UNMERGED !=S_ao_block(:,:)
-!FROM UNMERGED !RZK-warning               =F_ao_block(:,:)+( 1.0_dp + penalty_prefactor_local )*S_ao_block(:,:)
-!FROM UNMERGED !               =S_mo_block(orb_j,orb_i)*F_ao_block(:,:)&
-!FROM UNMERGED !               -F_mo_block(orb_j,orb_i)*S_ao_block(:,:)&
-!FROM UNMERGED !               +penalty_prefactor_local*S_mo_block(orb_j,orb_i)*S_ao_block(:,:)
-!FROM UNMERGED ENDIF
-!FROM UNMERGED                 !WRITE(*,*) row, col, orb_j, orb_i, lev1_vert_offset+lev2_vert_offset+1, ao_domain_sizes(row),&
-!FROM UNMERGED                 !   lev1_hori_offset+lev2_hori_offset+1, ao_domain_sizes(col), S_mo_block(orb_j,orb_i)
-!FROM UNMERGED 
-!FROM UNMERGED                 lev2_hori_offset=lev2_hori_offset+ao_domain_sizes(col)
-!FROM UNMERGED 
-!FROM UNMERGED              ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED              lev2_vert_offset=lev2_vert_offset+ao_domain_sizes(row)
-!FROM UNMERGED 
-!FROM UNMERGED           ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED           
-!FROM UNMERGED           lev1_hori_offset=lev1_hori_offset+ao_domain_sizes(col)*mo_block_sizes(col)
-!FROM UNMERGED 
-!FROM UNMERGED           DEALLOCATE(F_ao_block)
-!FROM UNMERGED           DEALLOCATE(S_ao_block)
-!FROM UNMERGED           DEALLOCATE(F_mo_block)
-!FROM UNMERGED           DEALLOCATE(S_mo_block)
-!FROM UNMERGED 
-!FROM UNMERGED        ENDDO ! col fragment
-!FROM UNMERGED 
-!FROM UNMERGED        lev1_vert_offset=lev1_vert_offset+ao_domain_sizes(row)*mo_block_sizes(row)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO ! row fragment
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_release(matrix_S_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_release(matrix_F_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_release(matrix_S_mo_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_release(matrix_F_mo_sym,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED !!    ! Two more terms of the Hessian: S_vo.D.F_vo and F_vo.D.S_vo
-!FROM UNMERGED !!    ! It seems that these terms break positive definite property of the Hessian
-!FROM UNMERGED !!    ALLOCATE(H1(H_size,H_size))
-!FROM UNMERGED !!    ALLOCATE(H2(H_size,H_size))
-!FROM UNMERGED !!    H1=0.0_dp
-!FROM UNMERGED !!    H2=0.0_dp
-!FROM UNMERGED !!    DO row = 1, nblkcols_tot
-!FROM UNMERGED !!
-!FROM UNMERGED !!       lev1_hori_offset=0
-!FROM UNMERGED !!       DO col = 1, nblkcols_tot
-!FROM UNMERGED !!
-!FROM UNMERGED !!          CALL cp_dbcsr_get_block_p(matrix_F_vo,&
-!FROM UNMERGED !!                  row, col, block_p, found)
-!FROM UNMERGED !!          CALL cp_dbcsr_get_block_p(matrix_S_vo,&
-!FROM UNMERGED !!                  row, col, block_p2, found2)
-!FROM UNMERGED !!
-!FROM UNMERGED !!          lev1_vert_offset=0
-!FROM UNMERGED !!          DO block_col = 1, nblkcols_tot
-!FROM UNMERGED !!             
-!FROM UNMERGED !!             CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED !!                     row, block_col, p_new_block, found_row)
-!FROM UNMERGED !!
-!FROM UNMERGED !!             IF (found_row) THEN
-!FROM UNMERGED !!
-!FROM UNMERGED !!                ! determine offset in this short loop
-!FROM UNMERGED !!                lev2_vert_offset=0
-!FROM UNMERGED !!                DO block_row=1,row-1
-!FROM UNMERGED !!                   CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED !!                           block_row, block_col, p_new_block, found_col)
-!FROM UNMERGED !!                   IF (found_col) lev2_vert_offset=lev2_vert_offset+ao_block_sizes(block_row)
-!FROM UNMERGED !!                ENDDO
-!FROM UNMERGED !!                !!!!!!!! short loop
-!FROM UNMERGED !!
-!FROM UNMERGED !!                ! over all electrons of the block
-!FROM UNMERGED !!                DO orb_i=1, mo_block_sizes(col)
-!FROM UNMERGED !!                
-!FROM UNMERGED !!                   ! into all possible locations
-!FROM UNMERGED !!                   DO orb_j=1, mo_block_sizes(block_col)
-!FROM UNMERGED !!   
-!FROM UNMERGED !!                      ! column is copied several times
-!FROM UNMERGED !!                      DO copy=1, ao_domain_sizes(col)
-!FROM UNMERGED !!   
-!FROM UNMERGED !!                         IF (found) THEN
-!FROM UNMERGED !!
-!FROM UNMERGED !!                            !WRITE(*,*) row, col, block_col, orb_i, orb_j, copy,&
-!FROM UNMERGED !!                            ! lev1_vert_offset+(orb_j-1)*ao_domain_sizes(block_col)+lev2_vert_offset+1,&
-!FROM UNMERGED !!                            ! lev1_hori_offset+(orb_i-1)*ao_domain_sizes(col)+copy
-!FROM UNMERGED !!
-!FROM UNMERGED !!                            H1( lev1_vert_offset+(orb_j-1)*ao_domain_sizes(block_col)+lev2_vert_offset+1:&
-!FROM UNMERGED !!                                lev1_vert_offset+(orb_j-1)*ao_domain_sizes(block_col)+lev2_vert_offset+ao_block_sizes(row),&
-!FROM UNMERGED !!                                lev1_hori_offset+(orb_i-1)*ao_domain_sizes(col)+copy )&
-!FROM UNMERGED !!                              =block_p(:,orb_i)
-!FROM UNMERGED !!   
-!FROM UNMERGED !!                         ENDIF ! found block in the data matrix
-!FROM UNMERGED !!       
-!FROM UNMERGED !!                         IF (found2) THEN
-!FROM UNMERGED !!          
-!FROM UNMERGED !!                            H2( lev1_vert_offset+(orb_j-1)*ao_domain_sizes(block_col)+lev2_vert_offset+1:&
-!FROM UNMERGED !!                                lev1_vert_offset+(orb_j-1)*ao_domain_sizes(block_col)+lev2_vert_offset+ao_block_sizes(row),&
-!FROM UNMERGED !!                                lev1_hori_offset+(orb_i-1)*ao_domain_sizes(col)+copy )&
-!FROM UNMERGED !!                              =block_p2(:,orb_i)
-!FROM UNMERGED !!   
-!FROM UNMERGED !!                         ENDIF ! found block in the data matrix
-!FROM UNMERGED !!
-!FROM UNMERGED !!                      ENDDO
-!FROM UNMERGED !!   
-!FROM UNMERGED !!                   ENDDO
-!FROM UNMERGED !!
-!FROM UNMERGED !!                ENDDO
-!FROM UNMERGED !!                
-!FROM UNMERGED !!                !lev2_vert_offset=lev2_vert_offset+ao_block_sizes(row)
-!FROM UNMERGED !!
-!FROM UNMERGED !!             ENDIF ! found block in the quench matrix
-!FROM UNMERGED !!
-!FROM UNMERGED !!             lev1_vert_offset=lev1_vert_offset+&
-!FROM UNMERGED !!                ao_domain_sizes(block_col)*mo_block_sizes(block_col)
-!FROM UNMERGED !!
-!FROM UNMERGED !!          ENDDO
-!FROM UNMERGED !!
-!FROM UNMERGED !!          lev1_hori_offset=lev1_hori_offset+&
-!FROM UNMERGED !!             ao_domain_sizes(col)*mo_block_sizes(col)
-!FROM UNMERGED !!
-!FROM UNMERGED !!       ENDDO
-!FROM UNMERGED !!
-!FROM UNMERGED !!       !lev2_vert_offset=lev2_vert_offset+ao_block_sizes(row)
-!FROM UNMERGED !!
-!FROM UNMERGED !!    ENDDO
-!FROM UNMERGED !!    H1(:,:)=H1(:,:)*2.0_dp*spin_factor
-!FROM UNMERGED !!    !!!WRITE(*,*) "F_vo"
-!FROM UNMERGED !!    !!!DO ii=1,H_size
-!FROM UNMERGED !!    !!! WRITE(*,'(100F13.9)') H1(ii,:)
-!FROM UNMERGED !!    !!!ENDDO
-!FROM UNMERGED !!    !!!WRITE(*,*) "S_vo"
-!FROM UNMERGED !!    !!!DO ii=1,H_size
-!FROM UNMERGED !!    !!! WRITE(*,'(100F13.9)') H2(ii,:)
-!FROM UNMERGED !!    !!!ENDDO
-!FROM UNMERGED !!    !!!!! add terms to the hessian
-!FROM UNMERGED !!    DO ii=1,H_size
-!FROM UNMERGED !!       DO jj=1,H_size
-!FROM UNMERGED !!! add penalty_occ_vol term
-!FROM UNMERGED !!          H(ii,jj)=H(ii,jj)-H1(ii,jj)*H2(jj,ii)-H1(jj,ii)*H2(ii,jj)
-!FROM UNMERGED !!       ENDDO
-!FROM UNMERGED !!    ENDDO
-!FROM UNMERGED !!    DEALLOCATE(H1)
-!FROM UNMERGED !!    DEALLOCATE(H2)
-!FROM UNMERGED              
-!FROM UNMERGED !!    ! S_vo.S_vo diagonal component due to determiant constraint
-!FROM UNMERGED !!    ! use grad vector temporarily
-!FROM UNMERGED !!    IF (penalty_occ_vol) THEN
-!FROM UNMERGED !!       ALLOCATE(Grad_vec(H_size))
-!FROM UNMERGED !!       Grad_vec(:)=0.0_dp
-!FROM UNMERGED !!       lev1_vert_offset=0
-!FROM UNMERGED !!       ! loop over all electron blocks 
-!FROM UNMERGED !!       DO col = 1, nblkcols_tot
-!FROM UNMERGED !!
-!FROM UNMERGED !!          ! loop over AO-rows of the dbcsr matrix
-!FROM UNMERGED !!          lev2_vert_offset=0
-!FROM UNMERGED !!          DO row = 1, nblkrows_tot
-!FROM UNMERGED !!             
-!FROM UNMERGED !!             CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED !!                     row, col, block_p, found_row)
-!FROM UNMERGED !!             IF (found_row) THEN
-!FROM UNMERGED !!         
-!FROM UNMERGED !!                CALL cp_dbcsr_get_block_p(matrix_S_vo,&
-!FROM UNMERGED !!                        row, col, block_p, found)
-!FROM UNMERGED !!                IF (found) THEN
-!FROM UNMERGED !!                   ! copy the data into the vector, column by column
-!FROM UNMERGED !!                   DO orb_i=1, mo_block_sizes(col)
-!FROM UNMERGED !!                      Grad_vec(lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+1:&
-!FROM UNMERGED !!                               lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+ao_block_sizes(row))&
-!FROM UNMERGED !!                               =block_p(:,orb_i)
-!FROM UNMERGED !!                   ENDDO
-!FROM UNMERGED !!
-!FROM UNMERGED !!                ENDIF
-!FROM UNMERGED !!          
-!FROM UNMERGED !!                lev2_vert_offset=lev2_vert_offset+ao_block_sizes(row)
-!FROM UNMERGED !!
-!FROM UNMERGED !!             ENDIF
-!FROM UNMERGED !!   
-!FROM UNMERGED !!          ENDDO
-!FROM UNMERGED !!
-!FROM UNMERGED !!          lev1_vert_offset=lev1_vert_offset+ao_domain_sizes(col)*mo_block_sizes(col)
-!FROM UNMERGED !!
-!FROM UNMERGED !!       ENDDO ! loop over electron blocks 
-!FROM UNMERGED !!       ! update H now
-!FROM UNMERGED !!       DO ii=1,H_size
-!FROM UNMERGED !!          DO jj=1,H_size
-!FROM UNMERGED !!             H(ii,jj)=H(ii,jj)+penalty_occ_vol_prefactor*&
-!FROM UNMERGED !!                      penalty_occ_vol_pf2*Grad_vec(ii)*Grad_vec(jj)
-!FROM UNMERGED !!          ENDDO
-!FROM UNMERGED !!       ENDDO
-!FROM UNMERGED !!       DEALLOCATE(Grad_vec)
-!FROM UNMERGED !!    ENDIF ! penalty_occ_vol
-!FROM UNMERGED 
-!FROM UNMERGED !S-1.G ! invert S using cholesky 
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_init(m_prec_out,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_create(m_prec_out,&
-!FROM UNMERGED !S-1.G         template=m_s,&
-!FROM UNMERGED !S-1.G         matrix_type=dbcsr_type_no_symmetry,&
-!FROM UNMERGED !S-1.G         error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_copy(m_prec_out,m_s,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_cholesky_decompose(m_prec_out,&
-!FROM UNMERGED !S-1.G         para_env=para_env,&
-!FROM UNMERGED !S-1.G         blacs_env=blacs_env,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_cholesky_invert(m_prec_out,&
-!FROM UNMERGED !S-1.G         para_env=para_env,&
-!FROM UNMERGED !S-1.G         blacs_env=blacs_env,&
-!FROM UNMERGED !S-1.G         upper_to_full=.TRUE.,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !S-1.G         m_prec_out,&
-!FROM UNMERGED !S-1.G         matrix_grad,&
-!FROM UNMERGED !S-1.G         0.0_dp,matrix_step,&
-!FROM UNMERGED !S-1.G         filter_eps=1.0E-10_dp,&
-!FROM UNMERGED !S-1.G         error=error)
-!FROM UNMERGED !S-1.G !CALL cp_dbcsr_release(m_prec_out,error=error)
-!FROM UNMERGED !S-1.G ALLOCATE(test3(H_size))
-!FROM UNMERGED     
-!FROM UNMERGED     ! convert gradient from the dbcsr matrix to the vector form
-!FROM UNMERGED     ALLOCATE(Grad_vec(H_size))
-!FROM UNMERGED     Grad_vec(:)=0.0_dp
-!FROM UNMERGED     lev1_vert_offset=0
-!FROM UNMERGED     ! loop over all electron blocks 
-!FROM UNMERGED     DO col = 1, nblkcols_tot
-!FROM UNMERGED 
-!FROM UNMERGED        ! loop over AO-rows of the dbcsr matrix
-!FROM UNMERGED        lev2_vert_offset=0
-!FROM UNMERGED        DO row = 1, nblkrows_tot
-!FROM UNMERGED           
-!FROM UNMERGED           CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED                   row, col, block_p, found_row)
-!FROM UNMERGED           IF (found_row) THEN
-!FROM UNMERGED       
-!FROM UNMERGED              CALL cp_dbcsr_get_block_p(matrix_grad,&
-!FROM UNMERGED                      row, col, block_p, found)
-!FROM UNMERGED              IF (found) THEN
-!FROM UNMERGED                 ! copy the data into the vector, column by column
-!FROM UNMERGED                 DO orb_i=1, mo_block_sizes(col)
-!FROM UNMERGED                    Grad_vec(lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+1:&
-!FROM UNMERGED                             lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+ao_block_sizes(row))&
-!FROM UNMERGED                             =block_p(:,orb_i)
-!FROM UNMERGED !WRITE(*,*) "GRAD: ", row, col, orb_i, lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+1, ao_block_sizes(row)
-!FROM UNMERGED                 ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED              ENDIF
-!FROM UNMERGED        
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_get_block_p(matrix_step,&
-!FROM UNMERGED !S-1.G         row, col, block_p, found)
-!FROM UNMERGED !S-1.G IF (found) THEN
-!FROM UNMERGED !S-1.G    ! copy the data into the vector, column by column
-!FROM UNMERGED !S-1.G    DO orb_i=1, mo_block_sizes(col)
-!FROM UNMERGED !S-1.G       test3(lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+1:&
-!FROM UNMERGED !S-1.G                lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+ao_block_sizes(row))&
-!FROM UNMERGED !S-1.G                =block_p(:,orb_i)
-!FROM UNMERGED !S-1.G    ENDDO
-!FROM UNMERGED !S-1.G ENDIF
-!FROM UNMERGED              
-!FROM UNMERGED              lev2_vert_offset=lev2_vert_offset+ao_block_sizes(row)
-!FROM UNMERGED 
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED    
-!FROM UNMERGED        ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED        lev1_vert_offset=lev1_vert_offset+ao_domain_sizes(col)*mo_block_sizes(col)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO ! loop over electron blocks 
-!FROM UNMERGED 
-!FROM UNMERGED     !WRITE(*,*) "HESSIAN"
-!FROM UNMERGED     !DO ii=1,H_size
-!FROM UNMERGED     ! WRITE(*,*) ii
-!FROM UNMERGED     ! WRITE(*,'(20F14.10)') H(ii,:)
-!FROM UNMERGED     !ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED     ! invert the Hessian
-!FROM UNMERGED     INFO=0
-!FROM UNMERGED     ALLOCATE(Hinv(H_size,H_size))
-!FROM UNMERGED     Hinv(:,:)=H(:,:)
-!FROM UNMERGED 
-!FROM UNMERGED     ! before inverting diagonalize
-!FROM UNMERGED     ALLOCATE(eigenvalues(H_size))
-!FROM UNMERGED     ! Query the optimal workspace for dsyev
-!FROM UNMERGED     LWORK = -1
-!FROM UNMERGED     ALLOCATE(WORK(MAX(1,LWORK)))
-!FROM UNMERGED     CALL DSYEV('V','L',H_size,Hinv,H_size,eigenvalues,WORK,LWORK,INFO)
-!FROM UNMERGED     LWORK = INT(WORK( 1 ))
-!FROM UNMERGED     DEALLOCATE(WORK)
-!FROM UNMERGED     ! Allocate the workspace and solve the eigenproblem
-!FROM UNMERGED     ALLOCATE(WORK(MAX(1,LWORK)))
-!FROM UNMERGED     CALL DSYEV('V','L',H_size,Hinv,H_size,eigenvalues,WORK,LWORK,INFO)
-!FROM UNMERGED     IF( INFO.NE.0 ) THEN
-!FROM UNMERGED        WRITE(*,*) 'DSYEV ERROR MESSAGE: ', INFO
-!FROM UNMERGED        CPErrorMessage(cp_failure_level,routineP,"DSYEV failed",error)
-!FROM UNMERGED        CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     END IF
-!FROM UNMERGED     DEALLOCATE(WORK)
-!FROM UNMERGED 
-!FROM UNMERGED     ! compute grad vector in the basis of Hessian eigenvectors
-!FROM UNMERGED     ALLOCATE(Step_vec(H_size))
-!FROM UNMERGED     ! Step_vec contains Grad_vec here
-!FROM UNMERGED     Step_vec(:)=MATMUL(TRANSPOSE(Hinv),Grad_vec)
-!FROM UNMERGED 
-!FROM UNMERGED     ! compute U.tr(U)-1 = error
-!FROM UNMERGED     !ALLOCATE(test(H_size,H_size))
-!FROM UNMERGED     !test(:,:)=MATMUL(TRANSPOSE(Hinv),Hinv)
-!FROM UNMERGED     !DO ii=1,H_size
-!FROM UNMERGED     !   test(ii,ii)=test(ii,ii)-1.0_dp
-!FROM UNMERGED     !ENDDO
-!FROM UNMERGED     !test_error=0.0_dp
-!FROM UNMERGED     !DO ii=1,H_size
-!FROM UNMERGED     !   DO jj=1,H_size
-!FROM UNMERGED     !      test_error=test_error+test(jj,ii)*test(jj,ii)
-!FROM UNMERGED     !   ENDDO
-!FROM UNMERGED     !ENDDO
-!FROM UNMERGED     !WRITE(*,*) "U.tr(U)-1 error: ", SQRT(test_error)
-!FROM UNMERGED     !DEALLOCATE(test)
-!FROM UNMERGED     
-!FROM UNMERGED     ! invert eigenvalues and use eigenvectors to compute the Hessian inverse
-!FROM UNMERGED     ! project out zero-eigenvalue directions
-!FROM UNMERGED     ALLOCATE(test(H_size,H_size))
-!FROM UNMERGED     zero_neg_eiv=0
-!FROM UNMERGED     DO jj=1, H_size
-!FROM UNMERGED WRITE(*,"(I10,F20.10,F20.10)") jj, eigenvalues(jj), Step_vec(jj)
-!FROM UNMERGED        IF (eigenvalues(jj).gt.eps_zero) THEN
-!FROM UNMERGED           test(jj,:)=Hinv(:,jj)/eigenvalues(jj)
-!FROM UNMERGED        ELSE
-!FROM UNMERGED           test(jj,:)=Hinv(:,jj)*0.0_dp
-!FROM UNMERGED           zero_neg_eiv=zero_neg_eiv+1
-!FROM UNMERGED        ENDIF
-!FROM UNMERGED     ENDDO
-!FROM UNMERGED     WRITE(*,*) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv
-!FROM UNMERGED     DEALLOCATE(Step_vec)
-!FROM UNMERGED     
-!FROM UNMERGED     ALLOCATE(test2(H_size,H_size))
-!FROM UNMERGED     test2(:,:)=MATMUL(Hinv,test)
-!FROM UNMERGED     Hinv(:,:)=test2(:,:)
-!FROM UNMERGED     DEALLOCATE(test,test2)
-!FROM UNMERGED 
-!FROM UNMERGED     !! shift to kill singularity
-!FROM UNMERGED     !shift=0.0_dp
-!FROM UNMERGED     !IF (eigenvalues(1).lt.0.0_dp) THEN
-!FROM UNMERGED     !   CPErrorMessage(cp_failure_level,routineP,"Negative eigenvalue(s)",error)
-!FROM UNMERGED     !   shift=abs(eigenvalues(1))
-!FROM UNMERGED     !   WRITE(*,*) "Lowest eigenvalue: ", eigenvalues(1)
-!FROM UNMERGED     !ENDIF
-!FROM UNMERGED     !DO ii=1, H_size
-!FROM UNMERGED     !   IF (eigenvalues(ii).gt.eps_zero) THEN
-!FROM UNMERGED     !      shift=shift+min(1.0_dp,eigenvalues(ii))*1.0E-4_dp
-!FROM UNMERGED     !      EXIT
-!FROM UNMERGED     !   ENDIF
-!FROM UNMERGED     !ENDDO
-!FROM UNMERGED     !WRITE(*,*) "Hessian shift: ", shift
-!FROM UNMERGED     !DO ii=1, H_size
-!FROM UNMERGED     !   H(ii,ii)=H(ii,ii)+shift
-!FROM UNMERGED     !ENDDO
-!FROM UNMERGED     !! end shift
-!FROM UNMERGED     
-!FROM UNMERGED     DEALLOCATE(eigenvalues)
-!FROM UNMERGED     
-!FROM UNMERGED !!!!    Hinv=H
-!FROM UNMERGED !!!!    INFO=0
-!FROM UNMERGED !!!!    CALL DPOTRF('L', H_size, Hinv, H_size, INFO )
-!FROM UNMERGED !!!!    IF( INFO.NE.0 ) THEN
-!FROM UNMERGED !!!!       WRITE(*,*) 'DPOTRF ERROR MESSAGE: ', INFO
-!FROM UNMERGED !!!!       CPErrorMessage(cp_failure_level,routineP,"DPOTRF failed",error)
-!FROM UNMERGED !!!!       CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED !!!!    END IF
-!FROM UNMERGED !!!!    CALL DPOTRI('L', H_size, Hinv, H_size, INFO )
-!FROM UNMERGED !!!!    IF( INFO.NE.0 ) THEN
-!FROM UNMERGED !!!!       WRITE(*,*) 'DPOTRI ERROR MESSAGE: ', INFO
-!FROM UNMERGED !!!!       CPErrorMessage(cp_failure_level,routineP,"DPOTRI failed",error)
-!FROM UNMERGED !!!!       CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED !!!!    END IF
-!FROM UNMERGED !!!!    ! complete the matrix
-!FROM UNMERGED !!!!    DO ii=1,H_size
-!FROM UNMERGED !!!!       DO jj=ii+1,H_size
-!FROM UNMERGED !!!!          Hinv(ii,jj)=Hinv(jj,ii)
-!FROM UNMERGED !!!!       ENDDO
-!FROM UNMERGED !!!!    ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED     ! compute the inversion error 
-!FROM UNMERGED     ALLOCATE(test(H_size,H_size))
-!FROM UNMERGED     test(:,:)=MATMUL(Hinv,H)
-!FROM UNMERGED     DO ii=1,H_size
-!FROM UNMERGED        test(ii,ii)=test(ii,ii)-1.0_dp
-!FROM UNMERGED     ENDDO
-!FROM UNMERGED     test_error=0.0_dp
-!FROM UNMERGED     DO ii=1,H_size
-!FROM UNMERGED        DO jj=1,H_size
-!FROM UNMERGED           test_error=test_error+test(jj,ii)*test(jj,ii)
-!FROM UNMERGED        ENDDO
-!FROM UNMERGED     ENDDO
-!FROM UNMERGED     WRITE(*,*) "Hessian inversion error: ", SQRT(test_error)
-!FROM UNMERGED     DEALLOCATE(test)
-!FROM UNMERGED 
-!FROM UNMERGED     ! prepare the output vector
-!FROM UNMERGED     ALLOCATE(Step_vec(H_size))
-!FROM UNMERGED     ALLOCATE(tmp(H_size))
-!FROM UNMERGED     tmp(:)=MATMUL(Hinv,Grad_vec)
-!FROM UNMERGED     !tmp(:)=MATMUL(Hinv,test3)
-!FROM UNMERGED     Step_vec(:)=-1.0_dp*tmp(:)
-!FROM UNMERGED     
-!FROM UNMERGED     ALLOCATE(tmpr(H_size))
-!FROM UNMERGED     tmpr(:)=MATMUL(H,Step_vec)
-!FROM UNMERGED     tmp(:)=tmpr(:)+Grad_vec(:)
-!FROM UNMERGED     DEALLOCATE(tmpr)
-!FROM UNMERGED     WRITE(*,*) "NEWTOV step error: ", MAXVAL(ABS(tmp))
-!FROM UNMERGED 
-!FROM UNMERGED     DEALLOCATE(tmp)
-!FROM UNMERGED 
-!FROM UNMERGED     DEALLOCATE(H)
-!FROM UNMERGED     DEALLOCATE(Hinv)
-!FROM UNMERGED     DEALLOCATE(Grad_vec)
-!FROM UNMERGED 
-!FROM UNMERGED !S-1.G DEALLOCATE(test3)
-!FROM UNMERGED 
-!FROM UNMERGED     ! copy the step from the vector into the cp_dbcsr matrix
-!FROM UNMERGED     
-!FROM UNMERGED     ! re-create the step matrix to remove all blocks
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_step,&
-!FROM UNMERGED             template=matrix_grad,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_work_create(matrix_step,work_mutable=.TRUE.,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     
-!FROM UNMERGED     lev1_vert_offset=0
-!FROM UNMERGED     ! loop over all electron blocks 
-!FROM UNMERGED     DO col = 1, nblkcols_tot
-!FROM UNMERGED 
-!FROM UNMERGED        ! loop over AO-rows of the dbcsr matrix
-!FROM UNMERGED        lev2_vert_offset=0
-!FROM UNMERGED        DO row = 1, nblkrows_tot
-!FROM UNMERGED           
-!FROM UNMERGED           CALL cp_dbcsr_get_block_p(quench_t,&
-!FROM UNMERGED                   row, col, block_p, found_row)
-!FROM UNMERGED           IF (found_row) THEN
-!FROM UNMERGED       
-!FROM UNMERGED              NULLIFY (p_new_block)
-!FROM UNMERGED              CALL cp_dbcsr_reserve_block2d(matrix_step,row,col,p_new_block)
-!FROM UNMERGED              CPPostcondition(ASSOCIATED(p_new_block),cp_failure_level,routineP,error,failure)
-!FROM UNMERGED              ! copy the data column by column
-!FROM UNMERGED              DO orb_i=1, mo_block_sizes(col)
-!FROM UNMERGED                 p_new_block(:,orb_i) = &
-!FROM UNMERGED                    Step_vec(lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+1:&
-!FROM UNMERGED                             lev1_vert_offset+ao_domain_sizes(col)*(orb_i-1)+lev2_vert_offset+ao_block_sizes(row))
-!FROM UNMERGED              ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED              lev2_vert_offset=lev2_vert_offset+ao_block_sizes(row)
-!FROM UNMERGED 
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED    
-!FROM UNMERGED        ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED        lev1_vert_offset=lev1_vert_offset+ao_domain_sizes(col)*mo_block_sizes(col)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO ! loop over electron blocks 
-!FROM UNMERGED 
-!FROM UNMERGED     DEALLOCATE(Step_vec)
-!FROM UNMERGED     
-!FROM UNMERGED     CALL cp_dbcsr_finalize(matrix_step,error=error)
-!FROM UNMERGED     !CALL cp_dbcsr_print(matrix_step,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_init(m_tmp_no_1,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_create(m_tmp_no_1,&
-!FROM UNMERGED !S-1.G         template=matrix_step,&
-!FROM UNMERGED !S-1.G         matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED !S-1.G         m_prec_out,&
-!FROM UNMERGED !S-1.G         matrix_step,&
-!FROM UNMERGED !S-1.G         0.0_dp,m_tmp_no_1,&
-!FROM UNMERGED !S-1.G         filter_eps=1.0E-10_dp,&
-!FROM UNMERGED !S-1.G         error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_copy(matrix_step,m_tmp_no_1,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_release(m_tmp_no_1,error=error)
-!FROM UNMERGED !S-1.G CALL cp_dbcsr_release(m_prec_out,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     DEALLOCATE(mo_block_sizes,ao_block_sizes)
-!FROM UNMERGED     DEALLOCATE(ao_domain_sizes)
-!FROM UNMERGED     
-!FROM UNMERGED     CALL cp_dbcsr_init(matrix_S_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_S_ao_sym,&
-!FROM UNMERGED             template=quench_t,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_copy(matrix_S_ao_sym,quench_t,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED             matrix_F_ao,&
-!FROM UNMERGED             matrix_step,&
-!FROM UNMERGED             0.0_dp,matrix_S_ao_sym,&
-!FROM UNMERGED             retain_sparsity=.TRUE.,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     CALL cp_dbcsr_init(matrix_F_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_F_ao_sym,&
-!FROM UNMERGED             template=quench_t,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_copy(matrix_F_ao_sym,quench_t,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-!FROM UNMERGED             matrix_S_ao,&
-!FROM UNMERGED             matrix_step,&
-!FROM UNMERGED             0.0_dp,matrix_F_ao_sym,&
-!FROM UNMERGED             retain_sparsity=.TRUE.,&
-!FROM UNMERGED             error=error)
-!FROM UNMERGED     CALL cp_dbcsr_add(matrix_S_ao_sym,matrix_F_ao_sym,&
-!FROM UNMERGED          1.0_dp,1.0_dp,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_scale(matrix_S_ao_sym,2.0_dp*spin_factor,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_add(matrix_S_ao_sym,matrix_grad,&
-!FROM UNMERGED          1.0_dp,1.0_dp,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_norm(matrix_S_ao_sym, dbcsr_norm_maxabsnorm,&
-!FROM UNMERGED          norm_scalar=test_error, error=error)
-!FROM UNMERGED     WRITE(*,*) "NEWTOL step error: ", test_error
-!FROM UNMERGED     CALL cp_dbcsr_release(matrix_S_ao_sym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_release(matrix_F_ao_sym,error=error)
-!FROM UNMERGED     
-!FROM UNMERGED     CALL timestop(handle)
-!FROM UNMERGED   
-!FROM UNMERGED   END SUBROUTINE hessian_diag_apply 
-!FROM UNMERGED 
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED !> \brief Serial code that prints matrices readable by Mathematica 
-!FROM UNMERGED !> \param matrix - matrix to print
-!FROM UNMERGED !> \param error ...
-!FROM UNMERGED !> \par History
-!FROM UNMERGED !>       2015.05 created [Rustam Z. Khaliullin]
-!FROM UNMERGED !> \author Rustam Z. Khaliullin
-!FROM UNMERGED ! *****************************************************************************
-!FROM UNMERGED   SUBROUTINE print_mathematica_matrix(matrix,filename,error)
-!FROM UNMERGED     
-!FROM UNMERGED     TYPE(cp_dbcsr_type), INTENT(INOUT) :: matrix
-!FROM UNMERGED     CHARACTER(len=*)                   :: filename
-!FROM UNMERGED     TYPE(cp_error_type), INTENT(INOUT) :: error
-!FROM UNMERGED 
-!FROM UNMERGED     CHARACTER(len=*), PARAMETER :: routineN = 'print_mathematica_matrix', &
-!FROM UNMERGED       routineP = moduleN//':'//routineN
-!FROM UNMERGED 
-!FROM UNMERGED     INTEGER :: hori_offset, vert_offset, Ncols, Nrows, col, row, jj, &
-!FROM UNMERGED       nblkcols_tot, nblkrows_tot, ncores, unit_nr, handle, fiunit
-!FROM UNMERGED     CHARACTER(LEN=20)                        :: formatstr, Scols
-!FROM UNMERGED     CHARACTER(LEN=200)                       :: logfile
-!FROM UNMERGED     INTEGER, ALLOCATABLE, DIMENSION(:)       :: ao_block_sizes, &
-!FROM UNMERGED                                                 mo_block_sizes
-!FROM UNMERGED     INTEGER, DIMENSION(:), POINTER           :: ao_blk_sizes, mo_blk_sizes
-!FROM UNMERGED     LOGICAL                                  :: failure, found
-!FROM UNMERGED     REAL(KIND=dp), ALLOCATABLE, &
-!FROM UNMERGED       DIMENSION(:, :)                        :: H
-!FROM UNMERGED     REAL(KIND=dp), DIMENSION(:, :), POINTER  :: block_p
-!FROM UNMERGED     TYPE(cp_dbcsr_type)                      :: matrix_asym
-!FROM UNMERGED     TYPE(cp_logger_type), POINTER            :: logger
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timeset(routineN,handle)
-!FROM UNMERGED     
-!FROM UNMERGED     ! get a useful output_unit
-!FROM UNMERGED     logger => cp_error_get_logger(error)
-!FROM UNMERGED     IF (logger%para_env%mepos==logger%para_env%source) THEN
-!FROM UNMERGED        unit_nr=cp_logger_get_default_unit_nr(logger,local=.TRUE.)
-!FROM UNMERGED     ELSE
-!FROM UNMERGED        unit_nr=-1
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     ! serial code only
-!FROM UNMERGED     ncores = dbcsr_mp_numnodes(dbcsr_distribution_mp(&
-!FROM UNMERGED                 cp_dbcsr_distribution(matrix)))
-!FROM UNMERGED     IF (ncores.gt.1) THEN                            
-!FROM UNMERGED        CPErrorMessage(cp_failure_level,routineP,"serial code only",error)
-!FROM UNMERGED        CPPrecondition(.FALSE.,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     nblkrows_tot = cp_dbcsr_nblkrows_total(matrix)
-!FROM UNMERGED     nblkcols_tot = cp_dbcsr_nblkcols_total(matrix)
-!FROM UNMERGED     CPPostcondition(nblkrows_tot==nblkcols_tot,cp_failure_level,routineP,error,failure)
-!FROM UNMERGED     mo_blk_sizes => array_data(cp_dbcsr_col_block_sizes(matrix))
-!FROM UNMERGED     ao_blk_sizes => array_data(cp_dbcsr_row_block_sizes(matrix))
-!FROM UNMERGED     ALLOCATE(mo_block_sizes(nblkcols_tot),ao_block_sizes(nblkcols_tot))
-!FROM UNMERGED     mo_block_sizes(:)=mo_blk_sizes(:)
-!FROM UNMERGED     ao_block_sizes(:)=ao_blk_sizes(:)
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_init(matrix_asym,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_create(matrix_asym,&
-!FROM UNMERGED             template=matrix,&
-!FROM UNMERGED             matrix_type=dbcsr_type_no_symmetry,error=error)
-!FROM UNMERGED     CALL cp_dbcsr_desymmetrize(matrix,matrix_asym,error=error)
-!FROM UNMERGED 
-!FROM UNMERGED     Ncols=SUM(mo_block_sizes)
-!FROM UNMERGED     Nrows=SUM(ao_block_sizes)
-!FROM UNMERGED     ALLOCATE(H(Nrows,Ncols))
-!FROM UNMERGED     H(:,:)=0.0_dp
-!FROM UNMERGED     
-!FROM UNMERGED     hori_offset=0
-!FROM UNMERGED     DO col = 1, nblkcols_tot
-!FROM UNMERGED 
-!FROM UNMERGED        vert_offset=0
-!FROM UNMERGED        DO row = 1, nblkrows_tot
-!FROM UNMERGED           
-!FROM UNMERGED           CALL cp_dbcsr_get_block_p(matrix_asym, row, col, block_p, found)
-!FROM UNMERGED           IF (found) THEN
-!FROM UNMERGED       
-!FROM UNMERGED              H(vert_offset+1:vert_offset+ao_block_sizes(row),&
-!FROM UNMERGED                hori_offset+1:hori_offset+mo_block_sizes(col))&
-!FROM UNMERGED                =block_p(:,:)
-!FROM UNMERGED 
-!FROM UNMERGED           ENDIF
-!FROM UNMERGED           
-!FROM UNMERGED           vert_offset=vert_offset+ao_block_sizes(row)
-!FROM UNMERGED    
-!FROM UNMERGED        ENDDO
-!FROM UNMERGED 
-!FROM UNMERGED        hori_offset=hori_offset+mo_block_sizes(col)
-!FROM UNMERGED 
-!FROM UNMERGED     ENDDO ! loop over electron blocks 
-!FROM UNMERGED 
-!FROM UNMERGED     CALL cp_dbcsr_release(matrix_asym,error=error)
-!FROM UNMERGED    
-!FROM UNMERGED     IF (unit_nr>0) THEN
-!FROM UNMERGED        logfile=TRIM(ADJUSTL(filename))
-!FROM UNMERGED        OPEN (fiunit,file=logfile,status='REPLACE')
-!FROM UNMERGED        WRITE(Scols,"(I10)") Ncols
-!FROM UNMERGED        formatstr="("//TRIM(Scols)//"E27.17)"
-!FROM UNMERGED        DO jj=1, Nrows
-!FROM UNMERGED           WRITE(fiunit,formatstr) H(jj,:)
-!FROM UNMERGED        ENDDO
-!FROM UNMERGED        CLOSE(fiunit)
-!FROM UNMERGED     ENDIF
-!FROM UNMERGED 
-!FROM UNMERGED     DEALLOCATE(mo_block_sizes)
-!FROM UNMERGED     DEALLOCATE(ao_block_sizes)
-!FROM UNMERGED     DEALLOCATE(H)
-!FROM UNMERGED 
-!FROM UNMERGED     CALL timestop(handle)
-!FROM UNMERGED   
-!FROM UNMERGED   END SUBROUTINE print_mathematica_matrix 
 
 END MODULE almo_scf_optimizer
 

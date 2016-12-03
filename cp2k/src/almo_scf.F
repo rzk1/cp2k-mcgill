@@ -163,6 +163,7 @@ CONTAINS
       TYPE(dft_control_type), POINTER                    :: dft_control
       TYPE(almo_scf_env_type), POINTER                   :: almo_scf_env
       TYPE(section_vals_type), POINTER                   :: input
+      INTEGER                                            :: nallocate
 
       CALL timeset(routineN, handle)
 
@@ -180,14 +181,14 @@ CONTAINS
       almo_scf_env%nspins = dft_control%nspins
       almo_scf_env%almo_history%nstore = almo_scf_env%extrapolation_order
       almo_scf_env%almo_history%istore = 0
-      ALLOCATE (almo_scf_env%almo_history%matrix_p_up_down(almo_scf_env%nspins, almo_scf_env%almo_history%nstore))
+      ! do not allocate zero
+      nallocate = MAX(1,almo_scf_env%extrapolation_order)
+      ALLOCATE (almo_scf_env%almo_history%matrix_p_up_down(almo_scf_env%nspins, nallocate))
       ALLOCATE (almo_scf_env%almo_history%matrix_t(almo_scf_env%nspins))
-      IF (almo_scf_env%deloc_method .NE. almo_deloc_none) THEN
-         almo_scf_env%xalmo_history%nstore = almo_scf_env%extrapolation_order
-         almo_scf_env%xalmo_history%istore = 0
-         ALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down(almo_scf_env%nspins, almo_scf_env%xalmo_history%nstore))
-         ALLOCATE (almo_scf_env%xalmo_history%matrix_t(almo_scf_env%nspins))
-      ENDIF
+      almo_scf_env%xalmo_history%nstore = almo_scf_env%extrapolation_order
+      almo_scf_env%xalmo_history%istore = 0
+      ALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down(almo_scf_env%nspins, nallocate))
+      ALLOCATE (almo_scf_env%xalmo_history%matrix_t(almo_scf_env%nspins))
 
       ! put almo_scf_env in qs_env
       CALL set_qs_env(qs_env, almo_scf_env=almo_scf_env)
@@ -1002,6 +1003,7 @@ CONTAINS
       REAL(KIND=dp)                                      :: cs_pos
       TYPE(cp_dbcsr_type)                                :: matrix_no_tmp1, matrix_no_tmp2, &
                                                             matrix_no_tmp3, matrix_no_tmp4
+      LOGICAL                                            :: delocalization_uses_extrapolation 
       TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
@@ -1051,7 +1053,7 @@ CONTAINS
                     0.0_dp, matrix_no_tmp1, &
                     filter_eps=almo_scf_env%eps_filter)
             CALL cp_dbcsr_multiply("N", "N", 1.0_dp, matrix_no_tmp1, &
-                    almo_scf_env%matrix_sigma_inv_blk(ispin), &
+                    almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
                     0.0_dp, matrix_no_tmp2, &
                     filter_eps=almo_scf_env%eps_filter)
             CALL cp_dbcsr_multiply("N", "T", 1.0_dp, &
@@ -1069,7 +1071,7 @@ CONTAINS
 
       ! exrapolate xalmos?
       delocalization_uses_extrapolation = &
-         .NOT. ( (almo_scf_env%deloc_method .eq. almo_deloc_none) .OR.
+         .NOT. ( (almo_scf_env%deloc_method .eq. almo_deloc_none) .OR. &
                  (almo_scf_env%deloc_method .eq. almo_deloc_xalmo_1diag) )
       IF (almo_scf_env%xalmo_history%nstore > 0 .AND. &
           delocalization_uses_extrapolation) THEN
@@ -1436,7 +1438,7 @@ CONTAINS
       DO ispin = 1, almo_scf_env%nspins
          CALL cp_dbcsr_copy(almo_scf_env%matrix_ks_0deloc(ispin), &
                             almo_scf_env%matrix_ks(ispin))
-         CALL cp_dbcsr_copy(almo_scf_env%matrix_sigma_inv_blk(ispin), &
+         CALL cp_dbcsr_copy(almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
                             almo_scf_env%matrix_sigma_inv(ispin))
       ENDDO
 
@@ -1815,7 +1817,7 @@ CONTAINS
       ALLOCATE (almo_scf_env%matrix_sigma_sqrt(nspins))
       ALLOCATE (almo_scf_env%matrix_sigma_sqrt_inv(nspins))
       ALLOCATE (almo_scf_env%matrix_sigma_blk(nspins))
-      ALLOCATE (almo_scf_env%matrix_sigma_inv_blk(nspins))
+      ALLOCATE (almo_scf_env%matrix_sigma_inv_0deloc(nspins))
       ALLOCATE (almo_scf_env%matrix_t(nspins))
       ALLOCATE (almo_scf_env%matrix_t_tr(nspins))
       DO ispin = 1, nspins
@@ -1884,7 +1886,7 @@ CONTAINS
                                  spin_key=ispin, &
                                  init_domains=.TRUE.)
          ! create blocked inverse mo overlap matrix
-         CALL matrix_almo_create(matrix_new=almo_scf_env%matrix_sigma_inv_blk(ispin), &
+         CALL matrix_almo_create(matrix_new=almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
                                  matrix_qs=matrix_s0, &
                                  almo_scf_env=almo_scf_env, &
                                  name_new="SIGINV_BLK", &
@@ -2164,7 +2166,7 @@ CONTAINS
       ALLOCATE (almo_scf_env%matrix_p(nspins))
       ALLOCATE (almo_scf_env%matrix_p_blk(nspins))
       ALLOCATE (almo_scf_env%matrix_ks(nspins))
-      ALLOCATE (almo_scf_env%matrix_ks_0deloc(nspins))
+      ALLOCATE (almo_scf_env%matrix_ks_blk(nspins))
       IF (almo_scf_env%need_previous_ks) &
          ALLOCATE (almo_scf_env%matrix_ks_0deloc(nspins))
       DO ispin = 1, nspins
@@ -2251,7 +2253,7 @@ CONTAINS
          CALL cp_dbcsr_release(almo_scf_env%matrix_t_tr(ispin))
          CALL cp_dbcsr_release(almo_scf_env%matrix_sigma(ispin))
          CALL cp_dbcsr_release(almo_scf_env%matrix_sigma_blk(ispin))
-         CALL cp_dbcsr_release(almo_scf_env%matrix_sigma_inv_blk(ispin))
+         CALL cp_dbcsr_release(almo_scf_env%matrix_sigma_inv_0deloc(ispin))
          CALL cp_dbcsr_release(almo_scf_env%matrix_sigma_inv(ispin))
          CALL cp_dbcsr_release(almo_scf_env%matrix_t(ispin))
          CALL cp_dbcsr_release(almo_scf_env%matrix_sigma_sqrt(ispin))
@@ -2308,7 +2310,7 @@ CONTAINS
       DEALLOCATE (almo_scf_env%matrix_t_tr)
       DEALLOCATE (almo_scf_env%matrix_sigma)
       DEALLOCATE (almo_scf_env%matrix_sigma_blk)
-      DEALLOCATE (almo_scf_env%matrix_sigma_inv_blk)
+      DEALLOCATE (almo_scf_env%matrix_sigma_inv_0deloc)
       DEALLOCATE (almo_scf_env%matrix_sigma_sqrt)
       DEALLOCATE (almo_scf_env%matrix_sigma_sqrt_inv)
       DEALLOCATE (almo_scf_env%matrix_sigma_inv)
