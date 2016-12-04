@@ -3824,7 +3824,6 @@ CONTAINS
                           xalmo_history%matrix_t(ispin), keep_sparsity=.TRUE.)
                   CALL cp_dbcsr_scale(m_extrapolated,alpha)
                ELSE
-                  CPWARN("Untested deep-history extrapolation. Recommended EXTRAPOLATE_ORDER=1")
                   CALL cp_dbcsr_multiply("N", "N", alpha, &
                           xalmo_history%matrix_p_up_down(ispin,istore), &
                           xalmo_history%matrix_t(ispin), &

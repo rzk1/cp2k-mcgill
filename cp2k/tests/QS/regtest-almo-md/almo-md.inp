@@ -32,7 +32,7 @@
       EPS_FILTER                 1.0E-11
       ALMO_ALGORITHM             DIAG
       ALMO_SCF_GUESS             ATOMIC
-      EXTRAPOLATION_ORDER        3
+      ALMO_EXTRAPOLATION_ORDER   3
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 100

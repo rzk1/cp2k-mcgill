@@ -227,7 +227,8 @@ MODULE almo_scf_types
       ! guess options
       TYPE(almo_scf_history_type) :: almo_history
       TYPE(almo_scf_history_type) :: xalmo_history
-      INTEGER :: extrapolation_order
+      INTEGER :: almo_extrapolation_order
+      INTEGER :: xalmo_extrapolation_order
 
       ! forces
       LOGICAL :: calc_forces
@@ -485,7 +486,8 @@ CONTAINS
          DO istore = 1, MIN(almo_scf_env%almo_history%istore, almo_scf_env%almo_history%nstore)
             CALL cp_dbcsr_release(almo_scf_env%almo_history%matrix_p_up_down(ispin, istore))
          ENDDO
-         CALL cp_dbcsr_release(almo_scf_env%almo_history%matrix_t(ispin))
+         IF (almo_scf_env%almo_history%istore.gt.0) &
+            CALL cp_dbcsr_release(almo_scf_env%almo_history%matrix_t(ispin))
       ENDDO
       DEALLOCATE (almo_scf_env%almo_history%matrix_p_up_down)
       DEALLOCATE (almo_scf_env%almo_history%matrix_t)
@@ -494,7 +496,8 @@ CONTAINS
          DO istore = 1, MIN(almo_scf_env%xalmo_history%istore, almo_scf_env%xalmo_history%nstore)
             CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
          ENDDO
-         CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_t(ispin))
+         IF (almo_scf_env%xalmo_history%istore.gt.0) &
+            CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_t(ispin))
       ENDDO
       DEALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down)
       DEALLOCATE (almo_scf_env%xalmo_history%matrix_t)

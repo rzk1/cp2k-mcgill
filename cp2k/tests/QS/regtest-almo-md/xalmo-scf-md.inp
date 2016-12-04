@@ -9,7 +9,7 @@
      ENSEMBLE NVE
      TIMESTEP 0.5
      TEMPERATURE 300
-     STEPS 10
+     STEPS 3
   &END
 &END
 
@@ -32,7 +32,8 @@
       EPS_FILTER                 1.0E-11
       ALMO_ALGORITHM             DIAG
       ALMO_SCF_GUESS             ATOMIC
-      EXTRAPOLATION_ORDER        1
+      ALMO_EXTRAPOLATION_ORDER   2
+      XALMO_EXTRAPOLATION_ORDER   1
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 100
@@ -46,7 +47,7 @@
       &XALMO_OPTIMIZER_PCG
         MAX_ITER                 100
         EPS_ERROR                5.0E-4
-        CONJUGATOR               LIU_STOREY
+        CONJUGATOR               FLETCHER
         LIN_SEARCH_EPS_ERROR     0.1
         LIN_SEARCH_STEP_SIZE_GUESS 0.5
         MAX_ITER_OUTER_LOOP      0

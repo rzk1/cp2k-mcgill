@@ -179,14 +179,15 @@ CONTAINS
 
       ! set up the buffer for the history of matrices
       almo_scf_env%nspins = dft_control%nspins
-      almo_scf_env%almo_history%nstore = almo_scf_env%extrapolation_order
+      almo_scf_env%almo_history%nstore = almo_scf_env%almo_extrapolation_order
       almo_scf_env%almo_history%istore = 0
       ! do not allocate zero
-      nallocate = MAX(1,almo_scf_env%extrapolation_order)
+      nallocate = MAX(1,almo_scf_env%almo_extrapolation_order)
       ALLOCATE (almo_scf_env%almo_history%matrix_p_up_down(almo_scf_env%nspins, nallocate))
       ALLOCATE (almo_scf_env%almo_history%matrix_t(almo_scf_env%nspins))
-      almo_scf_env%xalmo_history%nstore = almo_scf_env%extrapolation_order
+      almo_scf_env%xalmo_history%nstore = almo_scf_env%xalmo_extrapolation_order
       almo_scf_env%xalmo_history%istore = 0
+      nallocate = MAX(1,almo_scf_env%xalmo_extrapolation_order)
       ALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down(almo_scf_env%nspins, nallocate))
       ALLOCATE (almo_scf_env%xalmo_history%matrix_t(almo_scf_env%nspins))
 
@@ -248,9 +249,12 @@ CONTAINS
                                 i_val=almo_scf_env%deloc_method)
       CALL section_vals_val_get(almo_scf_section, "XALMO_R_CUTOFF_FACTOR", &
                                 r_val=almo_scf_env%quencher_r0_factor)
-      CALL section_vals_val_get(almo_scf_section, "EXTRAPOLATION_ORDER", &
-                                i_val=almo_scf_env%extrapolation_order)
-      almo_scf_env%extrapolation_order = MAX(0, almo_scf_env%extrapolation_order)
+      CALL section_vals_val_get(almo_scf_section, "ALMO_EXTRAPOLATION_ORDER", &
+                                i_val=almo_scf_env%almo_extrapolation_order)
+      almo_scf_env%almo_extrapolation_order = MAX(0, almo_scf_env%almo_extrapolation_order)
+      CALL section_vals_val_get(almo_scf_section, "XALMO_EXTRAPOLATION_ORDER", &
+                                i_val=almo_scf_env%xalmo_extrapolation_order)
+      almo_scf_env%xalmo_extrapolation_order = MAX(0, almo_scf_env%xalmo_extrapolation_order)
 
       ! optimizers
       CALL section_vals_val_get(almo_opt_diis_section, "EPS_ERROR", &
