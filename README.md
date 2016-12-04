@@ -12,30 +12,39 @@ Typical development cycle:
 
 ================ Sychronization ===============
 * goto dir that contains both .svn and .git
+
 cd CP2K_HOME
 
 * make sure you are on master branch
+
 git checkout master
 
 * make sure you master branch does not contain any uncomitted developments as indicated above it important not to keep long-term developments in master branch
+
 git status
 
 * compare your local svn to the official repository
+
 svn status --show-updates
 
 * get updates from the official repository
+
 svn update
 
 * check what changes git sees
+
 git status
 
 * decide which svn updates git master branch is allowed to receive, ideally all changes (except for obvious garbage). to stage all modified/deleted files use:
+
 git add -u
 
 * commit staged files
+
 git commit -m "message here"
 
 * send to github
+
 git push origin master
 
 ==============================================
