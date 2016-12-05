@@ -2,7 +2,7 @@ CC         = cc
 FC         = mpif90
 LD         = mpif90
 AR         = ar -r
-DFLAGS     = -D__MKL -D__INTEL -D__FFTSG -D__FFTW3 -D__FFTMKL -D__parallel -D__BLACS -D__SCALAPACK
+DFLAGS     = -D__MKL -D__FFTW3 -D__FFTMKL -D__parallel -D__SCALAPACK
 CPPFLAGS   = -C -traditional $(DFLAGS)
 FCFLAGS    = -O3 -ffast-math -funroll-loops -ftree-vectorize -march=native -ffree-form $(DFLAGS) 
 LDFLAGS    = $(FCFLAGS) 

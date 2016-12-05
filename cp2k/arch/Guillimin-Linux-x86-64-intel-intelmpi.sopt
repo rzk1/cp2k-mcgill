@@ -3,7 +3,7 @@ FC  = ifort
 LD  = ifort
 AR         = xiar -r
 
-DFLAGS     = -D__LIBINT -D__INTEL -D__FFTSG -D__FFTW3 -D__FFTMKL 
+DFLAGS     = -D__LIBINT -D__INTEL_COMPILER -D__FFTSG -D__FFTW3 -D__FFTMKL 
 CPPFLAGS   = -C -traditional $(DFLAGS)
 FCFLAGS    = $(DFLAGS) -O2 -xHost -heap-arrays 64 -fpp -free -unroll -pc 64 -convert big_endian
 LDFLAGS    = $(FCFLAGS) -static-intel
