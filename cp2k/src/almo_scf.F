@@ -98,6 +98,7 @@ MODULE almo_scf
 
 CONTAINS
 
+
 ! **************************************************************************************************
 !> \brief The entry point into ALMO SCF routines
 !> \param qs_env   pointer to the QS environment
@@ -1016,6 +1017,7 @@ CONTAINS
       ELSE
          unit_nr = -1
       ENDIF
+
 
       IF (almo_scf_env%almo_history%nstore > 0) THEN
 
