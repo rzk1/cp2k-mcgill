@@ -1,0 +1,15 @@
+# Guillimin: module load iomkl/2016.02 (exe is obtained, mpirun fails to use infiniband)
+# Guillimin: module load iomkl/2015b FFTW/3.3.4 
+CC         = mpicc
+FC         = mpif90
+LD         = mpif90
+AR         = xiar -r
+#DFLAGS     = -D__MKL -D__INTEL -D__parallel -D__SCALAPACK
+DFLAGS     = -D__MKL -D__INTEL -D__FFTW3 -D__parallel -D__SCALAPACK
+CPPFLAGS   = -C -traditional $(DFLAGS)
+FCFLAGS    = $(DFLAGS) -O3 -xHost -heap-arrays 64 -fpp -free -unroll -pc 64 -convert big_endian
+LDFLAGS    = $(FCFLAGS) -static-intel
+#LIBS       = -mkl=cluster 
+LIBS       = -lfftw3 -mkl=cluster #-lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_scalapack_lp64 -lmkl_blacs_openmpi_lp64
+
+OBJECTS_ARCHITECTURE = machine_intel.o

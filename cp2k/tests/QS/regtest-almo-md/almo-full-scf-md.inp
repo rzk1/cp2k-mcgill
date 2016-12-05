@@ -9,7 +9,7 @@
      ENSEMBLE NVE
      TIMESTEP 0.5
      TEMPERATURE 300
-     STEPS 4
+     STEPS 5
   &END
 &END
 
@@ -33,19 +33,29 @@
       ALMO_ALGORITHM             DIAG
       ALMO_SCF_GUESS             ATOMIC
       ALMO_EXTRAPOLATION_ORDER   3
+      XALMO_EXTRAPOLATION_ORDER  2
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 100
         EPS_ERROR                1.0E-6
-        N_DIIS                   5
+        N_DIIS                   7
       &END
 
-      DELOCALIZE_METHOD          NONE
+      DELOCALIZE_METHOD          FULL_SCF
+      
+      &XALMO_OPTIMIZER_PCG
+        MAX_ITER                 100
+        EPS_ERROR                5.0E-4
+        CONJUGATOR               LIU_STOREY
+        LIN_SEARCH_EPS_ERROR     0.1
+        LIN_SEARCH_STEP_SIZE_GUESS 0.5
+        MAX_ITER_OUTER_LOOP      0
+      &END XALMO_OPTIMIZER_PCG
       
     &END ALMO_SCF
     
     &MGRID
-      CUTOFF 250
+      CUTOFF 320
       NGRIDS 4
     &END MGRID
     &XC
