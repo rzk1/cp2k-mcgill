@@ -55,7 +55,7 @@ MODULE almo_scf_qs
    USE particle_types,                  ONLY: particle_type
    USE qs_energy_types,                 ONLY: qs_energy_type
    USE qs_environment_types,            ONLY: get_qs_env,&
-                                              qs_environment_type
+                                              qs_environment_type, set_qs_env
    USE qs_initial_guess,                ONLY: calculate_atomic_block_dm,&
                                               calculate_mopac_dm
    USE qs_kind_types,                   ONLY: qs_kind_type
@@ -72,6 +72,23 @@ MODULE almo_scf_qs
    USE qs_rho_methods,                  ONLY: qs_rho_update_rho
    USE qs_rho_types,                    ONLY: qs_rho_get,&
                                               qs_rho_type
+   ! \begin Yifei
+   USE qs_mo_types,                     ONLY: set_mo_set, mo_set_p_type, &
+                                              get_mo_set, init_mo_set, &
+                                              deallocate_mo_set, allocate_mo_set
+
+   USE cp_dbcsr_operations,             ONLY: copy_dbcsr_to_fm
+   USE cp_fm_struct,                    ONLY: cp_fm_struct_create,&
+                                              cp_fm_struct_release,&
+                                              cp_fm_struct_type
+   USE cp_fm_types,                     ONLY: cp_fm_p_type, cp_fm_type, &
+                                              cp_fm_release, cp_fm_create
+   USE qs_scf_initialization,           ONLY: qs_scf_compute_properties, qs_scf_env_initialize
+   USE qs_scf_types,                    ONLY: qs_scf_env_type, scf_env_create, scf_env_release
+   USE input_section_types,             ONLY: section_vals_get_subs_vals,&
+                                              section_vals_type,&
+                                              section_vals_val_get
+   ! \end Yifei
 #include "./base/base_uses.f90"
 
    IMPLICIT NONE
@@ -530,6 +547,19 @@ CONTAINS
       TYPE(neighbor_list_set_p_type), DIMENSION(:), &
          POINTER                                         :: sab_orb
       TYPE(qs_ks_env_type), POINTER                      :: ks_env
+      ! \begin Edited by Yifei, also create and init qs_scf_env,
+      ! for post scf localization calculations
+      TYPE(mo_set_p_type), DIMENSION(:), &
+                  POINTER                                ::mos
+      TYPE(cp_dbcsr_type), POINTER                       ::mo_coeff_b
+      LOGICAL                                            ::use_mo_coeff_b
+      TYPE(cp_fm_type), POINTER                          ::mo_coeff, mo_fm_copy
+      TYPE(cp_fm_struct_type), POINTER                   ::fm_struct_tmp
+      INTEGER                                            ::nrow_fm, ncol_fm
+      TYPE(section_vals_type), POINTER  &
+                                                         :: dft_section, input
+      TYPE(qs_scf_env_type), POINTER                     :: scf_env
+      ! \end Edited by Yifei
 
       CALL timeset(routineN, handle)
 
@@ -559,6 +589,41 @@ CONTAINS
          CALL set_ks_env(ks_env, matrix_ks=matrix_ks)
       ENDIF
 
+      ! \b Yifei, create and init scf_env
+      NULLIFY(mos, mo_coeff_b, mo_coeff, mo_fm_copy, fm_struct_tmp, input, dft_section, scf_env)
+      CALL scf_env_create(scf_env)
+
+      CALL qs_scf_env_initialize(qs_env, scf_env)
+      CALL set_qs_env(qs_env, scf_env=scf_env)      
+      CALL get_qs_env(qs_env, mos=mos)
+
+      CALL cp_dbcsr_get_info(almo_scf_env%matrix_t(1), nfullrows_total=nrow_fm, nfullcols_total=ncol_fm)
+
+      ! allocate and init mo_set
+      DO ispin = 1, almo_scf_env%nspins
+
+       ! Currently only fm version of mo_set is usable. 
+       ! First transform the matrix_t to fm version
+       
+          CALL allocate_mo_set(mo_set=mos(ispin)%mo_set, &
+                               nao=nrow_fm, &
+                               nmo=ncol_fm, &
+                               nelectron=almo_scf_env%nelectrons_total, &
+                               n_el_f=REAL(almo_scf_env%nelectrons_total, dp), &
+                               maxocc=2.0_dp, &
+                               flexible_electron_count=dft_control%relax_multiplicity)
+         
+          CALL cp_fm_struct_create(fm_struct_tmp, nrow_global=nrow_fm, ncol_global=ncol_fm, &
+                               context=almo_scf_env%blacs_env, &
+                               para_env=almo_scf_env%para_env)
+          
+          CALL cp_fm_create(mo_fm_copy, fm_struct_tmp, name="t_orthogonal_converted_to_fm")
+          CALL cp_fm_struct_release(fm_struct_tmp)
+          CALL copy_dbcsr_to_fm(almo_scf_env%matrix_t(ispin), mo_fm_copy)
+          
+          CALL init_mo_set(mos(ispin)%mo_set, fm_ref=mo_fm_copy, name='fm_mo')
+      END DO
+      ! \e Yifei
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_init_qs

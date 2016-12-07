@@ -28,7 +28,8 @@ MODULE almo_scf
    USE almo_scf_methods,                ONLY: almo_scf_t_blk_to_t_blk_orthonormal,&
                                               almo_scf_t_blk_to_p, &
                                               almo_scf_p_blk_to_t_blk, &
-                                              distribute_domains
+                                              distribute_domains, &
+                                              orthogonalize_mos
    USE almo_scf_optimizer,              ONLY: almo_scf_block_diagonal,&
                                               almo_scf_xalmo_eigensolver,&
                                               almo_scf_xalmo_pcg
@@ -55,7 +56,7 @@ MODULE almo_scf
         cp_dbcsr_release, cp_dbcsr_reserve_block2d, cp_dbcsr_set, cp_dbcsr_type, &
         cp_dbcsr_work_create, dbcsr_distribution_mp, dbcsr_mp_mynode, dbcsr_type_no_symmetry, &
         dbcsr_type_symmetric, cp_dbcsr_binary_read, cp_dbcsr_checksum, cp_dbcsr_multiply,&
-        cp_dbcsr_scale
+        cp_dbcsr_scale, cp_dbcsr_print
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
@@ -81,6 +82,15 @@ MODULE almo_scf
                                               dp
    USE molecule_types_new,              ONLY: get_molecule_set_info,&
                                               molecule_type
+   ! \begin Edited by Yifei
+   USE qs_mo_types,                     ONLY: set_mo_set, mo_set_p_type, &
+                                              get_mo_set
+   USE cp_dbcsr_operations,             ONLY: copy_dbcsr_to_fm
+   USE cp_fm_types,                     ONLY: cp_fm_p_type, cp_fm_type, &
+                                              cp_fm_release, cp_fm_create
+   USE qs_scf_initialization,           ONLY: qs_scf_compute_properties
+   USE qs_scf_types,                    ONLY: qs_scf_env_type, scf_env_release
+   ! \end Edited by Yifei       
    USE qs_environment_types,            ONLY: get_qs_env, set_qs_env, &
                                               qs_environment_type
 #include "./base/base_uses.f90"
@@ -777,6 +787,7 @@ CONTAINS
 
       ! initialization of the QS settings with the ALMO flavor
       CALL almo_scf_init_qs(qs_env, almo_scf_env)
+
 
       CALL timestop(handle)
 
@@ -1720,14 +1731,75 @@ CONTAINS
     CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_post', &
       routineP = moduleN//':'//routineN
 
+    TYPE(cp_dbcsr_type), ALLOCATABLE, &
+      DIMENSION(:)		             :: matrix_t_orthogonal
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
       POINTER                                :: matrix_w
-    INTEGER                                  :: handle
+    INTEGER                                  :: handle, ispin
+    ! \begin Edited by Yifei
+    TYPE(mo_set_p_type), DIMENSION(:), &
+      POINTER                                :: mos
+    TYPE(cp_fm_type), POINTER                :: mo_coeff
+    TYPE(qs_scf_env_type), POINTER           :: scf_env
+    ! \end Edited by Yifei
+
 
     CALL timeset(routineN,handle)
 
     ! store the matrices for a next scf run
     CALL almo_scf_store_result(almo_scf_env)
+
+    ! orthogonalize orbitals before returning them to QS
+    ALLOCATE(matrix_t_orthogonal(almo_scf_env%nspins))
+    
+    DO ispin = 1, almo_scf_env%nspins
+
+       CALL cp_dbcsr_init(matrix_t_orthogonal(ispin))
+       CALL cp_dbcsr_create(matrix_t_orthogonal(ispin), &
+               template=almo_scf_env%matrix_t(ispin), &
+               matrix_type=dbcsr_type_no_symmetry)
+   
+       CALL cp_dbcsr_copy(matrix_t_orthogonal(ispin), &
+                            almo_scf_env%matrix_t(ispin))
+
+       CALL orthogonalize_mos(ket=matrix_t_orthogonal(ispin), &
+               overlap = almo_scf_env%matrix_sigma(ispin), &
+               metric = almo_scf_env%matrix_s(1), &
+               retain_locality = .FALSE., &
+               only_normalize = .FALSE., &
+               eps_filter = almo_scf_env%eps_filter, &
+               order_lanczos = almo_scf_env%order_lanczos, &
+               eps_lanczos = almo_scf_env%eps_lanczos, &
+               max_iter_lanczos = almo_scf_env%max_iter_lanczos)
+    ENDDO
+
+    ! return orthogonal orbitals to QS
+    ! \begin edited by Yifei
+    NULLIFY(mos, mo_coeff, scf_env)
+
+    CALL get_qs_env(qs_env, mos=mos, scf_env=scf_env)
+    
+    DO ispin = 1, almo_scf_env%nspins
+       ! Currently only fm version of mo_set is usable. 
+       ! First transform the matrix_t to fm version      
+       CALL get_mo_set(mos(ispin)%mo_set, mo_coeff=mo_coeff)
+    
+       CALL copy_dbcsr_to_fm(matrix_t_orthogonal(ispin), mo_coeff)
+
+       CALL cp_dbcsr_release(matrix_t_orthogonal(ispin))
+    ENDDO
+    DEALLOCATE(matrix_t_orthogonal)
+    
+    ! calculate post scf properties
+    CALL almo_post_scf_compute(qs_env, almo_scf_env)
+ 
+    ! In normal scf procedure this is done by scf,
+    ! but it's not called by ALMO
+    ! best to release it somewhere else    
+    IF (ASSOCIATED(scf_env)) THEN
+       CALL scf_env_release(scf_env)
+    ENDIF
+    ! \end edited by Yifei
 
     ! compute the W matrix if associated
     IF (almo_scf_env%calc_forces) THEN
@@ -2402,6 +2474,35 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_clean_up
+
+! **************************************************************************************************
+!> \brief Do post scf calculations with ALMO
+!>        WARNING: ALMO post scf calculation may not work for certain quantities,
+!>        like forces, since ALMO wave function is only 'partially' optimized
+!> \param qs_env ...
+!> \param almo_scf_env ...
+!> \par History
+!>       2016.12 created [Yifei Shi]
+!> \author Yifei Shi
+! **************************************************************************************************
+   SUBROUTINE almo_post_scf_compute(qs_env, almo_scf_env)
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(almo_scf_env_type)                            :: almo_scf_env
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_post_scf_compute', &
+         routineP = moduleN//':'//routineN
+
+      TYPE(section_vals_type), POINTER  &
+                                                         :: dft_section, input
+      TYPE(qs_scf_env_type), POINTER                     :: scf_env
+      
+
+      CALL get_qs_env(qs_env, scf_env=scf_env, input=input)
+      dft_section => section_vals_get_subs_vals(input, "DFT")
+      CALL qs_scf_compute_properties(qs_env, dft_section)
+
+   END SUBROUTINE almo_post_scf_compute
+
 
 END MODULE almo_scf
 

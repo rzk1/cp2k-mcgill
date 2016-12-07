@@ -1126,8 +1126,8 @@ CONTAINS
       ENDIF
 
       ! no point in allocating these things here ?
-      IF (dft_control%qs_control%do_ls_scf .OR. &
-          dft_control%qs_control%do_almo_scf) THEN
+      IF (dft_control%qs_control%do_ls_scf) THEN
+
          NULLIFY (mos)
       ELSE
          ALLOCATE (mos(dft_control%nspins))
