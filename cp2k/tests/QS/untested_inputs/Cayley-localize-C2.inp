@@ -29,9 +29,9 @@
       &END XC_FUNCTIONAL
     &END XC
     &LOCALIZE
-      METHOD DIRECT
+      METHOD CAYLEY
       &CAYLEY_OPTIMIZER
-          MAX_ITER                    100
+          MAX_ITER                    1000
           EPS_ERROR                   1.0E-6
           LIN_SEARCH_EPS_ERROR        1.0E-3
           LIN_SEARCH_STEP_SIZE_GUESS  0.0001
@@ -67,13 +67,22 @@
   &END DFT
   &SUBSYS
     &CELL
-      ABC 6.0 6.0 6.0
+      ABC 10.0 10.0 10.0
     &END CELL
     &COORD
-    O   3.000000    3.000000    2.934413 
-    H   3.000000    2.242864    3.520545
-    H   3.000000    3.757136    3.520545
+       C      -0.752000    0.001000   -0.141000
+       C       0.752000   -0.001000    0.141000
+       H      -1.158000    0.991000    0.070000
+       H      -1.240000   -0.737000    0.496000
+       H      -0.924000   -0.249000   -1.188000
+       H       1.158000   -0.991000   -0.070000
+       H       0.924000    0.249000    1.188000
+       H       1.240000    0.737000   -0.496000
     &END COORD
+    &KIND C
+      BASIS_SET DZVP-GTH-PADE
+      POTENTIAL GTH-BLYP-q4
+    &END KIND
     &KIND H
       BASIS_SET DZVP-GTH-PADE
       POTENTIAL GTH-PADE-q1

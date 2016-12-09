@@ -964,6 +964,7 @@ CONTAINS
                                                             suggested_line_search_niter 
       INTEGER, DIMENSION(:), POINTER                     :: col_indices, row_indices
       REAL(KIND=dp)                                      :: denom, & 
+                                                            step_size_0print, acc_step, &
                                                             appr_sec_der, beta, e0, e1, &
                                                             omega_diff, &
       omega_new, omega_old, eps_skip_gradients, g0, g1, grad_norm, &
@@ -1123,6 +1124,8 @@ CONTAINS
           CALL cp_fm_set_all(matrix_prec, 0.0_dp, 1.0_dp)
        
        ENDIF ! do reset to A=0 
+
+acc_step=0.0_dp
    
        DO ! inner loop
 
@@ -1360,13 +1363,16 @@ CONTAINS
              IF (.NOT.line_search) THEN
                 e0=omega_new
                 ! we just changed the direction and
-                ! we have only E and grad from the current step
+                ! we have only ObjFun and grad from the current step
                 ! it is not enouhg to compute step_size we can only guess it
                 CALL cp_fm_trace(matrix_G, matrix_step, g0)
                 IF (iteration.eq.0) THEN
                    step_size=optimizer%lin_search_step_size_guess 
                 ELSE
-                   IF (next_step_size_guess.le.0.0_dp) THEN
+                   ! we do not want to take very very long step. 1.0_dp is a
+                   ! reasonable Newton-Raphson step, 2 is probably too long
+                   ! let's limit it to 2.0_dp
+                   IF (next_step_size_guess.le.0.0_dp .OR. next_step_size_guess.gt.2.0_dp) THEN
                       step_size=optimizer%lin_search_step_size_guess 
                    ELSE
                       ! take the last value 
@@ -1384,20 +1390,24 @@ CONTAINS
                    ! we have accumulated some points along this direction
                    ! use only the most recent g0 (quadratic approximation)
                    appr_sec_der=(g1-g0)/step_size
-                   !IF (unit_nr>0) THEN
-                   !   WRITE(unit_nr,'(A2,4F12.4,E12.4,2F12.4)') &
-                   !           "EG",e0,e1,g0,g1,appr_sec_der,step_size,-g1/appr_sec_der
-                   !ENDIF
+
+                   ! save step size to print it a bit later
+                   step_size_0print=step_size
+
                    ! if the estimated second derivative is positive
                    IF (appr_sec_der.gt.0.0_dp) THEN
                       step_size=-g1/appr_sec_der
                    ELSE
                       ! if the second derivative is negative
                       ! step in the direction of decreasing functional
-                      ! but multiple the step size by two
+                      ! but multiple the step size by (arbitrary) two
                       step_size=2.0_dp*step_size*(e0-e1)/ABS(e1-e0)
                    ENDIF
-                   ! save the current omega and gradient to use quadratic
+                   IF (unit_nr>0) THEN
+                      WRITE(unit_nr,'(A2,4F12.4,E12.4,3F12.4)') &
+                              "A2",e0,e1,g0,g1,appr_sec_der,step_size_0print,-g1/appr_sec_der,step_size
+                   ENDIF
+                   ! save the current ObjFunc and gradient to use quadratic
                    ! approximation next time
                    e0=e1
                    g0=g1
@@ -1419,6 +1429,13 @@ CONTAINS
                 ENDIF
                 next_step_size_guess=next_step_size_guess+step_size
              ENDIF
+! RZK-warning
+step_size=optimizer%lin_search_step_size_guess
+acc_step=acc_step+step_size
+IF (unit_nr>0) THEN
+   WRITE(unit_nr,'(A7,2F20.10)') &
+           "ObjFunc",omega_new,acc_step
+ENDIF
 !-> golden search copied
 !             new_direction = .FALSE.
 !             IF (line_search_count .EQ. 1) THEN
@@ -1476,13 +1493,14 @@ CONTAINS
           
           IF (line_search) THEN
              iter_type="LS"
+             iter_type=TRIM("       "//iter_type)
           ELSE
              iter_type="CG"
+             iter_type=TRIM("CAYLEY "//iter_type)
           ENDIF
    
           t2 = m_walltime()
           IF (unit_nr>0) THEN
-             iter_type=TRIM("CAYLEY "//iter_type)
              WRITE(unit_nr,'(T4,A11,I6,F23.10,E14.5,F14.9,F9.2)') &
                      iter_type,iteration,&
                      omega_new,omega_diff,grad_norm,&

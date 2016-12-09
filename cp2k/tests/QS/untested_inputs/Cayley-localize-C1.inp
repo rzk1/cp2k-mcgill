@@ -8,7 +8,7 @@
   &DFT
     &PRINT
       &MO_CUBES     ! Controls the printing of the MOs in the output and in the *.cube files
-      NHOMO -1      ! Number of HOMOs to be printed (count starts from the highest occupied orbital. -1 = all). Here 5.
+      NHOMO 5      ! Number of HOMOs to be printed (count starts from the highest occupied orbital. -1 = all). Here 5.
       NLUMO 5       ! Number of LUMOs to be printed (count starts from the lowest unoccupied orbital). Here 5. 
       &END MO_CUBES
     &END PRINT
@@ -29,18 +29,21 @@
       &END XC_FUNCTIONAL
     &END XC
     &LOCALIZE
-      METHOD DIRECT
+      METHOD CAYLEY
       &CAYLEY_OPTIMIZER
-          MAX_ITER                    100
+          MAX_ITER                    1000
           EPS_ERROR                   1.0E-6
           LIN_SEARCH_EPS_ERROR        1.0E-3
-          LIN_SEARCH_STEP_SIZE_GUESS  0.0001
+          LIN_SEARCH_STEP_SIZE_GUESS  0.01
           MAX_ITER_OUTER_LOOP         0
           PRECONDITIONER              NONE
           CONJUGATOR                  POLAK_RIBIERE
       &END CAYLEY_OPTIMIZER
       &PRINT
         &WANNIER_CUBES
+        &END
+        &PROGRAM_RUN_INFO
+          #SECTION_PARAMETERS   HIGH
         &END
       &END
       !STATES ALL
@@ -70,10 +73,16 @@
       ABC 6.0 6.0 6.0
     &END CELL
     &COORD
-    O   3.000000    3.000000    2.934413 
-    H   3.000000    2.242864    3.520545
-    H   3.000000    3.757136    3.520545
+       C       3.257000    2.637000    3.000000
+       H       3.257000    3.727000    3.000000
+       H       3.771000    2.273000    3.890000
+       H       3.771000    2.273000    2.110000
+       H       2.229000    2.273000    3.000000
     &END COORD
+    &KIND C
+      BASIS_SET DZVP-GTH-PADE
+      POTENTIAL GTH-BLYP-q4
+    &END KIND
     &KIND H
       BASIS_SET DZVP-GTH-PADE
       POTENTIAL GTH-PADE-q1
