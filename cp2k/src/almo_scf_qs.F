@@ -83,7 +83,7 @@ MODULE almo_scf_qs
                                               cp_fm_struct_type
    USE cp_fm_types,                     ONLY: cp_fm_p_type, cp_fm_type, &
                                               cp_fm_release, cp_fm_create
-   USE qs_scf_initialization,           ONLY: qs_scf_compute_properties, qs_scf_env_initialize
+   USE qs_scf_initialization,           ONLY: qs_scf_env_initialize
    USE qs_scf_types,                    ONLY: qs_scf_env_type, scf_env_create, scf_env_release
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
