@@ -25,7 +25,7 @@
 
     &QS
       ALMO_SCF T
-      EPS_DEFAULT 1.0E-13
+      EPS_DEFAULT 1.0E-8
     &END QS
     
     &ALMO_SCF

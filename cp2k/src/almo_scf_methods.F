@@ -2799,20 +2799,20 @@ CONTAINS
 
       END SELECT
 
-!!!    ! compute the inversion error
-!!!    allocate(test(N,N))
-!!!    test=MATMUL(Ainv,A)
-!!!    DO ii=1,N
-!!!       test(ii,ii)=test(ii,ii)-1.0_dp
-!!!    ENDDO
-!!!    test_error=0.0_dp
-!!!    DO ii=1,N
-!!!       DO jj=1,N
-!!!          test_error=test_error+test(jj,ii)*test(jj,ii)
-!!!       ENDDO
-!!!    ENDDO
-!!!    WRITE(*,*) "Inversion error: ", SQRT(test_error)
-!!!    deallocate(test)
+      !! compute the inversion error
+      !allocate(test(N,N))
+      !test=MATMUL(Ainv,A)
+      !DO ii=1,N
+      !   test(ii,ii)=test(ii,ii)-1.0_dp
+      !ENDDO
+      !test_error=0.0_dp
+      !DO ii=1,N
+      !   DO jj=1,N
+      !      test_error=test_error+test(jj,ii)*test(jj,ii)
+      !   ENDDO
+      !ENDDO
+      !WRITE(*,*) "Inversion error: ", SQRT(test_error)
+      !deallocate(test)
 
       CALL timestop(handle)
 
@@ -3803,15 +3803,16 @@ CONTAINS
 
          DO ispin = 1, nspins
             
-            ! m_extrapolated - initialize the correct sparsity pattern
-            ! it must be kept throughout extrapolation 
             CALL cp_dbcsr_init(m_extrapolated)
             CALL cp_dbcsr_create(m_extrapolated, &
                     template=m_quench_t(ispin), matrix_type=dbcsr_type_no_symmetry)
-            CALL cp_dbcsr_copy(m_extrapolated, m_quench_t(ispin))
+               
+            ! set to zero before accumulation
+            CALL cp_dbcsr_set(m_guess(ispin), 0.0_dp)
 
-            ! extrapolation of the density matrix
+            ! extrapolation 
             DO iaspc = 1, naspc
+
                istore = MOD(xalmo_history%istore-iaspc, xalmo_history%nstore)+1
                alpha = (-1.0_dp)**(iaspc+1)*REAL(iaspc, KIND=dp)* &
                        binomial(2*naspc, naspc-iaspc)/binomial(2*naspc-2, naspc-1)
@@ -3819,24 +3820,35 @@ CONTAINS
                   WRITE (unit_nr, FMT="(T3,A2,I0,A4,F10.6)") &
                      "B(", iaspc, ") = ", alpha
                END IF
-               IF ( iaspc == 1 ) THEN
-                  CALL cp_dbcsr_copy(m_extrapolated, &
-                          xalmo_history%matrix_t(ispin), keep_sparsity=.TRUE.)
-                  CALL cp_dbcsr_scale(m_extrapolated,alpha)
-               ELSE
-                  CALL cp_dbcsr_multiply("N", "N", alpha, &
-                          xalmo_history%matrix_p_up_down(ispin,istore), &
-                          xalmo_history%matrix_t(ispin), &
-                          1.0_dp, m_extrapolated, &
-                          retain_sparsity=.TRUE.)
-               ENDIF
+
+               ! m_extrapolated - initialize the correct sparsity pattern
+               ! it must be kept throughout extrapolation 
+               CALL cp_dbcsr_copy(m_extrapolated, m_quench_t(ispin))
+
+               ! project t0 onto the previous DMs
+               ! note that t0 is projected instead of anything else
+               ! this is done to keep orbitals phase (i.e. sign) the same
+               ! if this is not done the extrapolation will fail
+               CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+                       xalmo_history%matrix_p_up_down(ispin,istore), &
+                       m_t0(ispin), &
+                       0.0_dp, m_extrapolated, &
+                       retain_sparsity=.TRUE.)
+
+               ! now accumulate. correct sparsity is ensured
+               CALL cp_dbcsr_add(m_guess(ispin), m_extrapolated, &
+                       1.0_dp, (1.0_dp*alpha)/naspc)
+
             ENDDO !iaspc
-   
+
+            CALL cp_dbcsr_release(m_extrapolated)
+
+            ! normalize MOs
             CALL cp_dbcsr_init(m_sigma_tmp)
             CALL cp_dbcsr_create(m_sigma_tmp, &
                     template=m_sigma_tmpl(ispin), matrix_type=dbcsr_type_no_symmetry)
 
-            CALL orthogonalize_mos(ket=m_extrapolated, &
+            CALL orthogonalize_mos(ket=m_guess(ispin), &
                     overlap = m_sigma_tmp, &
                     metric = m_overlap, &
                     retain_locality = .TRUE., &
@@ -3848,45 +3860,108 @@ CONTAINS
             
             CALL cp_dbcsr_release(m_sigma_tmp)
 
+            ! project the t0 space out from the extrapolated state
+            ! this can be done outside this subroutine
             IF (assume_t0_q0x) THEN
-               CALL cp_dbcsr_copy(m_guess(ispin), m_extrapolated)
-               CALL cp_dbcsr_add(m_guess(ispin), m_t0(ispin), 1.0_dp, -1.0_dp)
-               ! warning: it is important that R0 is projected out
-               ! from the guess on the next step (outside this subroutine)
-            ELSE
-               ! simply copy extrapolated coefficients to m_guess
-               CALL cp_dbcsr_copy(m_guess(ispin), m_extrapolated)
-            ENDIF
-            
-            CALL cp_dbcsr_release(m_extrapolated)
+               CALL cp_dbcsr_add(m_guess(ispin), m_t0(ispin), &
+                       1.0_dp, -1.0_dp)
+   
+               !! multiply by the pseudo-inverse of (S-RSR)
+               !! this part was brought from outside and was never adapted
+               !! perhaps it is not important and can be deleted later 
+               !IF (my_special_case .EQ. xalmo_case_fully_deloc) THEN
+
+               !   CALL cp_dbcsr_init(m_tmp_no_1)
+               !   CALL cp_dbcsr_init(m_tmp_nn_1)
+               !   CALL cp_dbcsr_init(prec_vv)
+               !   CALL cp_dbcsr_init(ST)
+               !   CALL cp_dbcsr_create(ST, &
+               !                          template=matrix_t_out(ispin), &
+               !                          matrix_type=dbcsr_type_no_symmetry)
+               !   CALL cp_dbcsr_create(m_tmp_no_1, &
+               !                          template=matrix_t_out(ispin), &
+               !                          matrix_type=dbcsr_type_no_symmetry)
+               !   CALL cp_dbcsr_create(m_tmp_nn_1, &
+               !                        template=almo_scf_env%matrix_s(1), &
+               !                        matrix_type=dbcsr_type_no_symmetry)
+               !   CALL cp_dbcsr_create(prec_vv, &
+               !                        template=almo_scf_env%matrix_s(1), &
+               !                        matrix_type=dbcsr_type_no_symmetry)
+               !   ! First S-SRS
+               !   CALL cp_dbcsr_multiply("N","N",1.0_dp,&
+               !           almo_scf_env%matrix_s(1),&
+               !           almo_scf_env%matrix_t_blk(ispin),&
+               !           0.0_dp,ST,&
+               !           filter_eps=almo_scf_env%eps_filter)
+               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+               !                          ST, &
+               !                          almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
+               !                          0.0_dp, m_tmp_no_1, &
+               !                          filter_eps=almo_scf_env%eps_filter)
+               !   CALL cp_dbcsr_desymmetrize(almo_scf_env%matrix_s(1), &
+               !                              m_tmp_nn_1)
+               !   CALL cp_dbcsr_multiply("N", "T", -1.0_dp, &
+               !                             ST, &
+               !                             m_tmp_no_1, &
+               !                             1.0_dp, m_tmp_nn_1, &
+               !                             filter_eps=almo_scf_env%eps_filter)
+
+               !   ! pseudo-invert the virtual projector
+               !   CALL cp_dbcsr_get_info(m_tmp_nn_1, nfullrows_total=dim0)
+               !   ALLOCATE (evals(dim0))
+               !   CALL cp_dbcsr_syevd(m_tmp_nn_1, prec_vv, evals, &
+               !                       almo_scf_env%para_env, almo_scf_env%blacs_env)
+               !   ! invert eigenvalues and use eigenvectors to compute the pseudo-inverse
+               !   zero_neg_eiv = 0
+               !   CALL cp_dbcsr_get_info(almo_scf_env%matrix_sigma_inv_0deloc(ispin), nfullrows_total=occ1)
+               !   DO jj = 1, dim0
+               !      IF (jj .LE. occ1) THEN
+               !         zero_neg_eiv = zero_neg_eiv+1
+               !         evals(jj) = evals(jj)*0.0_dp
+               !      ELSE
+               !         evals(jj) = 1.0_dp/evals(jj)
+               !      ENDIF
+               !   ENDDO
+               !   IF (unit_nr > 0) THEN
+               !      WRITE (*, *) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv, SUM(evals(1:zero_neg_eiv))
+               !   ENDIF
+               !   CALL cp_dbcsr_init(inv_eiv)
+               !   CALL cp_dbcsr_create(inv_eiv, &
+               !                        template=m_tmp_nn_1, &
+               !                        matrix_type=dbcsr_type_no_symmetry)
+               !   CALL cp_dbcsr_add_on_diag(inv_eiv, 1.0_dp)
+               !   CALL cp_dbcsr_set_diag(inv_eiv, evals)
+               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+               !                          prec_vv, &
+               !                          inv_eiv, &
+               !                          0.0_dp, m_tmp_nn_1, &
+               !                          filter_eps=almo_scf_env%eps_filter)
+               !   CALL cp_dbcsr_multiply("N", "T", 1.0_dp, &
+               !                          m_tmp_nn_1, &
+               !                          prec_vv, &
+               !                          0.0_dp, inv_eiv, &
+               !                          filter_eps=almo_scf_env%eps_filter)
+               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
+               !                          inv_eiv, &
+               !                          m_theta(ispin), &
+               !                          0.0_dp, m_tmp_no_1, &
+               !                          filter_eps=almo_scf_env%eps_filter)
+               !   CALL cp_dbcsr_copy(m_theta(ispin),m_tmp_no_1)
+
+               !   CALL cp_dbcsr_release(inv_eiv)
+               !   CALL cp_dbcsr_release(m_tmp_no_1)
+               !   CALL cp_dbcsr_release(m_tmp_nn_1)
+               !   CALL cp_dbcsr_release(prec_vv)
+               !   CALL cp_dbcsr_release(ST)
+               !   DEALLOCATE (evals)
+
+               !ENDIF !special_case
+
+            ENDIF !assume_t0_q0x
 
          ENDDO !ispin
 
       ENDIF !aspc_guess?
-
-      ! check that all MO coefficients of the guess are less
-      ! than the maximum allowed amplitude
-      IF (optimize_theta) THEN
-
-         DO ispin = 1, nspins
-            CALL cp_dbcsr_norm(m_guess(ispin), &
-                               dbcsr_norm_maxabsnorm, norm_scalar=norm)
-            IF (unit_nr>0) THEN
-               WRITE(unit_nr,*) "Maximum norm of the initial guess: ", norm
-               WRITE(unit_nr,*) "Maximum allowed amplitude: ", envelope_amplitude
-            ENDIF
-            IF (norm .GT. envelope_amplitude) THEN
-               CPABORT("Max norm of the initial guess is too large")
-            ENDIF
-            ! use artanh to tame the initial guess
-            CALL cp_dbcsr_function_of_elements(m_guess(ispin), &
-                                               func=dbcsr_func_artanh, &
-                                               a0=0.0_dp, &
-                                               a1=1.0_dp/envelope_amplitude)
-            CALL cp_dbcsr_scale(m_guess(ispin), envelope_amplitude)
-         ENDDO !ispin
-
-      ENDIF
 
       CALL timestop(handle)
 

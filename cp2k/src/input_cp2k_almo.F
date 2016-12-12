@@ -92,14 +92,14 @@ CONTAINS
       CALL keyword_create(keyword, name="ALMO_EXTRAPOLATION_ORDER", &
                           description="Number of previous states used for the ASPC extrapolation of the ALMO "// &
                           "initial guess. 0 implies that the guess is given by ALMO_SCF_GUESS at each step.", &
-                          usage="ALMO_EXTRAPOLATION_ORDER 3", default_i_val=4)
+                          usage="ALMO_EXTRAPOLATION_ORDER 3", default_i_val=3)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="XALMO_EXTRAPOLATION_ORDER", &
                           description="Number of previous states used for the ASPC extrapolation of the initial guess "// &
                           "for the delocalization correction.", &
-                          usage="XALMO_EXTRAPOLATION_ORDER 1", default_i_val=0)
+                          usage="XALMO_EXTRAPOLATION_ORDER 1", default_i_val=3)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 

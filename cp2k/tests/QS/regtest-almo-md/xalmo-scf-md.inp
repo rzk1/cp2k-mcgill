@@ -9,7 +9,7 @@
      ENSEMBLE NVE
      TIMESTEP 0.5
      TEMPERATURE 300
-     STEPS 3
+     STEPS 5
   &END
 &END
 
@@ -25,7 +25,7 @@
 
     &QS
       ALMO_SCF T
-      EPS_DEFAULT 1.0E-13
+      EPS_DEFAULT 1.0E-8
     &END QS
     
     &ALMO_SCF
@@ -33,7 +33,7 @@
       ALMO_ALGORITHM             DIAG
       ALMO_SCF_GUESS             ATOMIC
       ALMO_EXTRAPOLATION_ORDER   2
-      XALMO_EXTRAPOLATION_ORDER   1
+      XALMO_EXTRAPOLATION_ORDER   2
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 100

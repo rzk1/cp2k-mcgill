@@ -82,6 +82,7 @@ MODULE almo_scf_types
    TYPE almo_scf_history_type
       INTEGER :: istore, nstore
       TYPE(cp_dbcsr_type), DIMENSION(:, :), ALLOCATABLE :: matrix_p_up_down
+      !TYPE(cp_dbcsr_type), DIMENSION(:, :), ALLOCATABLE :: matrix_x
       TYPE(cp_dbcsr_type), DIMENSION(:), ALLOCATABLE :: matrix_t
    END TYPE
 
@@ -495,11 +496,13 @@ CONTAINS
       DO ispin = 1, SIZE(almo_scf_env%xalmo_history%matrix_t)
          DO istore = 1, MIN(almo_scf_env%xalmo_history%istore, almo_scf_env%xalmo_history%nstore)
             CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
+            !CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_x(ispin, istore))
          ENDDO
          IF (almo_scf_env%xalmo_history%istore.gt.0) &
             CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_t(ispin))
       ENDDO
       DEALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down)
+      !DEALLOCATE (almo_scf_env%xalmo_history%matrix_x)
       DEALLOCATE (almo_scf_env%xalmo_history%matrix_t)
 
       DEALLOCATE (almo_scf_env)

@@ -7,7 +7,7 @@ DFLAGS     = -D__MKL -D__INTEL -D__FFTW3 -D__parallel -D__SCALAPACK
 CPPFLAGS   = -C -traditional $(DFLAGS)
 FCFLAGS    = $(DFLAGS) -O3 -xHost -heap-arrays 64 -fpp -free -unroll -pc 64 -convert big_endian 
 LDFLAGS    = $(FCFLAGS) 
-LIBS       = !! need fftw3 library instead of mkl -mkl=cluster
+LIBS       = -lfftw3 -mkl=cluster
 
 OBJECTS_ARCHITECTURE = machine_intel.o
 

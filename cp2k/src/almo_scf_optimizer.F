@@ -11,6 +11,7 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_optimizer
+   USE qs_ks_methods,                   ONLY: qs_ks_update_qs_env
    USE almo_scf_diis_types,             ONLY: almo_scf_diis_extrapolate,&
                                               almo_scf_diis_init,&
                                               almo_scf_diis_push,&
@@ -44,7 +45,7 @@ MODULE almo_scf_optimizer
         cp_dbcsr_set, cp_dbcsr_set_diag, cp_dbcsr_trace, cp_dbcsr_triu, cp_dbcsr_type, &
         cp_dbcsr_work_create, dbcsr_distribution_mp, dbcsr_func_artanh, dbcsr_func_dtanh, &
         dbcsr_func_inverse, dbcsr_func_tanh, dbcsr_mp_numnodes, dbcsr_norm_maxabsnorm, &
-        dbcsr_type_no_symmetry
+        dbcsr_type_no_symmetry, cp_dbcsr_print
    USE cp_external_control,             ONLY: external_control
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
@@ -669,7 +670,8 @@ CONTAINS
                   WRITE (unit_nr, *)
                ENDIF
                CALL almo_scf_update_ks_energy(qs_env, &
-                                              almo_scf_env%almo_scf_energy+denergy_tot)
+                       energy=almo_scf_env%almo_scf_energy, &
+                       energy_singles_corr=denergy_tot)
             ENDIF
 
             ! compute the new KS matrix and new energy
@@ -1050,22 +1052,37 @@ CONTAINS
                   md_in_theta_space = .TRUE.
                   first_md_iteration = .TRUE.
                ENDIF
-
-               ! compute the MO coefficients from theta
+               
+               ! check that all MO coefficients of the guess are less
+               ! than the maximum allowed amplitude
                IF (optimize_theta) THEN
                   CALL cp_dbcsr_copy(m_tmp_no_1, m_theta(ispin))
+                  CALL cp_dbcsr_norm(m_tmp_no_1, &
+                        dbcsr_norm_maxabsnorm, norm_scalar=t_norm)
+                  IF (unit_nr>0) THEN
+                     WRITE(unit_nr,*) "Maximum norm of the initial guess: ", t_norm
+                     WRITE(unit_nr,*) "Maximum allowed amplitude: ", &
+                        almo_scf_env%envelope_amplitude
+                  ENDIF
+                  IF (t_norm .GT. almo_scf_env%envelope_amplitude .AND. just_started) THEN
+                     CPABORT("Max norm of the initial guess is too large")
+                  ENDIF
+                  ! use artanh to tame the initial guess
                   CALL cp_dbcsr_function_of_elements(m_tmp_no_1, &
-                                                     !func=dbcsr_func_sin,&
                                                      func=dbcsr_func_tanh, &
                                                      a0=0.0_dp, &
                                                      a1=1.0_dp/almo_scf_env%envelope_amplitude)
+                  !CALL cp_dbcsr_function_of_elements(m_guess(ispin), &
+                  !                                   func=dbcsr_func_artanh, &
+                  !                                   a0=0.0_dp, &
+                  !                                   a1=1.0_dp/envelope_amplitude)
                   CALL cp_dbcsr_scale(m_tmp_no_1, &
                                       almo_scf_env%envelope_amplitude)
+                  !CALL cp_dbcsr_scale(m_guess(ispin), envelope_amplitude)
                ELSE
                   CALL cp_dbcsr_copy(m_tmp_no_1, m_theta(ispin))
-               ENDIF
-               CALL cp_dbcsr_hadamard_product(m_tmp_no_1, &
-                                              quench_t(ispin), &
+               ENDIF !optimize_theta
+               CALL cp_dbcsr_hadamard_product(m_tmp_no_1, quench_t(ispin), &
                                               matrix_t_out(ispin))
 
                ! project out R_0
@@ -1103,9 +1120,10 @@ CONTAINS
                   CALL cp_dbcsr_add(matrix_t_out(ispin), &
                                     almo_scf_env%matrix_t_blk(ispin), 1.0_dp, 1.0_dp)
                ENDIF
-
-               CALL cp_dbcsr_filter(matrix_t_out(ispin), &
-                                    eps=almo_scf_env%eps_filter)
+!IF (just_started) &
+!CALL cp_dbcsr_print(matrix_t_out(ispin))
+!               CALL cp_dbcsr_filter(matrix_t_out(ispin), &
+!                                    eps=almo_scf_env%eps_filter)
 
                ! compute the density matrix
                CALL almo_scf_t_to_p( &
@@ -1941,7 +1959,8 @@ CONTAINS
                   WRITE (unit_nr, *)
                ENDIF
                CALL almo_scf_update_ks_energy(qs_env, &
-                                              almo_scf_env%almo_scf_energy+energy_new)
+                       energy=almo_scf_env%almo_scf_energy, &
+                       energy_singles_corr=energy_new)
 
                IF (almo_scf_env%almo_analysis%do_analysis) THEN
 
@@ -2021,9 +2040,14 @@ CONTAINS
             ELSE
 
                CALL almo_scf_update_ks_energy(qs_env, &
-                                              energy_new)
+                       energy=energy_new)
 
             ENDIF ! if perturbation only
+
+            !CALL qs_ks_update_qs_env(qs_env, &
+            !        calculate_forces=.FALSE., &
+            !        just_energy=.TRUE., &
+            !        print_active=.TRUE.)
 
          ENDIF ! if converged
 
