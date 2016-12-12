@@ -56,7 +56,7 @@ MODULE almo_scf
         cp_dbcsr_release, cp_dbcsr_reserve_block2d, cp_dbcsr_set, cp_dbcsr_type, &
         cp_dbcsr_work_create, dbcsr_distribution_mp, dbcsr_mp_mynode, dbcsr_type_no_symmetry, &
         dbcsr_type_symmetric, cp_dbcsr_binary_read, cp_dbcsr_checksum, cp_dbcsr_multiply,&
-        cp_dbcsr_scale, cp_dbcsr_print
+        cp_dbcsr_scale, cp_dbcsr_add
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
@@ -200,6 +200,7 @@ CONTAINS
       almo_scf_env%xalmo_history%istore = 0
       nallocate = MAX(1,almo_scf_env%xalmo_extrapolation_order)
       ALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down(almo_scf_env%nspins, nallocate))
+      !ALLOCATE (almo_scf_env%xalmo_history%matrix_x(almo_scf_env%nspins, nallocate))
       ALLOCATE (almo_scf_env%xalmo_history%matrix_t(almo_scf_env%nspins))
 
       ! put almo_scf_env in qs_env
@@ -743,11 +744,12 @@ CONTAINS
       !ENDIF
       
       almo_scf_env%calc_forces = calc_forces
-      ! DANGER: use forces only with fully variational methods
-      !IF (calc_forces .AND. &
-      !    .NOT. (almo_scf_env%deloc_method==almo_deloc_none .OR. &
-      !           almo_scf_env%deloc_method==almo_deloc_scf) ) &
-      !   CPABORT(" Forces are not implemented for this method yet ")
+      IF (calc_forces) THEN
+          IF (almo_scf_env%deloc_method==almo_deloc_x .OR. &
+              almo_scf_env%deloc_method==almo_deloc_xalmo_x .OR. &
+              almo_scf_env%deloc_method==almo_deloc_xalmo_1diag ) &
+         CPABORT(" Forces are not implemented for this method yet ")
+      ENDIF
 
       ! create all matrices
       CALL almo_scf_env_create_matrices(almo_scf_env, matrix_s(1)%matrix)
@@ -1106,6 +1108,10 @@ CONTAINS
                     almo_scf_env%matrix_t(ispin))
 
             IF (almo_scf_env%xalmo_history%istore <= almo_scf_env%xalmo_history%nstore) THEN
+               !CALL cp_dbcsr_init(almo_scf_env%xalmo_history%matrix_x(ispin, istore))
+               !CALL cp_dbcsr_create(almo_scf_env%xalmo_history%matrix_x(ispin, istore), &
+               !        template=almo_scf_env%matrix_t(ispin), &
+               !        matrix_type=dbcsr_type_no_symmetry)
                CALL cp_dbcsr_init(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
                CALL cp_dbcsr_create(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore), &
                        template=almo_scf_env%matrix_s(1), &
@@ -1133,7 +1139,13 @@ CONTAINS
                     matrix_no_tmp4, &
                     0.0_dp, almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore), &
                     filter_eps=almo_scf_env%eps_filter)
-   
+  
+            ! store the difference between t and t0
+            !CALL cp_dbcsr_copy(almo_scf_env%xalmo_history%matrix_x(ispin, istore),&
+            !        almo_scf_env%matrix_t(ispin)) 
+            !CALL cp_dbcsr_add(almo_scf_env%xalmo_history%matrix_x(ispin, istore),&
+            !        almo_scf_env%matrix_t_blk(ispin),1.0_dp,-1.0_dp) 
+
             CALL cp_dbcsr_release(matrix_no_tmp3)
             CALL cp_dbcsr_release(matrix_no_tmp4)
 

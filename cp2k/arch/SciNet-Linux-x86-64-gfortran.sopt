@@ -1,13 +1,13 @@
-# module load gcc/4.9.0 ; source ~/dev/fftw/module.fake.sh 
+# module load gcc/4.9.0 openblas/0.2.13-gcc-serial; source ~/dev/fftw/module.fake.sh 
 CC         = gcc
-FC         = mpif90
-LD         = mpif90
+FC         = gfortran
+LD         = gfortran
 AR         = ar -r
-DFLAGS     = -D__FFTW3 -D__MPI_VERSION=3 -D__parallel -D__SCALAPACK -D__MKL
+DFLAGS     = -D__FFTW3 #-D__MKL
 CPPFLAGS   = -C -traditional $(DFLAGS)
 FCFLAGS    = $(DFLAGS) -O3 -ffast-math -ffree-form -ffree-line-length-none -ftree-vectorize -funroll-loops -march=native 
 LDFLAGS    = $(FCFLAGS) -static-libgfortran 
-LIBS       = -lfftw3 -mkl=
+LIBS       = -L$(SCINET_OPENBLAS_LIB) -lfftw3 -lopenblas #-mkl=sequential
 
 OBJECTS_ARCHITECTURE = machine_intel.o
 

@@ -684,9 +684,11 @@ CONTAINS
 !>       2013.03 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_update_ks_energy(qs_env, energy)
+   SUBROUTINE almo_scf_update_ks_energy(qs_env, energy, energy_singles_corr)
+
       TYPE(qs_environment_type), POINTER                 :: qs_env
-      REAL(KIND=dp)                                      :: energy
+      REAL(KIND=dp), OPTIONAL, INTENT(IN)                :: energy
+      REAL(KIND=dp), OPTIONAL, INTENT(IN)                :: energy_singles_corr
 
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_update_ks_energy', &
          routineP = moduleN//':'//routineN
@@ -694,7 +696,18 @@ CONTAINS
       TYPE(qs_energy_type), POINTER                      :: qs_energy
 
       CALL get_qs_env(qs_env, energy=qs_energy)
-      qs_energy%total = energy
+
+      IF (PRESENT(energy_singles_corr)) THEN
+         qs_energy%singles_corr = energy_singles_corr
+      ELSE
+         qs_energy%singles_corr = 0.0_dp
+      ENDIF
+      
+      IF (PRESENT(energy)) THEN
+         qs_energy%total = energy
+      ENDIF
+      
+      qs_energy%total = qs_energy%total + qs_energy%singles_corr
 
    END SUBROUTINE almo_scf_update_ks_energy
 
