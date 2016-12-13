@@ -82,7 +82,6 @@ MODULE almo_scf
                                               dp
    USE molecule_types_new,              ONLY: get_molecule_set_info,&
                                               molecule_type
-   ! \begin Edited by Yifei
    USE qs_mo_types,                     ONLY: set_mo_set, mo_set_p_type, &
                                               get_mo_set
    USE cp_dbcsr_operations,             ONLY: copy_dbcsr_to_fm
@@ -90,7 +89,6 @@ MODULE almo_scf
                                               cp_fm_release, cp_fm_create
    USE qs_scf_post_scf,                 ONLY: qs_scf_compute_properties
    USE qs_scf_types,                    ONLY: qs_scf_env_type, scf_env_release
-   ! \end Edited by Yifei       
    USE qs_environment_types,            ONLY: get_qs_env, set_qs_env, &
                                               qs_environment_type
 #include "./base/base_uses.f90"
@@ -1371,12 +1369,10 @@ CONTAINS
     TYPE(cp_dbcsr_p_type), DIMENSION(:), &
       POINTER                                :: matrix_w
     INTEGER                                  :: handle, ispin
-    ! \begin Edited by Yifei
     TYPE(mo_set_p_type), DIMENSION(:), &
       POINTER                                :: mos
     TYPE(cp_fm_type), POINTER                :: mo_coeff
     TYPE(qs_scf_env_type), POINTER           :: scf_env
-    ! \end Edited by Yifei
 
 
     CALL timeset(routineN,handle)
@@ -1409,7 +1405,6 @@ CONTAINS
     ENDDO
 
     ! return orthogonal orbitals to QS
-    ! \begin edited by Yifei
     NULLIFY(mos, mo_coeff, scf_env)
 
     CALL get_qs_env(qs_env, mos=mos, scf_env=scf_env)
@@ -1434,7 +1429,6 @@ CONTAINS
     IF (ASSOCIATED(scf_env)) THEN
        CALL scf_env_release(scf_env)
     ENDIF
-    ! \end edited by Yifei
 
     ! compute the W matrix if associated
     IF (almo_scf_env%calc_forces) THEN

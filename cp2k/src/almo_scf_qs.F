@@ -72,7 +72,6 @@ MODULE almo_scf_qs
    USE qs_rho_methods,                  ONLY: qs_rho_update_rho
    USE qs_rho_types,                    ONLY: qs_rho_get,&
                                               qs_rho_type
-   ! \begin Yifei
    USE qs_mo_types,                     ONLY: set_mo_set, mo_set_p_type, &
                                               get_mo_set, init_mo_set, &
                                               deallocate_mo_set, allocate_mo_set
@@ -88,7 +87,6 @@ MODULE almo_scf_qs
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
-   ! \end Yifei
 #include "./base/base_uses.f90"
 
    IMPLICIT NONE
@@ -547,8 +545,7 @@ CONTAINS
       TYPE(neighbor_list_set_p_type), DIMENSION(:), &
          POINTER                                         :: sab_orb
       TYPE(qs_ks_env_type), POINTER                      :: ks_env
-      ! \begin Edited by Yifei, also create and init qs_scf_env,
-      ! for post scf localization calculations
+ 
       TYPE(mo_set_p_type), DIMENSION(:), &
                   POINTER                                ::mos
       TYPE(cp_dbcsr_type), POINTER                       ::mo_coeff_b
@@ -559,7 +556,7 @@ CONTAINS
       TYPE(section_vals_type), POINTER  &
                                                          :: dft_section, input
       TYPE(qs_scf_env_type), POINTER                     :: scf_env
-      ! \end Edited by Yifei
+
 
       CALL timeset(routineN, handle)
 
@@ -589,7 +586,7 @@ CONTAINS
          CALL set_ks_env(ks_env, matrix_ks=matrix_ks)
       ENDIF
 
-      ! \b Yifei, create and init scf_env
+      ! create and init scf_env
       NULLIFY(mos, mo_coeff_b, mo_coeff, mo_fm_copy, fm_struct_tmp, input, dft_section, scf_env)
       CALL scf_env_create(scf_env)
 
@@ -619,11 +616,12 @@ CONTAINS
           
           CALL cp_fm_create(mo_fm_copy, fm_struct_tmp, name="t_orthogonal_converted_to_fm")
           CALL cp_fm_struct_release(fm_struct_tmp)
-          CALL copy_dbcsr_to_fm(almo_scf_env%matrix_t(ispin), mo_fm_copy)
+          !CALL copy_dbcsr_to_fm(almo_scf_env%matrix_t(ispin), mo_fm_copy)
           
           CALL init_mo_set(mos(ispin)%mo_set, fm_ref=mo_fm_copy, name='fm_mo')
+          CALL cp_fm_release(mo_fm_copy)
       END DO
-      ! \e Yifei
+
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_init_qs
