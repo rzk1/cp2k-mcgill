@@ -13,6 +13,8 @@ MODULE qs_environment_types
    USE admm_dm_types,                   ONLY: admm_dm_type
    USE admm_types,                      ONLY: admm_env_release,&
                                               admm_type
+   USE almo_scf_types,                  ONLY: almo_scf_env_release,&
+                                              almo_scf_env_type
    USE atomic_kind_types,               ONLY: atomic_kind_type
    USE atprop_types,                    ONLY: atprop_type
    USE cell_types,                      ONLY: cell_release,&
@@ -35,8 +37,6 @@ MODULE qs_environment_types
    USE cp_subsys_types,                 ONLY: cp_subsys_type
    USE distribution_1d_types,           ONLY: distribution_1d_type
    USE distribution_2d_types,           ONLY: distribution_2d_type
-   USE almo_scf_types,                  ONLY: almo_scf_env_type,&
-                                              almo_scf_env_release
    USE dm_ls_scf_types,                 ONLY: ls_scf_env_type,&
                                               ls_scf_release
    USE et_coupling_types,               ONLY: et_coupling_release,&
@@ -444,7 +444,6 @@ CONTAINS
 !> \param WannierCentres ...
 !> \param atprop ...
 !> \param ls_scf_env ...
-!> \param almo_scf_env ...
 !> \param do_transport ...
 !> \param transport_env ...
 !> \param v_hartree_rspace ...
@@ -453,6 +452,7 @@ CONTAINS
 !> \param potential_changed ...
 !> \param forces_up_to_date ...
 !> \param mscfg_env ...
+!> \param almo_scf_env ...
 !> \date    23.01.2002
 !> \author  MK
 !> \version 1.0
@@ -602,7 +602,6 @@ CONTAINS
          OPTIONAL, POINTER                               :: WannierCentres
       TYPE(atprop_type), OPTIONAL, POINTER               :: atprop
       TYPE(ls_scf_env_type), OPTIONAL, POINTER           :: ls_scf_env
-      TYPE(almo_scf_env_type), OPTIONAL, POINTER         :: almo_scf_env
       LOGICAL, OPTIONAL                                  :: do_transport
       TYPE(transport_env_type), OPTIONAL, POINTER        :: transport_env
       TYPE(pw_type), OPTIONAL, POINTER                   :: v_hartree_rspace
@@ -610,6 +609,7 @@ CONTAINS
                                                             potential_changed, forces_up_to_date
       TYPE(molecular_scf_guess_env_type), OPTIONAL, &
          POINTER                                         :: mscfg_env
+      TYPE(almo_scf_env_type), OPTIONAL, POINTER         :: almo_scf_env
 
       CHARACTER(len=*), PARAMETER :: routineN = 'get_qs_env', routineP = moduleN//':'//routineN
 
@@ -949,7 +949,6 @@ CONTAINS
 !> \param se_nonbond_env ...
 !> \param admm_env ...
 !> \param ls_scf_env ...
-!> \param almo_scf_env ...
 !> \param do_transport ...
 !> \param transport_env ...
 !> \param lri_env ...
@@ -959,6 +958,7 @@ CONTAINS
 !> \param kg_env ...
 !> \param kpoints ...
 !> \param WannierCentres ...
+!> \param almo_scf_env ...
 !> \date    23.01.2002
 !> \author  MK
 !> \version 1.0
@@ -1031,7 +1031,6 @@ CONTAINS
       TYPE(fist_nonbond_env_type), OPTIONAL, POINTER     :: se_nonbond_env
       TYPE(admm_type), OPTIONAL, POINTER                 :: admm_env
       TYPE(ls_scf_env_type), OPTIONAL, POINTER           :: ls_scf_env
-      TYPE(almo_scf_env_type), OPTIONAL, POINTER         :: almo_scf_env
       LOGICAL, OPTIONAL                                  :: do_transport
       TYPE(transport_env_type), OPTIONAL, POINTER        :: transport_env
       TYPE(lri_environment_type), OPTIONAL, POINTER      :: lri_env
@@ -1042,6 +1041,7 @@ CONTAINS
       TYPE(kpoint_type), OPTIONAL, POINTER               :: kpoints
       TYPE(wannier_centres_type), DIMENSION(:), &
          OPTIONAL, POINTER                               :: WannierCentres
+      TYPE(almo_scf_env_type), OPTIONAL, POINTER         :: almo_scf_env
 
       CHARACTER(len=*), PARAMETER :: routineN = 'set_qs_env', routineP = moduleN//':'//routineN
 

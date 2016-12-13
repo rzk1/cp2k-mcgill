@@ -15,6 +15,7 @@
 !> \author MK (18.05.2000)
 ! **************************************************************************************************
 MODULE qs_environment
+   USE almo_scf_env_methods,            ONLY: almo_scf_env_create
    USE atom_kind_orbitals,              ONLY: calculate_atomic_relkin
    USE atomic_kind_types,               ONLY: atomic_kind_type
    USE bibliography,                    ONLY: Iannuzzi2006,&
@@ -51,7 +52,6 @@ MODULE qs_environment
    USE distribution_1d_types,           ONLY: distribution_1d_release,&
                                               distribution_1d_type
    USE distribution_methods,            ONLY: distribute_molecules_1d
-   USE almo_scf_env_methods,            ONLY: almo_scf_env_create
    USE dm_ls_scf_create,                ONLY: ls_scf_create
    USE et_coupling_types,               ONLY: et_coupling_create
    USE ewald_environment_types,         ONLY: ewald_env_create,&
@@ -407,7 +407,7 @@ CONTAINS
       IF (dft_control%qs_control%do_ls_scf) THEN
          CALL ls_scf_create(qs_env)
       ENDIF
-      
+
       IF (dft_control%qs_control%do_almo_scf) THEN
          CALL almo_scf_env_create(qs_env)
       ENDIF

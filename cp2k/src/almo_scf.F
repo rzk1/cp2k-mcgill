@@ -11,86 +11,88 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf
-   USE qs_ks_types,                     ONLY: qs_ks_did_change
-   USE qs_rho_methods,                  ONLY: qs_rho_update_rho
-   USE mathlib,                         ONLY: binomial
-   USE qs_rho_types,                    ONLY: qs_rho_get,&
-                                              qs_rho_type
-   USE qs_energy_types,                 ONLY: qs_energy_type
-   USE qs_initial_guess,                ONLY: calculate_atomic_block_dm,&
-                                              calculate_mopac_dm
-   USE qs_kind_types,                   ONLY: qs_kind_type
-   USE qs_ks_methods,                   ONLY: qs_ks_update_qs_env
-   USE particle_types,                  ONLY: particle_type
-   USE mscfg_types,                     ONLY: get_matrix_from_submatrices,&
-                                              molecular_scf_guess_env_type
-   USE cp_para_types,                   ONLY: cp_para_env_type
-   USE almo_scf_methods,                ONLY: almo_scf_t_blk_to_t_blk_orthonormal,&
-                                              almo_scf_t_blk_to_p, &
-                                              almo_scf_p_blk_to_t_blk, &
-                                              distribute_domains, &
+   USE almo_scf_methods,                ONLY: almo_scf_p_blk_to_t_blk,&
+                                              almo_scf_t_blk_to_p,&
+                                              almo_scf_t_blk_to_t_blk_orthonormal,&
+                                              distribute_domains,&
                                               orthogonalize_mos
    USE almo_scf_optimizer,              ONLY: almo_scf_block_diagonal,&
                                               almo_scf_xalmo_eigensolver,&
                                               almo_scf_xalmo_pcg
    USE almo_scf_qs,                     ONLY: almo_scf_construct_quencher,&
-                                              almo_scf_init_qs, &
-                                              matrix_almo_to_qs, &
-                                              matrix_almo_create,&
+                                              almo_scf_init_qs,&
                                               calculate_w_matrix_almo,&
+                                              matrix_almo_create,&
+                                              matrix_almo_to_qs,&
                                               matrix_qs_to_almo
-   USE almo_scf_types,                  ONLY: &
-        almo_mat_dim_aobasis, almo_mat_dim_occ, almo_mat_dim_virt, almo_mat_dim_virt_disc, &
-        almo_mat_dim_virt_full, almo_max_cutoff_multiplier, almo_scf_env_type, &
-        optimizer_options_type, print_optimizer_options
+   USE almo_scf_types,                  ONLY: almo_mat_dim_aobasis,&
+                                              almo_mat_dim_occ,&
+                                              almo_mat_dim_virt,&
+                                              almo_mat_dim_virt_disc,&
+                                              almo_mat_dim_virt_full,&
+                                              almo_scf_env_type,&
+                                              optimizer_options_type,&
+                                              print_optimizer_options
    USE atomic_kind_types,               ONLY: atomic_kind_type
-   USE bibliography,                    ONLY: Khaliullin2013,Kolafa2004, &
+   USE bibliography,                    ONLY: Khaliullin2013,&
+                                              Kolafa2004,&
                                               cite_reference
    USE cp_blacs_env,                    ONLY: cp_blacs_env_release,&
                                               cp_blacs_env_retain
    USE cp_control_types,                ONLY: dft_control_type
    USE cp_dbcsr_interface,              ONLY: &
-        cp_dbcsr_add_on_diag, cp_dbcsr_copy, cp_dbcsr_create, cp_dbcsr_distribution, &
-        cp_dbcsr_filter, cp_dbcsr_finalize, cp_dbcsr_get_info, cp_dbcsr_get_stored_coordinates, &
-        cp_dbcsr_init, cp_dbcsr_nblkcols_total, cp_dbcsr_nblkrows_total, cp_dbcsr_p_type, &
-        cp_dbcsr_release, cp_dbcsr_reserve_block2d, cp_dbcsr_set, cp_dbcsr_type, &
+        cp_dbcsr_add_on_diag, cp_dbcsr_binary_read, cp_dbcsr_checksum, cp_dbcsr_copy, &
+        cp_dbcsr_create, cp_dbcsr_distribution, cp_dbcsr_filter, cp_dbcsr_finalize, &
+        cp_dbcsr_get_info, cp_dbcsr_get_stored_coordinates, cp_dbcsr_init, cp_dbcsr_multiply, &
+        cp_dbcsr_nblkcols_total, cp_dbcsr_nblkrows_total, cp_dbcsr_p_type, cp_dbcsr_release, &
+        cp_dbcsr_reserve_block2d, cp_dbcsr_scale, cp_dbcsr_set, cp_dbcsr_type, &
         cp_dbcsr_work_create, dbcsr_distribution_mp, dbcsr_mp_mynode, dbcsr_type_no_symmetry, &
-        dbcsr_type_symmetric, cp_dbcsr_binary_read, cp_dbcsr_checksum, cp_dbcsr_multiply,&
-        cp_dbcsr_scale, cp_dbcsr_add
+        dbcsr_type_symmetric
+   USE cp_dbcsr_operations,             ONLY: copy_dbcsr_to_fm
+   USE cp_fm_types,                     ONLY: cp_fm_type
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
    USE cp_para_env,                     ONLY: cp_para_env_release,&
                                               cp_para_env_retain
+   USE cp_para_types,                   ONLY: cp_para_env_type
    USE domain_submatrix_methods,        ONLY: init_submatrices,&
                                               release_submatrices
    USE input_constants,                 ONLY: &
-        almo_constraint_distance, almo_deloc_none, almo_deloc_scf, almo_deloc_x, &
-        almo_deloc_x_then_scf, almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, &
-        almo_deloc_xk, almo_domain_layout_atomic, almo_domain_layout_molecular, almo_frz_crystal, &
-        almo_mat_distr_atomic, almo_mat_distr_molecular, almo_scf_diag, almo_scf_dm_sign, &
-        almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, optimizer_diis, &
-        optimizer_pcg, tensor_orthogonal, virt_full, virt_minimal, virt_number, virt_occ_size, &
-        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
-        almo_frz_crystal, restart_guess, atomic_guess, molecular_guess
+        almo_deloc_none, almo_deloc_scf, almo_deloc_x, almo_deloc_x_then_scf, &
+        almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, almo_deloc_xk, &
+        almo_domain_layout_molecular, almo_mat_distr_atomic, almo_mat_distr_molecular, &
+        almo_scf_diag, almo_scf_dm_sign, almo_scf_pcg, atomic_guess, molecular_guess, &
+        optimizer_diis, optimizer_pcg, restart_guess, virt_full, virt_number, virt_occ_size, &
+        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
-                                              section_vals_type,&
-                                              section_vals_val_get
+                                              section_vals_type
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
                                               matrix_sqrt_Newton_Schulz
    USE kinds,                           ONLY: default_path_length,&
                                               dp
+   USE mathlib,                         ONLY: binomial
    USE molecule_types_new,              ONLY: get_molecule_set_info,&
                                               molecule_type
-   USE qs_mo_types,                     ONLY: set_mo_set, mo_set_p_type, &
-                                              get_mo_set
-   USE cp_dbcsr_operations,             ONLY: copy_dbcsr_to_fm
-   USE cp_fm_types,                     ONLY: cp_fm_p_type, cp_fm_type, &
-                                              cp_fm_release, cp_fm_create
-   USE qs_scf_post_scf,                 ONLY: qs_scf_compute_properties
-   USE qs_scf_types,                    ONLY: qs_scf_env_type, scf_env_release
-   USE qs_environment_types,            ONLY: get_qs_env, set_qs_env, &
+   USE mscfg_types,                     ONLY: get_matrix_from_submatrices,&
+                                              molecular_scf_guess_env_type
+   USE particle_types,                  ONLY: particle_type
+   USE qs_energy_types,                 ONLY: qs_energy_type
+   USE qs_environment_types,            ONLY: get_qs_env,&
                                               qs_environment_type
+   USE qs_initial_guess,                ONLY: calculate_atomic_block_dm,&
+                                              calculate_mopac_dm
+   USE qs_kind_types,                   ONLY: qs_kind_type
+   USE qs_ks_methods,                   ONLY: qs_ks_update_qs_env
+   USE qs_ks_types,                     ONLY: qs_ks_did_change
+   USE qs_mo_types,                     ONLY: get_mo_set,&
+                                              mo_set_p_type
+   USE qs_rho_methods,                  ONLY: qs_rho_update_rho
+   USE qs_rho_types,                    ONLY: qs_rho_get,&
+                                              qs_rho_type
+   USE qs_scf_post_scf,                 ONLY: qs_scf_compute_properties
+   USE qs_scf_types,                    ONLY: qs_scf_env_type,&
+                                              scf_env_release
 #include "./base/base_uses.f90"
 
    IMPLICIT NONE
@@ -105,7 +107,6 @@ MODULE almo_scf
    LOGICAL, PARAMETER :: safe_mode = .FALSE.
 
 CONTAINS
-
 
 ! **************************************************************************************************
 !> \brief The entry point into ALMO SCF routines
@@ -127,7 +128,7 @@ CONTAINS
       CALL timeset(routineN, handle)
 
       CALL cite_reference(Khaliullin2013)
-      
+
       ! get a pointer to the almo environment
       CALL get_qs_env(qs_env, almo_scf_env=almo_scf_env)
 
@@ -147,7 +148,7 @@ CONTAINS
       !CALL almo_correlation_main(qs_env,almo_scf_env)
 
       ! do post scf processing
-      CALL almo_scf_post(qs_env,almo_scf_env)
+      CALL almo_scf_post(qs_env, almo_scf_env)
 
       ! clean up the mess
       CALL almo_scf_clean_up(almo_scf_env)
@@ -160,11 +161,12 @@ CONTAINS
 !> \brief Initialization of the almo_scf_env_type.
 !> \param qs_env ...
 !> \param almo_scf_env ...
+!> \param calc_forces ...
 !> \par History
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_init(qs_env, almo_scf_env,calc_forces)
+   SUBROUTINE almo_scf_init(qs_env, almo_scf_env, calc_forces)
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(almo_scf_env_type)                            :: almo_scf_env
       LOGICAL                                            :: calc_forces
@@ -363,13 +365,13 @@ CONTAINS
       almo_scf_env%need_virtuals = .TRUE.
       almo_scf_env%need_orbital_energies = .TRUE.
       !ENDIF
-      
+
       almo_scf_env%calc_forces = calc_forces
       IF (calc_forces) THEN
-          IF (almo_scf_env%deloc_method==almo_deloc_x .OR. &
-              almo_scf_env%deloc_method==almo_deloc_xalmo_x .OR. &
-              almo_scf_env%deloc_method==almo_deloc_xalmo_1diag ) &
-         CPABORT(" Forces are not implemented for this method yet ")
+         IF (almo_scf_env%deloc_method == almo_deloc_x .OR. &
+             almo_scf_env%deloc_method == almo_deloc_xalmo_x .OR. &
+             almo_scf_env%deloc_method == almo_deloc_xalmo_1diag) &
+            CPABORT(" Forces are not implemented for this method yet ")
       ENDIF
 
       ! create all matrices
@@ -411,7 +413,6 @@ CONTAINS
       ! initialization of the QS settings with the ALMO flavor
       CALL almo_scf_init_qs(qs_env, almo_scf_env)
 
-
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_init
@@ -432,16 +433,14 @@ CONTAINS
          routineP = moduleN//':'//routineN
 
       CHARACTER(LEN=default_path_length)                 :: file_name, project_name
-      INTEGER                                            :: handle, iaspc, &
-                                                            ispin, istore, naspc, unit_nr, nspins
-      REAL(KIND=dp)                                      :: alpha, cs_pos
-      TYPE(cp_logger_type), POINTER                      :: logger
-      
+      INTEGER                                            :: handle, iaspc, ispin, istore, naspc, &
+                                                            nspins, unit_nr
       INTEGER, DIMENSION(2)                              :: nelectron_spin
-      LOGICAL                                            :: has_unit_metric, &
-                                                            aspc_guess
+      LOGICAL                                            :: aspc_guess, has_unit_metric
+      REAL(KIND=dp)                                      :: alpha, cs_pos
       TYPE(atomic_kind_type), DIMENSION(:), POINTER      :: atomic_kind_set
       TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_s, rho_ao
+      TYPE(cp_logger_type), POINTER                      :: logger
       TYPE(cp_para_env_type), POINTER                    :: para_env
       TYPE(dft_control_type), POINTER                    :: dft_control
       TYPE(molecular_scf_guess_env_type), POINTER        :: mscfg_env
@@ -474,7 +473,7 @@ CONTAINS
                       para_env=para_env, &
                       nelectron_spin=nelectron_spin, &
                       mscfg_env=mscfg_env, &
-                      rho=rho )
+                      rho=rho)
 
       CALL qs_rho_get(rho, rho_ao=rho_ao)
       CPASSERT(ASSOCIATED(mscfg_env))
@@ -486,13 +485,13 @@ CONTAINS
       IF (almo_scf_env%almo_history%istore == 0) THEN
          aspc_guess = .FALSE.
       ELSE
-         aspc_guess = .TRUE. 
+         aspc_guess = .TRUE.
       ENDIF
-      
+
       nspins = almo_scf_env%nspins
 
       ! create an initial guess
-      IF (.NOT.aspc_guess) THEN
+      IF (.NOT. aspc_guess) THEN
 
          SELECT CASE (almo_scf_env%almo_scf_guess)
          CASE (molecular_guess)
@@ -558,7 +557,7 @@ CONTAINS
          CALL cite_reference(Kolafa2004)
 
          naspc = MIN(almo_scf_env%almo_history%istore, almo_scf_env%almo_history%nstore)
-         IF ( unit_nr > 0 ) THEN
+         IF (unit_nr > 0) THEN
             WRITE (unit_nr, FMT="(/,T2,A,/,/,T3,A,I0)") &
                "Parameters for the always stable predictor-corrector (ASPC) method:", &
                "ASPC order: ", naspc
@@ -571,21 +570,21 @@ CONTAINS
                istore = MOD(almo_scf_env%almo_history%istore-iaspc, almo_scf_env%almo_history%nstore)+1
                alpha = (-1.0_dp)**(iaspc+1)*REAL(iaspc, KIND=dp)* &
                        binomial(2*naspc, naspc-iaspc)/binomial(2*naspc-2, naspc-1)
-               IF ( unit_nr > 0 ) THEN
+               IF (unit_nr > 0) THEN
                   WRITE (unit_nr, FMT="(T3,A2,I0,A4,F10.6)") &
                      "B(", iaspc, ") = ", alpha
                END IF
-               IF ( iaspc == 1 ) THEN
+               IF (iaspc == 1) THEN
                   CALL cp_dbcsr_copy(almo_scf_env%matrix_t_blk(ispin), &
-                          almo_scf_env%almo_history%matrix_t(ispin), &
-                          keep_sparsity=.TRUE.)
-                  CALL cp_dbcsr_scale(almo_scf_env%matrix_t_blk(ispin),alpha)
+                                     almo_scf_env%almo_history%matrix_t(ispin), &
+                                     keep_sparsity=.TRUE.)
+                  CALL cp_dbcsr_scale(almo_scf_env%matrix_t_blk(ispin), alpha)
                ELSE
                   CALL cp_dbcsr_multiply("N", "N", alpha, &
-                          almo_scf_env%almo_history%matrix_p_up_down(ispin,istore), &
-                          almo_scf_env%almo_history%matrix_t(ispin), &
-                          1.0_dp, almo_scf_env%matrix_t_blk(ispin), &
-                          retain_sparsity=.TRUE.)
+                                         almo_scf_env%almo_history%matrix_p_up_down(ispin, istore), &
+                                         almo_scf_env%almo_history%matrix_t(ispin), &
+                                         1.0_dp, almo_scf_env%matrix_t_blk(ispin), &
+                                         retain_sparsity=.TRUE.)
                ENDIF
             ENDDO !iaspc
 
@@ -629,17 +628,15 @@ CONTAINS
 !> \author Rustam Khaliullin
 ! **************************************************************************************************
    SUBROUTINE almo_scf_store_result(almo_scf_env)
-      TYPE(almo_scf_env_type)                              :: almo_scf_env
+      TYPE(almo_scf_env_type)                            :: almo_scf_env
 
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_store_result', &
          routineP = moduleN//':'//routineN
 
-      CHARACTER(LEN=default_path_length)                 :: file_name, project_name
       INTEGER                                            :: handle, ispin, istore, unit_nr
-      REAL(KIND=dp)                                      :: cs_pos
+      LOGICAL :: delocalization_uses_extrapolation
       TYPE(cp_dbcsr_type)                                :: matrix_no_tmp1, matrix_no_tmp2, &
                                                             matrix_no_tmp3, matrix_no_tmp4
-      LOGICAL                                            :: delocalization_uses_extrapolation 
       TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
@@ -652,7 +649,6 @@ CONTAINS
          unit_nr = -1
       ENDIF
 
-
       IF (almo_scf_env%almo_history%nstore > 0) THEN
 
          almo_scf_env%almo_history%istore = almo_scf_env%almo_history%istore+1
@@ -664,40 +660,40 @@ CONTAINS
             IF (almo_scf_env%almo_history%istore == 1) THEN
                CALL cp_dbcsr_init(almo_scf_env%almo_history%matrix_t(ispin))
                CALL cp_dbcsr_create(almo_scf_env%almo_history%matrix_t(ispin), &
-                       template=almo_scf_env%matrix_t_blk(ispin), &
-                       matrix_type=dbcsr_type_no_symmetry)
+                                    template=almo_scf_env%matrix_t_blk(ispin), &
+                                    matrix_type=dbcsr_type_no_symmetry)
             ENDIF
             CALL cp_dbcsr_copy(almo_scf_env%almo_history%matrix_t(ispin), &
-                    almo_scf_env%matrix_t_blk(ispin))
+                               almo_scf_env%matrix_t_blk(ispin))
 
             IF (almo_scf_env%almo_history%istore <= almo_scf_env%almo_history%nstore) THEN
                CALL cp_dbcsr_init(almo_scf_env%almo_history%matrix_p_up_down(ispin, istore))
                CALL cp_dbcsr_create(almo_scf_env%almo_history%matrix_p_up_down(ispin, istore), &
-                       template=almo_scf_env%matrix_s(1), &
-                       matrix_type=dbcsr_type_no_symmetry)
+                                    template=almo_scf_env%matrix_s(1), &
+                                    matrix_type=dbcsr_type_no_symmetry)
             ENDIF
 
             CALL cp_dbcsr_init(matrix_no_tmp1)
             CALL cp_dbcsr_create(matrix_no_tmp1, template=almo_scf_env%matrix_t_blk(ispin), &
-                    matrix_type=dbcsr_type_no_symmetry)
+                                 matrix_type=dbcsr_type_no_symmetry)
             CALL cp_dbcsr_init(matrix_no_tmp2)
             CALL cp_dbcsr_create(matrix_no_tmp2, template=almo_scf_env%matrix_t_blk(ispin), &
-                    matrix_type=dbcsr_type_no_symmetry)
+                                 matrix_type=dbcsr_type_no_symmetry)
 
-            ! compute contra-covariant density matrix   
+            ! compute contra-covariant density matrix
             CALL cp_dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_s(1), &
-                    almo_scf_env%matrix_t_blk(ispin), &
-                    0.0_dp, matrix_no_tmp1, &
-                    filter_eps=almo_scf_env%eps_filter)
+                                   almo_scf_env%matrix_t_blk(ispin), &
+                                   0.0_dp, matrix_no_tmp1, &
+                                   filter_eps=almo_scf_env%eps_filter)
             CALL cp_dbcsr_multiply("N", "N", 1.0_dp, matrix_no_tmp1, &
-                    almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
-                    0.0_dp, matrix_no_tmp2, &
-                    filter_eps=almo_scf_env%eps_filter)
+                                   almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
+                                   0.0_dp, matrix_no_tmp2, &
+                                   filter_eps=almo_scf_env%eps_filter)
             CALL cp_dbcsr_multiply("N", "T", 1.0_dp, &
-                    almo_scf_env%matrix_t_blk(ispin), &
-                    matrix_no_tmp2, &
-                    0.0_dp, almo_scf_env%almo_history%matrix_p_up_down(ispin, istore), &
-                    filter_eps=almo_scf_env%eps_filter)
+                                   almo_scf_env%matrix_t_blk(ispin), &
+                                   matrix_no_tmp2, &
+                                   0.0_dp, almo_scf_env%almo_history%matrix_p_up_down(ispin, istore), &
+                                   filter_eps=almo_scf_env%eps_filter)
 
             CALL cp_dbcsr_release(matrix_no_tmp1)
             CALL cp_dbcsr_release(matrix_no_tmp2)
@@ -708,8 +704,8 @@ CONTAINS
 
       ! exrapolate xalmos?
       delocalization_uses_extrapolation = &
-         .NOT. ( (almo_scf_env%deloc_method .eq. almo_deloc_none) .OR. &
-                 (almo_scf_env%deloc_method .eq. almo_deloc_xalmo_1diag) )
+         .NOT. ((almo_scf_env%deloc_method .EQ. almo_deloc_none) .OR. &
+                (almo_scf_env%deloc_method .EQ. almo_deloc_xalmo_1diag))
       IF (almo_scf_env%xalmo_history%nstore > 0 .AND. &
           delocalization_uses_extrapolation) THEN
 
@@ -722,11 +718,11 @@ CONTAINS
             IF (almo_scf_env%xalmo_history%istore == 1) THEN
                CALL cp_dbcsr_init(almo_scf_env%xalmo_history%matrix_t(ispin))
                CALL cp_dbcsr_create(almo_scf_env%xalmo_history%matrix_t(ispin), &
-                       template=almo_scf_env%matrix_t(ispin), &
-                       matrix_type=dbcsr_type_no_symmetry)
+                                    template=almo_scf_env%matrix_t(ispin), &
+                                    matrix_type=dbcsr_type_no_symmetry)
             ENDIF
             CALL cp_dbcsr_copy(almo_scf_env%xalmo_history%matrix_t(ispin), &
-                    almo_scf_env%matrix_t(ispin))
+                               almo_scf_env%matrix_t(ispin))
 
             IF (almo_scf_env%xalmo_history%istore <= almo_scf_env%xalmo_history%nstore) THEN
                !CALL cp_dbcsr_init(almo_scf_env%xalmo_history%matrix_x(ispin, istore))
@@ -735,37 +731,37 @@ CONTAINS
                !        matrix_type=dbcsr_type_no_symmetry)
                CALL cp_dbcsr_init(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
                CALL cp_dbcsr_create(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore), &
-                       template=almo_scf_env%matrix_s(1), &
-                       matrix_type=dbcsr_type_no_symmetry)
+                                    template=almo_scf_env%matrix_s(1), &
+                                    matrix_type=dbcsr_type_no_symmetry)
             ENDIF
-   
+
             CALL cp_dbcsr_init(matrix_no_tmp3)
             CALL cp_dbcsr_create(matrix_no_tmp3, template=almo_scf_env%matrix_t(ispin), &
-                    matrix_type=dbcsr_type_no_symmetry)
+                                 matrix_type=dbcsr_type_no_symmetry)
             CALL cp_dbcsr_init(matrix_no_tmp4)
             CALL cp_dbcsr_create(matrix_no_tmp4, template=almo_scf_env%matrix_t(ispin), &
-                    matrix_type=dbcsr_type_no_symmetry)
+                                 matrix_type=dbcsr_type_no_symmetry)
 
-            ! compute contra-covariant density matrix   
+            ! compute contra-covariant density matrix
             CALL cp_dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_s(1), &
-                    almo_scf_env%matrix_t(ispin), &
-                    0.0_dp, matrix_no_tmp3, &
-                    filter_eps=almo_scf_env%eps_filter)
+                                   almo_scf_env%matrix_t(ispin), &
+                                   0.0_dp, matrix_no_tmp3, &
+                                   filter_eps=almo_scf_env%eps_filter)
             CALL cp_dbcsr_multiply("N", "N", 1.0_dp, matrix_no_tmp3, &
-                    almo_scf_env%matrix_sigma_inv(ispin), &
-                    0.0_dp, matrix_no_tmp4, &
-                    filter_eps=almo_scf_env%eps_filter)
+                                   almo_scf_env%matrix_sigma_inv(ispin), &
+                                   0.0_dp, matrix_no_tmp4, &
+                                   filter_eps=almo_scf_env%eps_filter)
             CALL cp_dbcsr_multiply("N", "T", 1.0_dp, &
-                    almo_scf_env%matrix_t(ispin), &
-                    matrix_no_tmp4, &
-                    0.0_dp, almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore), &
-                    filter_eps=almo_scf_env%eps_filter)
-  
+                                   almo_scf_env%matrix_t(ispin), &
+                                   matrix_no_tmp4, &
+                                   0.0_dp, almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore), &
+                                   filter_eps=almo_scf_env%eps_filter)
+
             ! store the difference between t and t0
             !CALL cp_dbcsr_copy(almo_scf_env%xalmo_history%matrix_x(ispin, istore),&
-            !        almo_scf_env%matrix_t(ispin)) 
+            !        almo_scf_env%matrix_t(ispin))
             !CALL cp_dbcsr_add(almo_scf_env%xalmo_history%matrix_x(ispin, istore),&
-            !        almo_scf_env%matrix_t_blk(ispin),1.0_dp,-1.0_dp) 
+            !        almo_scf_env%matrix_t_blk(ispin),1.0_dp,-1.0_dp)
 
             CALL cp_dbcsr_release(matrix_no_tmp3)
             CALL cp_dbcsr_release(matrix_no_tmp4)
@@ -1356,93 +1352,88 @@ CONTAINS
 !> \par History
 !>       2015.03 created  [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
-! *****************************************************************************
-  SUBROUTINE almo_scf_post(qs_env,almo_scf_env)
-    TYPE(qs_environment_type), POINTER       :: qs_env
-    TYPE(almo_scf_env_type)                  :: almo_scf_env
+! **************************************************************************************************
+   SUBROUTINE almo_scf_post(qs_env, almo_scf_env)
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(almo_scf_env_type)                            :: almo_scf_env
 
-    CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_post', &
-      routineP = moduleN//':'//routineN
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_post', routineP = moduleN//':'//routineN
 
-    TYPE(cp_dbcsr_type), ALLOCATABLE, &
-      DIMENSION(:)		             :: matrix_t_orthogonal
-    TYPE(cp_dbcsr_p_type), DIMENSION(:), &
-      POINTER                                :: matrix_w
-    INTEGER                                  :: handle, ispin
-    TYPE(mo_set_p_type), DIMENSION(:), &
-      POINTER                                :: mos
-    TYPE(cp_fm_type), POINTER                :: mo_coeff
-    TYPE(qs_scf_env_type), POINTER           :: scf_env
+      INTEGER                                            :: handle, ispin
+      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_w
+      TYPE(cp_dbcsr_type), ALLOCATABLE, DIMENSION(:)     :: matrix_t_orthogonal
+      TYPE(cp_fm_type), POINTER                          :: mo_coeff
+      TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos
+      TYPE(qs_scf_env_type), POINTER                     :: scf_env
 
+      CALL timeset(routineN, handle)
 
-    CALL timeset(routineN,handle)
+      ! store the matrices for a next scf run
+      CALL almo_scf_store_result(almo_scf_env)
 
-    ! store the matrices for a next scf run
-    CALL almo_scf_store_result(almo_scf_env)
+      ! orthogonalize orbitals before returning them to QS
+      ALLOCATE (matrix_t_orthogonal(almo_scf_env%nspins))
 
-    ! orthogonalize orbitals before returning them to QS
-    ALLOCATE(matrix_t_orthogonal(almo_scf_env%nspins))
-    
-    DO ispin = 1, almo_scf_env%nspins
+      DO ispin = 1, almo_scf_env%nspins
 
-       CALL cp_dbcsr_init(matrix_t_orthogonal(ispin))
-       CALL cp_dbcsr_create(matrix_t_orthogonal(ispin), &
-               template=almo_scf_env%matrix_t(ispin), &
-               matrix_type=dbcsr_type_no_symmetry)
-   
-       CALL cp_dbcsr_copy(matrix_t_orthogonal(ispin), &
+         CALL cp_dbcsr_init(matrix_t_orthogonal(ispin))
+         CALL cp_dbcsr_create(matrix_t_orthogonal(ispin), &
+                              template=almo_scf_env%matrix_t(ispin), &
+                              matrix_type=dbcsr_type_no_symmetry)
+
+         CALL cp_dbcsr_copy(matrix_t_orthogonal(ispin), &
                             almo_scf_env%matrix_t(ispin))
 
-       CALL orthogonalize_mos(ket=matrix_t_orthogonal(ispin), &
-               overlap = almo_scf_env%matrix_sigma(ispin), &
-               metric = almo_scf_env%matrix_s(1), &
-               retain_locality = .FALSE., &
-               only_normalize = .FALSE., &
-               eps_filter = almo_scf_env%eps_filter, &
-               order_lanczos = almo_scf_env%order_lanczos, &
-               eps_lanczos = almo_scf_env%eps_lanczos, &
-               max_iter_lanczos = almo_scf_env%max_iter_lanczos)
-    ENDDO
+         CALL orthogonalize_mos(ket=matrix_t_orthogonal(ispin), &
+                                overlap=almo_scf_env%matrix_sigma(ispin), &
+                                metric=almo_scf_env%matrix_s(1), &
+                                retain_locality=.FALSE., &
+                                only_normalize=.FALSE., &
+                                eps_filter=almo_scf_env%eps_filter, &
+                                order_lanczos=almo_scf_env%order_lanczos, &
+                                eps_lanczos=almo_scf_env%eps_lanczos, &
+                                max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+      ENDDO
 
-    ! return orthogonal orbitals to QS
-    NULLIFY(mos, mo_coeff, scf_env)
+      ! return orthogonalized orbitals to QS
+      NULLIFY (mos, mo_coeff, scf_env)
 
-    CALL get_qs_env(qs_env, mos=mos, scf_env=scf_env)
-    
-    DO ispin = 1, almo_scf_env%nspins
-       ! Currently only fm version of mo_set is usable. 
-       ! First transform the matrix_t to fm version      
-       CALL get_mo_set(mos(ispin)%mo_set, mo_coeff=mo_coeff)
-    
-       CALL copy_dbcsr_to_fm(matrix_t_orthogonal(ispin), mo_coeff)
+      CALL get_qs_env(qs_env, mos=mos, scf_env=scf_env)
 
-       CALL cp_dbcsr_release(matrix_t_orthogonal(ispin))
-    ENDDO
-    DEALLOCATE(matrix_t_orthogonal)
-    
-    ! calculate post scf properties
-    CALL almo_post_scf_compute(qs_env, almo_scf_env)
- 
-    ! In normal scf procedure this is done by scf,
-    ! but it's not called by ALMO
-    ! best to release it somewhere else    
-    IF (ASSOCIATED(scf_env)) THEN
-       CALL scf_env_release(scf_env)
-    ENDIF
+      DO ispin = 1, almo_scf_env%nspins
+         ! Currently only fm version of mo_set is usable.
+         ! First transform the matrix_t to fm version
+         CALL get_mo_set(mos(ispin)%mo_set, mo_coeff=mo_coeff)
 
-    ! compute the W matrix if associated
-    IF (almo_scf_env%calc_forces) THEN
-       CALL get_qs_env(qs_env,matrix_w=matrix_w)
-       IF (ASSOCIATED(matrix_w)) THEN
-          CALL calculate_w_matrix_almo(matrix_w,almo_scf_env)
-       ELSE
-          CPABORT("Matrix W is needed but not associated")
-       ENDIF
-    ENDIF
+         CALL copy_dbcsr_to_fm(matrix_t_orthogonal(ispin), mo_coeff)
 
-    CALL timestop(handle)
+         CALL cp_dbcsr_release(matrix_t_orthogonal(ispin))
+      ENDDO
+      DEALLOCATE (matrix_t_orthogonal)
 
-  END SUBROUTINE almo_scf_post
+      ! calculate post scf properties
+      CALL almo_post_scf_compute_properties(qs_env, almo_scf_env)
+
+      ! In normal scf procedure this is done by scf,
+      ! but it's not called by ALMO
+      ! best to release it somewhere else
+      IF (ASSOCIATED(scf_env)) THEN
+         CALL scf_env_release(scf_env)
+      ENDIF
+
+      ! compute the W matrix if associated
+      IF (almo_scf_env%calc_forces) THEN
+         CALL get_qs_env(qs_env, matrix_w=matrix_w)
+         IF (ASSOCIATED(matrix_w)) THEN
+            CALL calculate_w_matrix_almo(matrix_w, almo_scf_env)
+         ELSE
+            CPABORT("Matrix W is needed but not associated")
+         ENDIF
+      ENDIF
+
+      CALL timestop(handle)
+
+   END SUBROUTINE almo_scf_post
 
 ! **************************************************************************************************
 !> \brief create various matrices
@@ -1925,8 +1916,7 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_clean_up', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, ispin, &
-                                                            istore, unit_nr
+      INTEGER                                            :: handle, ispin, unit_nr
       TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
@@ -2114,25 +2104,21 @@ CONTAINS
 !>       2016.12 created [Yifei Shi]
 !> \author Yifei Shi
 ! **************************************************************************************************
-   SUBROUTINE almo_post_scf_compute(qs_env, almo_scf_env)
+   SUBROUTINE almo_post_scf_compute_properties(qs_env, almo_scf_env)
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(almo_scf_env_type)                            :: almo_scf_env
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'almo_post_scf_compute', &
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_post_scf_compute_properties', &
          routineP = moduleN//':'//routineN
 
-      TYPE(section_vals_type), POINTER  &
-                                                         :: dft_section, input
       TYPE(qs_scf_env_type), POINTER                     :: scf_env
-      
+      TYPE(section_vals_type), POINTER                   :: dft_section, input
 
       CALL get_qs_env(qs_env, scf_env=scf_env, input=input)
       dft_section => section_vals_get_subs_vals(input, "DFT")
       CALL qs_scf_compute_properties(qs_env, dft_section)
 
-   END SUBROUTINE almo_post_scf_compute
-
+   END SUBROUTINE almo_post_scf_compute_properties
 
 END MODULE almo_scf
-
 

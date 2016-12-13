@@ -11,14 +11,15 @@
 ! **************************************************************************************************
 MODULE almo_scf_types
    USE cp_blacs_env,                    ONLY: cp_blacs_env_type
-   USE cp_dbcsr_interface,              ONLY: cp_dbcsr_type, cp_dbcsr_release
+   USE cp_dbcsr_interface,              ONLY: cp_dbcsr_release,&
+                                              cp_dbcsr_type
    USE cp_para_types,                   ONLY: cp_para_env_type
    USE domain_submatrix_types,          ONLY: domain_map_type,&
                                               domain_submatrix_type
    USE input_constants,                 ONLY: &
         cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, &
         cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, prec_default, &
-        prec_zero, almo_deloc_none
+        prec_zero
    USE kinds,                           ONLY: dp
 #include "./base/base_uses.f90"
 
@@ -78,7 +79,7 @@ MODULE almo_scf_types
                         ndiis ! diis history length
 
    END TYPE optimizer_options_type
-   
+
    TYPE almo_scf_history_type
       INTEGER :: istore, nstore
       TYPE(cp_dbcsr_type), DIMENSION(:, :), ALLOCATABLE :: matrix_p_up_down
@@ -233,7 +234,6 @@ MODULE almo_scf_types
 
       ! forces
       LOGICAL :: calc_forces
-
 
       !!!!!!!!!!!!!!!!!!!!!!!
       !!!!!! MATRICES !!!!!!!
@@ -474,9 +474,10 @@ CONTAINS
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE almo_scf_env_release(almo_scf_env)
-      TYPE(almo_scf_env_type), POINTER                     :: almo_scf_env
+      TYPE(almo_scf_env_type), POINTER                   :: almo_scf_env
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_env_release', routineP = moduleN//':'//routineN
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_env_release', &
+         routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle, ispin, istore
 
@@ -487,7 +488,7 @@ CONTAINS
          DO istore = 1, MIN(almo_scf_env%almo_history%istore, almo_scf_env%almo_history%nstore)
             CALL cp_dbcsr_release(almo_scf_env%almo_history%matrix_p_up_down(ispin, istore))
          ENDDO
-         IF (almo_scf_env%almo_history%istore.gt.0) &
+         IF (almo_scf_env%almo_history%istore .GT. 0) &
             CALL cp_dbcsr_release(almo_scf_env%almo_history%matrix_t(ispin))
       ENDDO
       DEALLOCATE (almo_scf_env%almo_history%matrix_p_up_down)
@@ -498,7 +499,7 @@ CONTAINS
             CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_p_up_down(ispin, istore))
             !CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_x(ispin, istore))
          ENDDO
-         IF (almo_scf_env%xalmo_history%istore.gt.0) &
+         IF (almo_scf_env%xalmo_history%istore .GT. 0) &
             CALL cp_dbcsr_release(almo_scf_env%xalmo_history%matrix_t(ispin))
       ENDDO
       DEALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down)
