@@ -11,39 +11,21 @@
 ! **************************************************************************************************
 MODULE almo_scf_env_methods
 
-   USE qs_kind_types,                   ONLY: qs_kind_type
-   USE cp_para_types,                   ONLY: cp_para_env_type
-   USE almo_scf_types,                  ONLY: almo_scf_env_type, &
-                                              almo_max_cutoff_multiplier
-   USE atomic_kind_types,               ONLY: atomic_kind_type
-   USE cp_blacs_env,                    ONLY: cp_blacs_env_release,&
-                                              cp_blacs_env_retain
+   USE almo_scf_types,                  ONLY: almo_max_cutoff_multiplier,&
+                                              almo_scf_env_type
    USE cp_control_types,                ONLY: dft_control_type
-   USE cp_log_handling,                 ONLY: cp_get_default_logger,&
-                                              cp_logger_get_default_unit_nr,&
-                                              cp_logger_type
-   USE cp_para_env,                     ONLY: cp_para_env_release,&
-                                              cp_para_env_retain
    USE input_constants,                 ONLY: &
-        almo_constraint_distance, almo_deloc_none, almo_deloc_scf, almo_deloc_x, &
-        almo_deloc_x_then_scf, almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, &
-        almo_deloc_xk, almo_domain_layout_atomic, almo_domain_layout_molecular, almo_frz_crystal, &
-        almo_mat_distr_atomic, almo_mat_distr_molecular, almo_scf_diag, almo_scf_dm_sign, &
-        almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, optimizer_diis, &
-        optimizer_pcg, tensor_orthogonal, virt_full, virt_minimal, virt_number, virt_occ_size, &
-        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
-        almo_frz_crystal, restart_guess, atomic_guess, molecular_guess
+        almo_constraint_distance, almo_deloc_xalmo_1diag, almo_domain_layout_atomic, &
+        almo_domain_layout_molecular, almo_frz_crystal, almo_mat_distr_molecular, almo_scf_diag, &
+        almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, tensor_orthogonal, &
+        virt_full, virt_minimal, virt_number
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
-   USE iterate_matrix,                  ONLY: invert_Hotelling,&
-                                              matrix_sqrt_Newton_Schulz
-   USE kinds,                           ONLY: default_path_length,&
-                                              dp
-   USE molecule_types_new,              ONLY: get_molecule_set_info,&
-                                              molecule_type
-   USE qs_environment_types,            ONLY: get_qs_env, set_qs_env, &
-                                              qs_environment_type
+   USE kinds,                           ONLY: dp
+   USE qs_environment_types,            ONLY: get_qs_env,&
+                                              qs_environment_type,&
+                                              set_qs_env
 #include "./base/base_uses.f90"
 
    IMPLICIT NONE
@@ -66,13 +48,13 @@ CONTAINS
    SUBROUTINE almo_scf_env_create(qs_env)
       TYPE(qs_environment_type), POINTER                 :: qs_env
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_env_create', routineP = moduleN//':'//routineN
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_env_create', &
+         routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle
-      TYPE(dft_control_type), POINTER                    :: dft_control
+      INTEGER                                            :: handle, nallocate
       TYPE(almo_scf_env_type), POINTER                   :: almo_scf_env
+      TYPE(dft_control_type), POINTER                    :: dft_control
       TYPE(section_vals_type), POINTER                   :: input
-      INTEGER                                            :: nallocate
 
       CALL timeset(routineN, handle)
 
@@ -89,12 +71,12 @@ CONTAINS
       almo_scf_env%almo_history%nstore = almo_scf_env%almo_extrapolation_order
       almo_scf_env%almo_history%istore = 0
       ! do not allocate zero
-      nallocate = MAX(1,almo_scf_env%almo_extrapolation_order)
+      nallocate = MAX(1, almo_scf_env%almo_extrapolation_order)
       ALLOCATE (almo_scf_env%almo_history%matrix_p_up_down(almo_scf_env%nspins, nallocate))
       ALLOCATE (almo_scf_env%almo_history%matrix_t(almo_scf_env%nspins))
       almo_scf_env%xalmo_history%nstore = almo_scf_env%xalmo_extrapolation_order
       almo_scf_env%xalmo_history%istore = 0
-      nallocate = MAX(1,almo_scf_env%xalmo_extrapolation_order)
+      nallocate = MAX(1, almo_scf_env%xalmo_extrapolation_order)
       ALLOCATE (almo_scf_env%xalmo_history%matrix_p_up_down(almo_scf_env%nspins, nallocate))
       !ALLOCATE (almo_scf_env%xalmo_history%matrix_x(almo_scf_env%nspins, nallocate))
       ALLOCATE (almo_scf_env%xalmo_history%matrix_t(almo_scf_env%nspins))
@@ -416,7 +398,7 @@ CONTAINS
                        "XALMO_R_CUTOFF_FACTOR is larger than almo_max_cutoff_multiplier. "// &
                        "Increase the hard-coded almo_max_cutoff_multiplier")
       ENDIF
-      
+
       ! check analysis settings
       IF (almo_scf_env%almo_analysis%do_analysis) THEN
 

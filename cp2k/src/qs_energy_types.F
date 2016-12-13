@@ -62,7 +62,7 @@ MODULE qs_energy_types
                        ! single excitations correction for all
                        ! non-scf orbital(density) corrections
                        ! for example, almo delocalization corrction
-                       singles_corr, & 
+                       singles_corr, &
                        total, &
                        tot_old, &
                        kinetic, & !total kinetic energy [rk]

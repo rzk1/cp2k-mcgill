@@ -9,7 +9,7 @@
      ENSEMBLE NVE
      TIMESTEP 0.5
      TEMPERATURE 300
-     STEPS 5
+     STEPS 2
   &END
 &END
 
@@ -29,15 +29,15 @@
     &END QS
     
     &ALMO_SCF
-      EPS_FILTER                 1.0E-11
+      EPS_FILTER                 1.0E-8
       ALMO_ALGORITHM             DIAG
       ALMO_SCF_GUESS             ATOMIC
-      ALMO_EXTRAPOLATION_ORDER   2
-      XALMO_EXTRAPOLATION_ORDER   2
+      ALMO_EXTRAPOLATION_ORDER   1
+      XALMO_EXTRAPOLATION_ORDER   1
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 100
-        EPS_ERROR                1.0E-6
+        EPS_ERROR                5.0E-4
         N_DIIS                   7
       &END
 
@@ -56,7 +56,7 @@
     &END ALMO_SCF
     
     &MGRID
-      CUTOFF 320
+      CUTOFF 200
       NGRIDS 4
     &END MGRID
     &XC

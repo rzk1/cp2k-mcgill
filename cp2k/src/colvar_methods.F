@@ -3265,6 +3265,7 @@ CONTAINS
             IF (nbond .LT. denominator_tolerance) THEN
                CPWARN("QPARM: number of neighbors is very close to zero!")
             END IF
+
             d_nbond_dxi(:) = d_nbond_dxi(:)/nbond
             re_qlm = re_qlm/nbond
             d_re_qlm_dxi(:) = d_re_qlm_dxi(:)/nbond-d_nbond_dxi(:)*re_qlm

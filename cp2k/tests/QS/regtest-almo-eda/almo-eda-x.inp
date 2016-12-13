@@ -56,6 +56,8 @@
     ! IMPORTANT: converge simgle-molecule calculations 
     ! tightly to get correct energy decomposition terms 
     &SCF
+      EPS_SCF 1.0E-2
+      SCF_GUESS ATOMIC 
       &OT
         PRECONDITIONER FULL_ALL
       &END
@@ -63,7 +65,7 @@
     
     &MGRID
       CUTOFF 200 ! 320
-      NGRIDS 5
+      NGRIDS 4
     &END MGRID
     &XC
       &XC_FUNCTIONAL BLYP
@@ -79,7 +81,7 @@
       MULTIPLE_UNIT_CELL 1 1 1
     &END
     &COORD
-@INCLUDE '../regtest-almo-1/ice.xyz'
+@INCLUDE '../regtest-almo-1/ice-cut.xyz'
     &END COORD
     &KIND H
       BASIS_SET DZVP-GTH 

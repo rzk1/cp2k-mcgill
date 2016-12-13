@@ -1,0 +1,22 @@
+# Guillimin: module load foss/2015b
+CC         = gcc
+CPP        =
+FC         = gfortran
+LD         = gfortran
+AR         = ar -r
+#LIBINT_INC = $(GCC_DIR)/libint/1.1.4-LARGE_L-gnu/include
+#LIBINT_LIB = $(GCC_DIR)/libint/1.1.4-LARGE_L-gnu/lib64
+#LIBXC_INC  = $(GCC_DIR)/libxc/2.2.2-gnu/include
+#LIBXC_LIB  = $(GCC_DIR)/libxc/2.2.2-gnu/lib64
+DFLAGS     = -D__GFORTRAN -D__FFTW3 
+#             -D__LIBINT -D__LIBXC2\
+#             -D__LIBINT_MAX_AM=7 -D__LIBDERIV_MAX_AM1=6 -D__MAX_CONTR=4
+CPPFLAGS   =
+#FCFLAGS    = $(DFLAGS) -O0 -g -ffree-form 
+FCFLAGS    = $(DFLAGS) -g -O1 -fstrict-aliasing -fno-omit-frame-pointer -fno-realloc-lhs \
+             -fcheck=bounds,do,recursion,pointer -ffree-form -fsanitize=leak
+#             -I$(LIBINT_INC) -I$(LIBXC_INC)
+LDFLAGS    = $(FCFLAGS) -static-libgfortran
+LIBS       = -lfftw3 -lopenblas
+#             -lxcf90 -lxc\
+#             -lderiv -lint

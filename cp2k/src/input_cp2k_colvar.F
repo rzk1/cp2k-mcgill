@@ -1275,7 +1275,7 @@ CONTAINS
                           n_var=1, unit_str="angstrom", type_of_var=real_t)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
-      
+
       CALL keyword_create(keyword, name="INCLUDE_IMAGES", &
                           description="Whether to include periodic images of ATOMS_TO into the neighbor list.", &
                           usage="INCLUDE_IMAGES", &
