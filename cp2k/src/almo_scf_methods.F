@@ -10,6 +10,10 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_methods
+   USE cp_dbcsr_cholesky,               ONLY: cp_dbcsr_cholesky_decompose, &
+                                              cp_dbcsr_cholesky_invert
+   USE cp_para_types,                   ONLY: cp_para_env_type
+   USE cp_blacs_env,                    ONLY: cp_blacs_env_type
    USE almo_scf_types,                  ONLY: almo_scf_env_type,&
                                               almo_scf_history_type
    USE bibliography,                    ONLY: Kolafa2004,&
@@ -1629,12 +1633,13 @@ CONTAINS
 !> \param sigma ...
 !> \param sigma_inv ...
 !> \param use_guess ...
+!> \param algorithm to inver sigma: 0 - Hotelling (linear), 1 - Cholesky (cubic, low prefactor)
 !> \par History
 !>       2011.07 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE almo_scf_t_to_p(t, p, eps_filter, orthog_orbs, s, sigma, sigma_inv, &
-                              use_guess)
+                              use_guess, algorithm, para_env, blacs_env)
 
       TYPE(cp_dbcsr_type), INTENT(IN)                    :: t
       TYPE(cp_dbcsr_type), INTENT(INOUT)                 :: p
@@ -1643,11 +1648,14 @@ CONTAINS
       TYPE(cp_dbcsr_type), INTENT(IN), OPTIONAL          :: s
       TYPE(cp_dbcsr_type), INTENT(INOUT), OPTIONAL       :: sigma, sigma_inv
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_guess
+      INTEGER, INTENT(IN), OPTIONAL                      :: algorithm
+      TYPE(cp_para_env_type), POINTER, OPTIONAL          :: para_env
+      TYPE(cp_blacs_env_type), POINTER, OPTIONAL         :: blacs_env
 
       CHARACTER(LEN=*), PARAMETER :: routineN = 'almo_scf_t_to_p', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle
+      INTEGER                                            :: handle, my_algorithm
       LOGICAL                                            :: use_sigma_inv_guess
       TYPE(cp_dbcsr_type)                                :: t_tmp
 
@@ -1656,9 +1664,15 @@ CONTAINS
       ! make sure that S, sigma and sigma_inv are present for non-orthogonal orbitals
       IF (.NOT. orthog_orbs) THEN
          IF ((.NOT. PRESENT(s)) .OR. (.NOT. PRESENT(sigma)) .OR. (.NOT. PRESENT(sigma_inv))) THEN
-            CPABORT("")
+            CPABORT("S, sigma, sigma_inv are needed for non orth MOs")
          ENDIF
       ENDIF
+
+      my_algorithm=0
+      IF (PRESENT(algorithm)) my_algorithm=algorithm
+
+      IF (my_algorithm==1 .AND. (.NOT.PRESENT(para_env) .OR. .NOT.PRESENT(blacs_env))) &
+         CPABORT("PARA and BLACS env are necessary for cholesky algorithm")
 
       use_sigma_inv_guess = .FALSE.
       IF (PRESENT(use_guess)) THEN
@@ -1683,12 +1697,26 @@ CONTAINS
          CALL cp_dbcsr_multiply("T", "N", 1.0_dp, t, t_tmp, 0.0_dp, sigma, &
                                 filter_eps=eps_filter)
 
-         ! invert MO overlap
-         CALL invert_Hotelling( &
-            matrix_inverse=sigma_inv, &
-            matrix=sigma, &
-            use_inv_as_guess=use_sigma_inv_guess, &
-            threshold=eps_filter)
+         ! invert MO overlap 
+         IF (my_algorithm==0) THEN 
+            CALL invert_Hotelling( & 
+               matrix_inverse=sigma_inv, & 
+               matrix=sigma, & 
+               use_inv_as_guess=use_sigma_inv_guess, & 
+               threshold=eps_filter) 
+         ELSE 
+            ! invert using cholesky 
+            CALL cp_dbcsr_copy(sigma_inv, sigma)  
+            CALL cp_dbcsr_cholesky_decompose(sigma_inv,& 
+                    para_env=para_env,& 
+                    blacs_env=blacs_env) 
+            CALL cp_dbcsr_cholesky_invert(sigma_inv,& 
+                    para_env=para_env,& 
+                    blacs_env=blacs_env,& 
+                    upper_to_full=.TRUE.) 
+            CALL cp_dbcsr_filter(sigma_inv,& 
+                    eps=eps_filter) 
+         ENDIF 
 
          ! TMP=T.SigInv
          CALL cp_dbcsr_multiply("N", "N", 1.0_dp, t, sigma_inv, 0.0_dp, t_tmp, &
@@ -1915,7 +1943,10 @@ CONTAINS
                               s=almo_scf_env%matrix_s(1), &
                               sigma=almo_scf_env%matrix_sigma(ispin), &
                               sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
-                              use_guess=use_guess)
+                              use_guess=use_guess, &
+                              algorithm=1, &
+                              para_env=almo_scf_env%para_env, &
+                              blacs_env=almo_scf_env%blacs_env)
 
          IF (almo_scf_env%nspins == 1) THEN
             spin_factor = 2.0_dp

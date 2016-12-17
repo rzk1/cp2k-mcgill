@@ -1116,10 +1116,6 @@ CONTAINS
                   CALL cp_dbcsr_add(matrix_t_out(ispin), &
                                     almo_scf_env%matrix_t_blk(ispin), 1.0_dp, 1.0_dp)
                ENDIF
-!IF (just_started) &
-!CALL cp_dbcsr_print(matrix_t_out(ispin))
-!               CALL cp_dbcsr_filter(matrix_t_out(ispin), &
-!                                    eps=almo_scf_env%eps_filter)
 
                ! compute the density matrix
                CALL almo_scf_t_to_p( &
@@ -1130,7 +1126,10 @@ CONTAINS
                   s=almo_scf_env%matrix_s(1), &
                   sigma=almo_scf_env%matrix_sigma(ispin), &
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
-                  use_guess=use_guess)
+                  use_guess=use_guess, &
+                  algorithm=1, &
+                  para_env=almo_scf_env%para_env, &
+                  blacs_env=almo_scf_env%blacs_env)
                CALL cp_dbcsr_scale(almo_scf_env%matrix_p(ispin), &
                                    spin_factor)
 
@@ -1769,12 +1768,12 @@ CONTAINS
                               CPABORT("illegal conjugator")
                            END SELECT
 
-                           IF (beta .LT. 0.0_dp) THEN
-                              IF (unit_nr > 0) THEN
-                                 WRITE (unit_nr, *) "Beta is negative: ", beta
-                              ENDIF
-                              reset_conjugator = .TRUE.
-                           ENDIF
+                           !IF (beta .LT. 0.0_dp) THEN
+                           !   IF (unit_nr > 0) THEN
+                           !      WRITE (unit_nr, *) "Beta is negative: ", beta
+                           !   ENDIF
+                           !   reset_conjugator = .TRUE.
+                           !ENDIF
 
                         ENDIF
 
