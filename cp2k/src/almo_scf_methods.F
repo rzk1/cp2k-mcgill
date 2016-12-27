@@ -3820,6 +3820,12 @@ CONTAINS
          unit_nr = -1
       ENDIF
 
+      IF (optimize_theta) THEN
+         CPWARN("unused option")
+         ! just not to trigger unused variable
+         alpha = envelope_amplitude
+      END IF
+
       ! if extrapolation order is zero then the standard guess is used
       ! ... the number of stored history points will remain zero if extrapolation order is zero
       IF (xalmo_history%istore == 0) THEN
@@ -3919,98 +3925,6 @@ CONTAINS
             IF (assume_t0_q0x) THEN
                CALL cp_dbcsr_add(m_guess(ispin), m_t0(ispin), &
                                  1.0_dp, -1.0_dp)
-
-               !! multiply by the pseudo-inverse of (S-RSR)
-               !! this part was brought from outside and was never adapted
-               !! perhaps it is not important and can be deleted later
-               !IF (my_special_case .EQ. xalmo_case_fully_deloc) THEN
-
-               !   CALL cp_dbcsr_init(m_tmp_no_1)
-               !   CALL cp_dbcsr_init(m_tmp_nn_1)
-               !   CALL cp_dbcsr_init(prec_vv)
-               !   CALL cp_dbcsr_init(ST)
-               !   CALL cp_dbcsr_create(ST, &
-               !                          template=matrix_t_out(ispin), &
-               !                          matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_create(m_tmp_no_1, &
-               !                          template=matrix_t_out(ispin), &
-               !                          matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_create(m_tmp_nn_1, &
-               !                        template=almo_scf_env%matrix_s(1), &
-               !                        matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_create(prec_vv, &
-               !                        template=almo_scf_env%matrix_s(1), &
-               !                        matrix_type=dbcsr_type_no_symmetry)
-               !   ! First S-SRS
-               !   CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-               !           almo_scf_env%matrix_s(1),&
-               !           almo_scf_env%matrix_t_blk(ispin),&
-               !           0.0_dp,ST,&
-               !           filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-               !                          ST, &
-               !                          almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
-               !                          0.0_dp, m_tmp_no_1, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_desymmetrize(almo_scf_env%matrix_s(1), &
-               !                              m_tmp_nn_1)
-               !   CALL cp_dbcsr_multiply("N", "T", -1.0_dp, &
-               !                             ST, &
-               !                             m_tmp_no_1, &
-               !                             1.0_dp, m_tmp_nn_1, &
-               !                             filter_eps=almo_scf_env%eps_filter)
-
-               !   ! pseudo-invert the virtual projector
-               !   CALL cp_dbcsr_get_info(m_tmp_nn_1, nfullrows_total=dim0)
-               !   ALLOCATE (evals(dim0))
-               !   CALL cp_dbcsr_syevd(m_tmp_nn_1, prec_vv, evals, &
-               !                       almo_scf_env%para_env, almo_scf_env%blacs_env)
-               !   ! invert eigenvalues and use eigenvectors to compute the pseudo-inverse
-               !   zero_neg_eiv = 0
-               !   CALL cp_dbcsr_get_info(almo_scf_env%matrix_sigma_inv_0deloc(ispin), nfullrows_total=occ1)
-               !   DO jj = 1, dim0
-               !      IF (jj .LE. occ1) THEN
-               !         zero_neg_eiv = zero_neg_eiv+1
-               !         evals(jj) = evals(jj)*0.0_dp
-               !      ELSE
-               !         evals(jj) = 1.0_dp/evals(jj)
-               !      ENDIF
-               !   ENDDO
-               !   IF (unit_nr > 0) THEN
-               !      WRITE (*, *) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv, SUM(evals(1:zero_neg_eiv))
-               !   ENDIF
-               !   CALL cp_dbcsr_init(inv_eiv)
-               !   CALL cp_dbcsr_create(inv_eiv, &
-               !                        template=m_tmp_nn_1, &
-               !                        matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_add_on_diag(inv_eiv, 1.0_dp)
-               !   CALL cp_dbcsr_set_diag(inv_eiv, evals)
-               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-               !                          prec_vv, &
-               !                          inv_eiv, &
-               !                          0.0_dp, m_tmp_nn_1, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_multiply("N", "T", 1.0_dp, &
-               !                          m_tmp_nn_1, &
-               !                          prec_vv, &
-               !                          0.0_dp, inv_eiv, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-               !                          inv_eiv, &
-               !                          m_theta(ispin), &
-               !                          0.0_dp, m_tmp_no_1, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_copy(m_theta(ispin),m_tmp_no_1)
-
-               !   CALL cp_dbcsr_release(inv_eiv)
-               !   CALL cp_dbcsr_release(m_tmp_no_1)
-               !   CALL cp_dbcsr_release(m_tmp_nn_1)
-               !   CALL cp_dbcsr_release(prec_vv)
-               !   CALL cp_dbcsr_release(ST)
-               !   DEALLOCATE (evals)
-
-               !ENDIF !special_case
-
             ENDIF !assume_t0_q0x
 
          ENDDO !ispin

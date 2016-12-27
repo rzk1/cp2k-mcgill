@@ -1,7 +1,7 @@
-almo-md-full-scf.inp  
-almo-md-full-x-then-scf.inp  
-almo-md-no-aspc.inp	
-xalmo-scf-md.inp
-almo-md.inp		   
-almo-md-wannier.inp
+almo-md-full-scf.inp                          11
+almo-md-full-x-then-scf.inp                   11
+almo-md-no-aspc.inp                           11
+xalmo-scf-md.inp                              11
+almo-md.inp                                   11
+almo-md-wannier.inp                           11
 #EOF

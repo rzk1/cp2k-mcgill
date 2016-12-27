@@ -1592,7 +1592,7 @@ CONTAINS
                                  ENDIF
                               ENDDO
                               IF (unit_nr > 0) THEN
-                                 WRITE (*, *) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv
+                                 WRITE (unit_nr, *) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv
                               ENDIF
                               CALL cp_dbcsr_init(inv_eiv)
                               CALL cp_dbcsr_create(inv_eiv, &
@@ -5001,7 +5001,7 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'compute_gradient', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle
+      INTEGER                                            :: handle, nao
       REAL(KIND=dp)                                      :: energy_g_norm, penalty_occ_vol_g_norm
       TYPE(cp_dbcsr_type)                                :: m_tmp_no_1, m_tmp_no_2, m_tmp_no_3, &
                                                             m_tmp_oo_1, m_tmp_oo_2
@@ -5013,6 +5013,12 @@ CONTAINS
       IF (normalize_orbitals .AND. (.NOT. PRESENT(m_sig_sqrti_ii))) THEN
          CPABORT("Matrix must be present")
       ENDIF
+
+      ! use this otherways unused variables
+      CALL cp_dbcsr_get_info(matrix=m_ks, nfullrows_total=nao)
+      CALL cp_dbcsr_get_info(matrix=m_s, nfullrows_total=nao)
+      CALL cp_dbcsr_get_info(matrix=m_t, nfullrows_total=nao)
+      IF (perturbation_only) CPWARN("Unused option")
 
       CALL cp_dbcsr_init(m_tmp_no_1)
       CALL cp_dbcsr_create(m_tmp_no_1, &
@@ -5101,7 +5107,7 @@ CONTAINS
                             norm_scalar=penalty_occ_vol_g_norm)
          CALL cp_dbcsr_norm(m_tmp_no_2, dbcsr_norm_maxabsnorm, &
                             norm_scalar=energy_g_norm)
-         WRITE (*, "(A30,2F20.10)") "Energy/penalty g norms (no norm): ", energy_g_norm, penalty_occ_vol_g_norm
+         !WRITE (*, "(A30,2F20.10)") "Energy/penalty g norms (no norm): ", energy_g_norm, penalty_occ_vol_g_norm
          CALL cp_dbcsr_add(m_tmp_no_2, m_tmp_no_1, 1.0_dp, 1.0_dp)
       ENDIF
 
