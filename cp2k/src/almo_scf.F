@@ -13,7 +13,6 @@
 MODULE almo_scf
    USE almo_scf_methods,                ONLY: almo_scf_p_blk_to_t_blk,&
                                               almo_scf_t_blk_to_p,&
-                                              almo_scf_t_blk_to_t_blk_orthonormal,&
                                               distribute_domains,&
                                               orthogonalize_mos
    USE almo_scf_optimizer,              ONLY: almo_scf_block_diagonal,&
@@ -224,9 +223,6 @@ CONTAINS
       nspins = almo_scf_env%nspins
       nmols = almo_scf_env%nmolecules
       natoms = almo_scf_env%natoms
-
-      ! parse the almo_scf section and set appropriate quantities
-      !CALL almo_scf_init_read_write_input(input, almo_scf_env)
 
       ! Define groups: either atomic or molecular
       IF (almo_scf_env%domain_layout_mos == almo_domain_layout_molecular) THEN
@@ -592,7 +588,22 @@ CONTAINS
 
       ENDIF !aspc_guess?
 
-      CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
+      DO ispin = 1, nspins
+
+         CALL orthogonalize_mos(ket=almo_scf_env%matrix_t_blk(ispin), &
+                                overlap=almo_scf_env%matrix_sigma_blk(ispin), &
+                                metric=almo_scf_env%matrix_s_blk(1), &
+                                retain_locality=.TRUE., &
+                                only_normalize=.FALSE., &
+                                nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                eps_filter=almo_scf_env%eps_filter, &
+                                order_lanczos=almo_scf_env%order_lanczos, &
+                                eps_lanczos=almo_scf_env%eps_lanczos, &
+                                max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+
+      ENDDO
+      !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
+
       CALL almo_scf_t_blk_to_p(almo_scf_env, &
                                use_sigma_inv_guess=.FALSE.)
 
@@ -1067,7 +1078,19 @@ CONTAINS
                                  perturbation_only=.FALSE., &
                                  special_case=xalmo_case_block_diag)
 
-         CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
+         DO ispin = 1, almo_scf_env%nspins
+            CALL orthogonalize_mos(ket=almo_scf_env%matrix_t_blk(ispin), &
+                                   overlap=almo_scf_env%matrix_sigma_blk(ispin), &
+                                   metric=almo_scf_env%matrix_s_blk(1), &
+                                   retain_locality=.TRUE., &
+                                   only_normalize=.FALSE., &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   eps_filter=almo_scf_env%eps_filter, &
+                                   order_lanczos=almo_scf_env%order_lanczos, &
+                                   eps_lanczos=almo_scf_env%eps_lanczos, &
+                                   max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         ENDDO
+         !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
 
       ELSE
 
@@ -1389,6 +1412,7 @@ CONTAINS
                                 metric=almo_scf_env%matrix_s(1), &
                                 retain_locality=.FALSE., &
                                 only_normalize=.FALSE., &
+                                nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
                                 eps_filter=almo_scf_env%eps_filter, &
                                 order_lanczos=almo_scf_env%order_lanczos, &
                                 eps_lanczos=almo_scf_env%eps_lanczos, &

@@ -19,7 +19,7 @@ MODULE almo_scf_optimizer
    USE almo_scf_methods,                ONLY: &
         almo_scf_ks_blk_to_tv_blk, almo_scf_ks_to_ks_blk, almo_scf_ks_to_ks_xx, &
         almo_scf_ks_xx_to_tv_xx, almo_scf_p_blk_to_t_blk, almo_scf_t_blk_to_p, &
-        almo_scf_t_blk_to_t_blk_orthonormal, almo_scf_t_to_p, apply_domain_operators, &
+        almo_scf_t_to_p, apply_domain_operators, orthogonalize_mos, &
         apply_projector, construct_domain_preconditioner, construct_domain_r_down, &
         construct_domain_s_inv, construct_domain_s_sqrt, get_overlap, newton_grad_to_step, &
         pseudo_invert_diagonal_blk, xalmo_initial_guess
@@ -36,7 +36,7 @@ MODULE almo_scf_optimizer
         cp_dbcsr_add, cp_dbcsr_add_on_diag, cp_dbcsr_copy, cp_dbcsr_create, cp_dbcsr_desymmetrize, &
         cp_dbcsr_distribution, cp_dbcsr_filter, cp_dbcsr_finalize, cp_dbcsr_frobenius_norm, &
         cp_dbcsr_function_of_elements, cp_dbcsr_get_diag, cp_dbcsr_get_info, &
-        cp_dbcsr_hadamard_product, cp_dbcsr_init, cp_dbcsr_iterator, &
+        cp_dbcsr_hadamard_product, cp_dbcsr_init, cp_dbcsr_iterator, cp_dbcsr_print, &
         cp_dbcsr_iterator_blocks_left, cp_dbcsr_iterator_next_block, cp_dbcsr_iterator_start, &
         cp_dbcsr_iterator_stop, cp_dbcsr_multiply, cp_dbcsr_norm, cp_dbcsr_p_type, &
         cp_dbcsr_print_block_sum, cp_dbcsr_release, cp_dbcsr_reserve_block2d, cp_dbcsr_scale, &
@@ -77,6 +77,7 @@ MODULE almo_scf_optimizer
    USE kinds,                           ONLY: dp
    USE machine,                         ONLY: m_flush,&
                                               m_walltime
+   USE qs_energy_types,                 ONLY: qs_energy_type
    USE qs_environment_types,            ONLY: get_qs_env,&
                                               qs_environment_type
 #include "./base/base_uses.f90"
@@ -128,6 +129,7 @@ CONTAINS
       TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_ks
       TYPE(cp_dbcsr_type), ALLOCATABLE, DIMENSION(:)     :: matrix_mixing_old_blk
       TYPE(cp_logger_type), POINTER                      :: logger
+      TYPE(qs_energy_type), POINTER                      :: qs_energy
 
       CALL timeset(routineN, handle)
 
@@ -161,7 +163,9 @@ CONTAINS
                                  max_length=optimizer%ndiis)
       ENDDO
 
-      energy_old = 0.0_dp
+      CALL get_qs_env(qs_env, energy=qs_energy)
+      energy_old = qs_energy%total
+
       iscf = 0
       prepare_to_exit = .FALSE.
       true_mixing_fraction = 0.0_dp
@@ -237,6 +241,7 @@ CONTAINS
                                target_time=qs_env%target_time)
          IF (should_stop .OR. iscf >= optimizer%max_iter .OR. converged) THEN
             prepare_to_exit = .TRUE.
+            IF ( iscf == 1 ) energy_new = energy_old
          ENDIF
 
          IF (.NOT. prepare_to_exit) THEN ! update the ALMOs and density matrix
@@ -298,7 +303,22 @@ CONTAINS
 
                ! obtain ALMOs from matrix_p_blk: T_new = P_blk S_blk T_old
                CALL almo_scf_p_blk_to_t_blk(almo_scf_env, ionic=.FALSE.)
-               CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
+
+               DO ispin = 1, almo_scf_env%nspins
+
+                  CALL orthogonalize_mos(ket=almo_scf_env%matrix_t_blk(ispin), &
+                                         overlap=almo_scf_env%matrix_sigma_blk(ispin), &
+                                         metric=almo_scf_env%matrix_s_blk(1), &
+                                         retain_locality=.TRUE., &
+                                         only_normalize=.FALSE., &
+                                         nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                         eps_filter=almo_scf_env%eps_filter, &
+                                         order_lanczos=almo_scf_env%order_lanczos, &
+                                         eps_lanczos=almo_scf_env%eps_lanczos, &
+                                         max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+
+               ENDDO
+               !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
 
             END SELECT
 
@@ -572,6 +592,7 @@ CONTAINS
                   p=almo_scf_env%matrix_p(ispin), &
                   eps_filter=almo_scf_env%eps_filter, &
                   orthog_orbs=.FALSE., &
+                  nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
                   s=almo_scf_env%matrix_s(1), &
                   sigma=almo_scf_env%matrix_sigma(ispin), &
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
@@ -883,7 +904,8 @@ CONTAINS
                                eps_filter=almo_scf_env%eps_filter, &
                                order_lanczos=almo_scf_env%order_lanczos, &
                                eps_lanczos=almo_scf_env%eps_lanczos, &
-                               max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+                               max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
+                               nocc_of_domain=almo_scf_env%nocc_of_domain )
 
       DO ispin = 1, nspins
 
@@ -1127,6 +1149,7 @@ CONTAINS
                   p=almo_scf_env%matrix_p(ispin), &
                   eps_filter=almo_scf_env%eps_filter, &
                   orthog_orbs=.FALSE., &
+                  nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
                   s=almo_scf_env%matrix_s(1), &
                   sigma=almo_scf_env%matrix_sigma(ispin), &
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
@@ -1202,7 +1225,7 @@ CONTAINS
                      domain_map=almo_scf_env%domain_map(ispin), &
                      assume_t0_q0x=assume_t0_q0x, &
                      optimize_theta=optimize_theta, &
-                     perturbation_only=perturbation_only, &
+                     !perturbation_only=perturbation_only, &
                      normalize_orbitals=.FALSE., &
                      penalty_occ_vol=.FALSE., &
                      penalty_occ_vol_prefactor=0.0_dp, &
@@ -3742,6 +3765,7 @@ CONTAINS
                                  p=almo_scf_env%matrix_p(ispin), &
                                  eps_filter=almo_scf_env%eps_filter, &
                                  orthog_orbs=.FALSE., &
+                                 nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
                                  s=almo_scf_env%matrix_s(1), &
                                  sigma=almo_scf_env%matrix_sigma(ispin), &
                                  sigma_inv=almo_scf_env%matrix_sigma_inv(ispin))
@@ -4959,7 +4983,6 @@ CONTAINS
 !> \param domain_map ...
 !> \param assume_t0_q0x ...
 !> \param optimize_theta ...
-!> \param perturbation_only ...
 !> \param normalize_orbitals ...
 !> \param penalty_occ_vol ...
 !> \param penalty_occ_vol_prefactor ...
@@ -4976,7 +4999,7 @@ CONTAINS
                                m_siginv, m_quench_t, m_FTsiginv, m_siginvTFTsiginv, m_ST, m_STsiginv0, &
                                m_theta, domain_s_inv, domain_r_down, &
                                cpu_of_domain, domain_map, assume_t0_q0x, optimize_theta, &
-                               perturbation_only, normalize_orbitals, penalty_occ_vol, &
+                               normalize_orbitals, penalty_occ_vol, &
                                penalty_occ_vol_prefactor, envelope_amplitude, eps_filter, spin_factor, &
                                special_case, m_sig_sqrti_ii)
 
@@ -4990,7 +5013,7 @@ CONTAINS
       INTEGER, DIMENSION(:), INTENT(IN)                  :: cpu_of_domain
       TYPE(domain_map_type), INTENT(IN)                  :: domain_map
       LOGICAL, INTENT(IN)                                :: assume_t0_q0x, optimize_theta, &
-                                                            perturbation_only, normalize_orbitals, &
+                                                            normalize_orbitals, &
                                                             penalty_occ_vol
       REAL(KIND=dp), INTENT(IN)                          :: penalty_occ_vol_prefactor, &
                                                             envelope_amplitude, eps_filter, &
@@ -5018,7 +5041,6 @@ CONTAINS
       CALL cp_dbcsr_get_info(matrix=m_ks, nfullrows_total=nao)
       CALL cp_dbcsr_get_info(matrix=m_s, nfullrows_total=nao)
       CALL cp_dbcsr_get_info(matrix=m_t, nfullrows_total=nao)
-      IF (perturbation_only) CPWARN("Unused option")
 
       CALL cp_dbcsr_init(m_tmp_no_1)
       CALL cp_dbcsr_create(m_tmp_no_1, &

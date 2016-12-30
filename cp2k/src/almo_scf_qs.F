@@ -129,7 +129,7 @@ CONTAINS
       INTEGER, DIMENSION(:), POINTER :: blk_distr, blk_sizes, block_sizes_new, cluster_distr, &
          cluster_distr_new, col_cluster_new, col_distr_new, col_sizes_new, distr_new_array, &
          row_cluster_new, row_distr_new, row_sizes_new
-      LOGICAL                                            :: active, tr
+      LOGICAL                                            :: active, tr, one_dim_is_mo
       REAL(KIND=dp), DIMENSION(:, :), POINTER            :: p_new_block
       TYPE(dbcsr_distribution_obj)                       :: dist_new, dist_qs
 
@@ -239,6 +239,9 @@ CONTAINS
                   ALLOCATE (block_sizes_new(nlength))
                   IF (size_keys(dimen) == almo_mat_dim_occ) THEN
                      block_sizes_new(:) = almo_scf_env%nocc_of_domain(:, spin_key)
+                     ! Handle zero-electron fragments by adding one-orbital that
+                     ! must remain zero at all times
+                     WHERE ( block_sizes_new == 0 ) block_sizes_new = 1
                   ELSE IF (size_keys(dimen) == almo_mat_dim_virt_disc) THEN
                      block_sizes_new(:) = almo_scf_env%nvirt_disc_of_domain(:, spin_key)
                   ELSE IF (size_keys(dimen) == almo_mat_dim_virt_full) THEN
@@ -370,6 +373,7 @@ CONTAINS
          !QQQ      ENDIF ! mynode
          !QQQ   ENDDO
          !QQQENDDO
+         !QQQtake care of zero-electron fragments
          ! endQQQ - end of the quadratic part
          ! start linear-scaling replacement:
          ! works only for molecular blocks AND molecular distributions
@@ -383,6 +387,17 @@ CONTAINS
             IF (hold .EQ. mynode) THEN
 
                active = .TRUE.
+
+               one_dim_is_mo = .FALSE.
+               DO dimen = 1, 2 ! 1 - row, 2 - column dimension
+                  IF (size_keys(dimen) == almo_mat_dim_occ .OR. &
+                      size_keys(dimen) == almo_mat_dim_virt .OR. &
+                      size_keys(dimen) == almo_mat_dim_virt_disc .OR. &
+                      size_keys(dimen) == almo_mat_dim_virt_full) THEN ! this dim is MO
+                     one_dim_is_mo = .TRUE.
+                  ENDIF
+               ENDDO
+               IF (one_dim_is_mo .AND. almo_scf_env%nocc_of_domain(row, spin_key)==0) active = .FALSE. 
 
                IF (active) THEN
                   NULLIFY (p_new_block)
@@ -858,9 +873,6 @@ CONTAINS
 
       ! fifth, communicate all list data
       ALLOCATE (global_list(global_list_length))
-!WRITE(*,*) "LENGTH: ", list_length_cpu
-!WRITE(*,*) "OFFSET: ", list_offset_cpu
-!WRITE(*,*) "LOCAL:  ", local_list
       CALL mp_allgather(local_list, global_list, &
                         list_length_cpu, list_offset_cpu, GroupID)
       DEALLOCATE (list_length_cpu, list_offset_cpu)
@@ -933,12 +945,9 @@ CONTAINS
       ! O(N) loop over domain pairs
       DO row = 1, nblkrows_tot
          DO col = 1, current_number_neighbors(row)
-            !DO col = 1, nblkcols_tot
             tr = .FALSE.
             iblock_row = row
             iblock_col = domain_neighbor_list(row, col)
-            !iblock_col = col
-!IF (unit_nr>0) WRITE(*,*) iblock_row, iblock_col
             CALL cp_dbcsr_get_stored_coordinates(almo_scf_env%quench_t(ispin), &
                                                  iblock_row, iblock_col, hold)
 
@@ -1191,8 +1200,9 @@ CONTAINS
                   contact1_radius = cp_unit_to_cp2k(contact1_radius, "angstrom")
                   contact2_radius = cp_unit_to_cp2k(contact2_radius, "angstrom")
 
-!RZK-warning the procedure is faulty for molecules: the closest contacts should be found using
-! the element specific radii
+                  !RZK-warning the procedure is faulty for molecules: 
+                  ! the closest contacts should be found using
+                  ! the element specific radii
 
                   ! compute inner and outer cutoff radii
                   r0 = almo_scf_env%quencher_r0_factor*(contact1_radius+contact2_radius)
@@ -1264,12 +1274,6 @@ CONTAINS
       IF (nblks .NE. domain_map_local_entries) THEN
          CPABORT("number of blocks is wrong")
       ENDIF
-
-      ! communicate local parts of the domain map
-      !nNodes = dbcsr_mp_numnodes(dbcsr_distribution_mp(&
-      !   cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
-      !GroupID = dbcsr_mp_group(dbcsr_distribution_mp(&
-      !   cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
 
       ! first, communicate map sizes on the other nodes
       ALLOCATE (domain_entries_cpu(nNodes), offset_for_cpu(nNodes))
