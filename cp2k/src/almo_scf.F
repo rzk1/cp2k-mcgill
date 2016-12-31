@@ -37,6 +37,7 @@ MODULE almo_scf
                                               matrix_almo_to_qs, &
                                               matrix_almo_create,&
                                               calculate_w_matrix_almo,&
+                                              almo_dm_to_qs_env,&
                                               matrix_qs_to_almo
    USE almo_scf_types,                  ONLY: &
         almo_mat_dim_aobasis, almo_mat_dim_occ, almo_mat_dim_virt, almo_mat_dim_virt_disc, &
@@ -55,7 +56,7 @@ MODULE almo_scf
         cp_dbcsr_release, cp_dbcsr_reserve_block2d, cp_dbcsr_set, cp_dbcsr_type, &
         cp_dbcsr_work_create, dbcsr_distribution_mp, dbcsr_mp_mynode, dbcsr_type_no_symmetry, &
         dbcsr_type_symmetric, cp_dbcsr_binary_read, cp_dbcsr_checksum, cp_dbcsr_multiply,&
-        cp_dbcsr_scale, cp_dbcsr_add
+        cp_dbcsr_scale, cp_dbcsr_add, cp_dbcsr_print
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
@@ -130,6 +131,8 @@ CONTAINS
 
       ! perform SCF for block diagonal ALMOs
       CALL almo_scf_main(qs_env, almo_scf_env)
+!CALL cp_dbcsr_print(almo_scf_env%matrix_ks(1))
+!CALL cp_dbcsr_print(almo_scf_env%matrix_p(1))
 
       ! allow electron delocalization
       CALL almo_scf_delocalization(qs_env, almo_scf_env)
@@ -139,7 +142,8 @@ CONTAINS
 
       ! do post scf processing
       CALL almo_scf_post(qs_env,almo_scf_env)
-
+!CALL cp_dbcsr_print(almo_scf_env%matrix_ks(1))
+!CALL cp_dbcsr_print(almo_scf_env%matrix_p(1))
       ! clean up the mess
       CALL almo_scf_clean_up(almo_scf_env)
 
@@ -736,12 +740,12 @@ CONTAINS
       !ENDIF
       
       almo_scf_env%calc_forces = calc_forces
-      IF (calc_forces) THEN
-          IF (almo_scf_env%deloc_method==almo_deloc_x .OR. &
-              almo_scf_env%deloc_method==almo_deloc_xalmo_x .OR. &
-              almo_scf_env%deloc_method==almo_deloc_xalmo_1diag ) &
-         CPABORT(" Forces are not implemented for this method yet ")
-      ENDIF
+      !IF (calc_forces) THEN
+      !    IF (almo_scf_env%deloc_method==almo_deloc_x .OR. &
+      !        almo_scf_env%deloc_method==almo_deloc_xalmo_x .OR. &
+      !        almo_scf_env%deloc_method==almo_deloc_xalmo_1diag ) &
+      !   CPABORT(" Forces are not implemented for this method yet ")
+      !ENDIF
 
       ! create all matrices
       CALL almo_scf_env_create_matrices(almo_scf_env, matrix_s(1)%matrix)
@@ -970,7 +974,7 @@ CONTAINS
       DO ispin = 1, nspins
          CALL matrix_almo_to_qs(almo_scf_env%matrix_p(ispin), &
                                 rho_ao(ispin)%matrix, &
-                                almo_scf_env)
+                                almo_scf_env%mat_distr_aos)
       ENDDO
 
       CALL qs_rho_update_rho(rho, qs_env=qs_env)
@@ -998,10 +1002,10 @@ CONTAINS
 !>       2016.11 created [Rustam Z Khaliullin]
 !> \author Rustam Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_store_result(almo_scf_env)
+   SUBROUTINE almo_scf_store_extrapolation_data(almo_scf_env)
       TYPE(almo_scf_env_type)                              :: almo_scf_env
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_store_result', &
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_store_extrapolation_data', &
          routineP = moduleN//':'//routineN
 
       CHARACTER(LEN=default_path_length)                 :: file_name, project_name
@@ -1145,7 +1149,7 @@ CONTAINS
 
       CALL timestop(handle)
 
-   END SUBROUTINE almo_scf_store_result
+   END SUBROUTINE almo_scf_store_extrapolation_data
 
 ! **************************************************************************************************
 !> \brief Prints out a short summary about the ALMO SCF job
@@ -1739,8 +1743,10 @@ CONTAINS
 
     CALL timeset(routineN,handle)
 
-    ! store the matrices for a next scf run
-    CALL almo_scf_store_result(almo_scf_env)
+    ! store matrices to speed up the next scf run
+    CALL almo_scf_store_extrapolation_data(almo_scf_env)
+
+    CALL almo_dm_to_qs_env(qs_env, almo_scf_env%matrix_p, almo_scf_env%mat_distr_aos)
 
     ! compute the W matrix if associated
     IF (almo_scf_env%calc_forces) THEN

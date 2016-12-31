@@ -25,7 +25,7 @@ MODULE almo_scf_optimizer
         construct_domain_s_inv, construct_domain_s_sqrt, get_overlap, newton_grad_to_step, &
         pseudo_invert_diagonal_blk, xalmo_initial_guess
    USE domain_submatrix_types,          ONLY: domain_map_type
-   USE almo_scf_qs,                     ONLY: almo_scf_dm_to_ks,&
+   USE almo_scf_qs,                     ONLY: almo_dm_to_qs_ks,&
                                               almo_scf_update_ks_energy,&
                                               matrix_qs_to_almo
    USE almo_scf_types,                  ONLY: almo_scf_env_type,&
@@ -309,7 +309,10 @@ CONTAINS
                                      use_sigma_inv_guess=use_prev_as_guess)
 
             ! compute the new KS matrix and new energy
-            CALL almo_scf_dm_to_ks(qs_env, almo_scf_env, energy_new)
+            CALL almo_dm_to_qs_ks(qs_env, &
+                    almo_scf_env%matrix_p, &
+                    energy_new, &
+                    almo_scf_env%mat_distr_aos)
 
          ENDIF ! prepare_to_exit
 
@@ -676,7 +679,10 @@ CONTAINS
 
             ! compute the new KS matrix and new energy
             IF (.NOT. almo_scf_env%perturbative_delocalization) THEN
-               CALL almo_scf_dm_to_ks(qs_env, almo_scf_env, energy_new)
+               CALL almo_dm_to_qs_ks(qs_env, &
+                       almo_scf_env%matrix_p, &
+                       energy_new, &
+                       almo_scf_env%mat_distr_aos)
             ENDIF
 
          ENDIF ! prepare_to_exit
@@ -1147,7 +1153,10 @@ CONTAINS
                ELSE
                   !!! RZK-warning the KS matrix must be updated outside the spin loop
                   !!! Now the code works only for restricted orbitals
-                  CALL almo_scf_dm_to_ks(qs_env, almo_scf_env, energy_new)
+                  CALL almo_dm_to_qs_ks(qs_env, &
+                          almo_scf_env%matrix_p, &
+                          energy_new, &
+                          almo_scf_env%mat_distr_aos)
                   CALL get_qs_env(qs_env, matrix_ks=matrix_ks)
                   CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
                                          almo_scf_env%matrix_ks(ispin), &

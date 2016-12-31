@@ -81,9 +81,9 @@ MODULE almo_scf_qs
    CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'almo_scf_qs'
 
    PUBLIC :: almo_scf_init_qs, matrix_almo_create, matrix_qs_to_almo, &
-             almo_scf_dm_to_ks, calculate_w_matrix_almo, &
+             almo_dm_to_qs_ks, calculate_w_matrix_almo, &
              almo_scf_construct_quencher, almo_scf_update_ks_energy, &
-             matrix_almo_to_qs
+             matrix_almo_to_qs, almo_dm_to_qs_env
 
 CONTAINS
 
@@ -457,14 +457,15 @@ CONTAINS
 !> \brief convert between two types of matrices: ALMO style to QS style
 !> \param matrix_almo ...
 !> \param matrix_qs ...
-!> \param almo_scf_env ...
+!> \param mat_distr_aos ...
 !> \par History
 !>       2011.06 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE matrix_almo_to_qs(matrix_almo, matrix_qs, almo_scf_env)
+   SUBROUTINE matrix_almo_to_qs(matrix_almo, matrix_qs, mat_distr_aos)
       TYPE(cp_dbcsr_type)                                :: matrix_almo, matrix_qs
-      TYPE(almo_scf_env_type), INTENT(IN)                :: almo_scf_env
+      !TYPE(almo_scf_env_type), INTENT(IN)                :: almo_scf_env
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
 
       CHARACTER(len=*), PARAMETER :: routineN = 'matrix_almo_to_qs', &
          routineP = moduleN//':'//routineN
@@ -474,34 +475,15 @@ CONTAINS
       CALL timeset(routineN, handle)
       ! RZK-warning if it's not a N(AO)xN(AO) matrix then stop
 
-!    IF (ls_mstruct%single_precision) THEN
-!       CALL cp_dbcsr_init (matrix_tmp)
-!       CALL cp_dbcsr_create (matrix_tmp, template=matrix_ls,&
-!            data_type=dbcsr_type_real_8)
-!       CALL cp_dbcsr_copy (matrix_tmp, matrix_ls)
-!    ENDIF
-
-      SELECT CASE (almo_scf_env%mat_distr_aos)
+      SELECT CASE (mat_distr_aos)
       CASE (almo_mat_distr_atomic)
-!       IF (ls_mstruct%single_precision) THEN
-!          CALL cp_dbcsr_copy_into_existing (matrix_qs, matrix_tmp)
-!       ELSE
          CALL cp_dbcsr_copy_into_existing(matrix_qs, matrix_almo)
-!       ENDIF
       CASE (almo_mat_distr_molecular)
          CALL cp_dbcsr_set(matrix_qs, 0.0_dp)
-!       IF (ls_mstruct%single_precision) THEN
-!          CALL cp_dbcsr_complete_redistribute(matrix_tmp, matrix_qs, keep_sparsity=.TRUE.)
-!       ELSE
          CALL cp_dbcsr_complete_redistribute(matrix_almo, matrix_qs, keep_sparsity=.TRUE.)
-!       ENDIF
       CASE DEFAULT
          CPABORT("")
       END SELECT
-
-!    IF (ls_mstruct%single_precision) THEN
-!       CALL cp_dbcsr_release(matrix_tmp)
-!    ENDIF
 
       CALL timestop(handle)
 
@@ -564,6 +546,45 @@ CONTAINS
    END SUBROUTINE almo_scf_init_qs
 
 ! **************************************************************************************************
+!> \brief return density matrix to the qs_env
+!> \param qs_env ...
+!> \par History
+!>       2011.05 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE almo_dm_to_qs_env(qs_env, matrix_p, mat_distr_aos)
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(cp_dbcsr_type), DIMENSION(:)                  :: matrix_p
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_dm_to_qs_env', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, ispin, nspins
+      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: rho_ao
+      TYPE(qs_rho_type), POINTER                         :: rho
+
+      CALL timeset(routineN, handle)
+
+      NULLIFY (rho, rho_ao)
+      nspins = SIZE(matrix_p)
+      CALL get_qs_env(qs_env, rho=rho)
+      CALL qs_rho_get(rho, rho_ao=rho_ao)
+
+      ! set the new density matrix
+      DO ispin = 1, nspins
+         CALL matrix_almo_to_qs(matrix_p(ispin), &
+                                rho_ao(ispin)%matrix, &
+                                mat_distr_aos)
+      END DO
+      CALL qs_rho_update_rho(rho, qs_env=qs_env)
+
+      CALL timestop(handle)
+
+   END SUBROUTINE almo_dm_to_qs_env
+
+
+! **************************************************************************************************
 !> \brief use the density matrix in almo_scf_env
 !>        to compute the new energy and KS matrix
 !> \param qs_env ...
@@ -573,43 +594,31 @@ CONTAINS
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_dm_to_ks(qs_env, almo_scf_env, energy_new)
+   SUBROUTINE almo_dm_to_qs_ks(qs_env, matrix_p, energy_total, mat_distr_aos)
       TYPE(qs_environment_type), POINTER                 :: qs_env
-      TYPE(almo_scf_env_type)                            :: almo_scf_env
-      REAL(KIND=dp)                                      :: energy_new
+      TYPE(cp_dbcsr_type), DIMENSION(:)                  :: matrix_p
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
+      REAL(KIND=dp)                                      :: energy_total
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_dm_to_ks', &
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_dm_to_qs_ks', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, ispin, nspin
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: rho_ao
+      INTEGER                                            :: handle
       TYPE(qs_energy_type), POINTER                      :: energy
-      TYPE(qs_rho_type), POINTER                         :: rho
 
-      NULLIFY (rho, rho_ao)
       CALL timeset(routineN, handle)
 
-      nspin = almo_scf_env%nspins
-      CALL get_qs_env(qs_env, energy=energy, rho=rho)
-      CALL qs_rho_get(rho, rho_ao=rho_ao)
-
-      ! set the new density matrix
-      DO ispin = 1, nspin
-         CALL matrix_almo_to_qs(almo_scf_env%matrix_p(ispin), &
-                                rho_ao(ispin)%matrix, &
-                                almo_scf_env)
-      END DO
-
-      ! compute the corresponding KS matrix and new energy
-      CALL qs_rho_update_rho(rho, qs_env=qs_env)
+      NULLIFY(energy)
+      CALL get_qs_env(qs_env, energy=energy)
+      CALL almo_dm_to_qs_env(qs_env, matrix_p, mat_distr_aos)
       CALL qs_ks_did_change(qs_env%ks_env, rho_changed=.TRUE.)
       CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.FALSE., &
                                print_active=.TRUE.)
-      energy_new = energy%total
+      energy_total = energy%total
 
       CALL timestop(handle)
 
-   END SUBROUTINE almo_scf_dm_to_ks
+   END SUBROUTINE almo_dm_to_qs_ks
 
 ! **************************************************************************************************
 !> \brief update qs_env total energy
@@ -1425,7 +1434,7 @@ CONTAINS
       ! 6. TMP_NN1=TMP_NO1.T^(tr)=(TsiginvT^(tr)FTsiginv).T^(tr)=RFR
       CALL cp_dbcsr_multiply("N", "T", 1.0_dp, tmp_no1, almo_scf_env%matrix_t(ispin),&
                               0.0_dp, tmp_nn1, filter_eps=almo_scf_env%eps_filter)
-      CALL matrix_almo_to_qs(tmp_nn1, matrix_w(ispin)%matrix, almo_scf_env)
+      CALL matrix_almo_to_qs(tmp_nn1, matrix_w(ispin)%matrix, almo_scf_env%mat_distr_aos)
       
       CALL cp_dbcsr_release(tmp_nn1)
       CALL cp_dbcsr_release(tmp_no1)

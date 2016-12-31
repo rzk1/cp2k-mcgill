@@ -19,6 +19,7 @@ MODULE qs_force
                                               cp_dbcsr_copy,&
                                               cp_dbcsr_deallocate_matrix_set,&
                                               cp_dbcsr_init,&
+                                              cp_dbcsr_print,&
                                               cp_dbcsr_p_type,&
                                               cp_dbcsr_set
    USE cp_dbcsr_output,                 ONLY: cp_dbcsr_write_sparse_matrix
@@ -157,6 +158,7 @@ CONTAINS
       TYPE(qs_subsys_type), POINTER                      :: subsys
       TYPE(section_vals_type), POINTER                   :: dft_section, input, print_section
       TYPE(virial_type), POINTER                         :: virial
+!TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER :: matrix_ks
 
       CALL timeset(routineN, handle)
       NULLIFY (logger)
@@ -206,6 +208,26 @@ CONTAINS
       CALL get_qs_env(qs_env, &
                       dft_control=dft_control, &
                       para_env=para_env)
+
+!CALL get_qs_env(qs_env, energy=energy, rho=rho, matrix_ks=matrix_ks)
+!CALL qs_rho_get(rho, rho_ao=rho_ao)
+!WRITE(*,*) "FORCES"
+!CALL cp_dbcsr_print(rho_ao(1)%matrix)
+!CALL cp_dbcsr_print(matrix_ks(1)%matrix)
+
+!! set the new density matrix
+!DO ispin = 1, nspin
+!   CALL matrix_almo_to_qs(almo_scf_env%matrix_p(ispin), &
+!                          rho_ao(ispin)%matrix, &
+!                          almo_scf_env)
+!END DO
+!
+!! compute the corresponding KS matrix and new energy
+!CALL qs_rho_update_rho(rho, qs_env=qs_env)
+!CALL qs_ks_did_change(qs_env%ks_env, rho_changed=.TRUE.)
+!CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.FALSE., &
+!                         print_active=.TRUE.)
+!energy_new = energy%total
 
       ! Now we handle some special cases
       ! Maybe some of these would be better dealt with in qs_energies?
