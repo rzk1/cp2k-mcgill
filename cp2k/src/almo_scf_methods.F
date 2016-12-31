@@ -507,6 +507,8 @@ CONTAINS
                                 filter_eps=eps_multiply)
 
          ! 5. KS_blk=KS_blk-TMP4_blk
+         CALL cp_dbcsr_copy(almo_scf_env%matrix_ks_blk(ispin), &
+                 almo_scf_env%matrix_ks(ispin), keep_sparsity=.TRUE.)
          CALL cp_dbcsr_add(almo_scf_env%matrix_ks_blk(ispin), &
                            matrix_tmp4, &
                            1.0_dp, -1.0_dp)

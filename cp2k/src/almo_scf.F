@@ -20,7 +20,6 @@ MODULE almo_scf
    USE qs_initial_guess,                ONLY: calculate_atomic_block_dm,&
                                               calculate_mopac_dm
    USE qs_kind_types,                   ONLY: qs_kind_type
-   USE qs_ks_methods,                   ONLY: qs_ks_update_qs_env
    USE particle_types,                  ONLY: particle_type
    USE mscfg_types,                     ONLY: get_matrix_from_submatrices,&
                                               molecular_scf_guess_env_type
@@ -33,11 +32,10 @@ MODULE almo_scf
                                               almo_scf_xalmo_eigensolver,&
                                               almo_scf_xalmo_pcg
    USE almo_scf_qs,                     ONLY: almo_scf_construct_quencher,&
-                                              almo_scf_init_qs, &
-                                              matrix_almo_to_qs, &
+                                              init_almo_ks_matrix_via_qs, &
+                                              almo_dm_to_almo_ks, &
                                               matrix_almo_create,&
                                               calculate_w_matrix_almo,&
-                                              almo_dm_to_qs_env,&
                                               matrix_qs_to_almo
    USE almo_scf_types,                  ONLY: &
         almo_mat_dim_aobasis, almo_mat_dim_occ, almo_mat_dim_virt, almo_mat_dim_virt_disc, &
@@ -131,8 +129,6 @@ CONTAINS
 
       ! perform SCF for block diagonal ALMOs
       CALL almo_scf_main(qs_env, almo_scf_env)
-!CALL cp_dbcsr_print(almo_scf_env%matrix_ks(1))
-!CALL cp_dbcsr_print(almo_scf_env%matrix_p(1))
 
       ! allow electron delocalization
       CALL almo_scf_delocalization(qs_env, almo_scf_env)
@@ -142,8 +138,7 @@ CONTAINS
 
       ! do post scf processing
       CALL almo_scf_post(qs_env,almo_scf_env)
-!CALL cp_dbcsr_print(almo_scf_env%matrix_ks(1))
-!CALL cp_dbcsr_print(almo_scf_env%matrix_p(1))
+
       ! clean up the mess
       CALL almo_scf_clean_up(almo_scf_env)
 
@@ -749,6 +744,7 @@ CONTAINS
 
       ! create all matrices
       CALL almo_scf_env_create_matrices(almo_scf_env, matrix_s(1)%matrix)
+
       ! set up matrix S and all required functions of S
       almo_scf_env%s_inv_done = .FALSE.
       almo_scf_env%s_sqrt_done = .FALSE.
@@ -783,8 +779,11 @@ CONTAINS
       ALLOCATE (almo_scf_env%domain_r_down_up(ndomains, nspins))
       CALL init_submatrices(almo_scf_env%domain_r_down_up)
 
-      ! initialization of the QS settings with the ALMO flavor
-      CALL almo_scf_init_qs(qs_env, almo_scf_env)
+      ! initialization of the KS matrix
+      CALL init_almo_ks_matrix_via_qs(qs_env, &
+              almo_scf_env%matrix_ks, &
+              almo_scf_env%mat_distr_aos, &
+              almo_scf_env%eps_filter)
 
       CALL timestop(handle)
 
@@ -808,7 +807,7 @@ CONTAINS
       CHARACTER(LEN=default_path_length)                 :: file_name, project_name
       INTEGER                                            :: handle, iaspc, &
                                                             ispin, istore, naspc, unit_nr, nspins
-      REAL(KIND=dp)                                      :: alpha, cs_pos
+      REAL(KIND=dp)                                      :: alpha, cs_pos, energy
       TYPE(cp_logger_type), POINTER                      :: logger
       
       INTEGER, DIMENSION(2)                              :: nelectron_spin
@@ -820,7 +819,6 @@ CONTAINS
       TYPE(dft_control_type), POINTER                    :: dft_control
       TYPE(molecular_scf_guess_env_type), POINTER        :: mscfg_env
       TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
-      TYPE(qs_energy_type), POINTER                      :: energy
       TYPE(qs_kind_type), DIMENSION(:), POINTER          :: qs_kind_set
       TYPE(qs_rho_type), POINTER                         :: rho
 
@@ -840,7 +838,6 @@ CONTAINS
       CALL get_qs_env(qs_env, &
                       dft_control=dft_control, &
                       matrix_s=matrix_s, &
-                      energy=energy, &
                       atomic_kind_set=atomic_kind_set, &
                       qs_kind_set=qs_kind_set, &
                       particle_set=particle_set, &
@@ -901,7 +898,7 @@ CONTAINS
 
                ! copy the atomic-block dm into matrix_p_blk
                CALL matrix_qs_to_almo(rho_ao(ispin)%matrix, &
-                                      almo_scf_env%matrix_p_blk(ispin), almo_scf_env, &
+                                      almo_scf_env%matrix_p_blk(ispin), almo_scf_env%mat_distr_aos, &
                                       .FALSE.)
                CALL cp_dbcsr_filter(almo_scf_env%matrix_p_blk(ispin), &
                                     almo_scf_env%eps_filter)
@@ -971,23 +968,19 @@ CONTAINS
       CALL almo_scf_t_blk_to_p(almo_scf_env, &
                                use_sigma_inv_guess=.FALSE.)
 
-      DO ispin = 1, nspins
-         CALL matrix_almo_to_qs(almo_scf_env%matrix_p(ispin), &
-                                rho_ao(ispin)%matrix, &
-                                almo_scf_env%mat_distr_aos)
-      ENDDO
-
-      CALL qs_rho_update_rho(rho, qs_env=qs_env)
-      CALL qs_ks_did_change(qs_env%ks_env, rho_changed=.TRUE.)
-      CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., &
-                               just_energy=.FALSE.)
+      CALL almo_dm_to_almo_ks(qs_env, &
+              almo_scf_env%matrix_p, &
+              almo_scf_env%matrix_ks, &
+              energy, &
+              almo_scf_env%eps_filter, &
+              almo_scf_env%mat_distr_aos)
 
       IF (unit_nr > 0) THEN
          IF (almo_scf_env%almo_scf_guess .EQ. molecular_guess) THEN
             WRITE (unit_nr, '(T2,A38,F40.10)') "Single-molecule energy:", &
                SUM(mscfg_env%energy_of_frag)
          ENDIF
-         WRITE (unit_nr, '(T2,A38,F40.10)') "Energy of the initial guess:", energy%total
+         WRITE (unit_nr, '(T2,A38,F40.10)') "Energy of the initial guess:", energy
          WRITE (unit_nr, '()')
       ENDIF
 
@@ -1377,9 +1370,9 @@ CONTAINS
          CALL cp_dbcsr_add_on_diag(almo_scf_env%matrix_s_blk(1), 1.0_dp)
       ELSE
          CALL matrix_qs_to_almo(matrix_s, almo_scf_env%matrix_s(1), &
-                                almo_scf_env, .FALSE.)
-         CALL matrix_qs_to_almo(matrix_s, almo_scf_env%matrix_s_blk(1), &
-                                almo_scf_env, .TRUE.)
+                                almo_scf_env%mat_distr_aos, .FALSE.)
+         CALL cp_dbcsr_copy(almo_scf_env%matrix_s_blk(1), &
+                 almo_scf_env%matrix_s(1), keep_sparsity=.TRUE.)
       ENDIF
 
       CALL cp_dbcsr_filter(almo_scf_env%matrix_s(1), almo_scf_env%eps_filter)
@@ -1745,8 +1738,6 @@ CONTAINS
 
     ! store matrices to speed up the next scf run
     CALL almo_scf_store_extrapolation_data(almo_scf_env)
-
-    CALL almo_dm_to_qs_env(qs_env, almo_scf_env%matrix_p, almo_scf_env%mat_distr_aos)
 
     ! compute the W matrix if associated
     IF (almo_scf_env%calc_forces) THEN

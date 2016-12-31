@@ -215,20 +215,6 @@ CONTAINS
 !CALL cp_dbcsr_print(rho_ao(1)%matrix)
 !CALL cp_dbcsr_print(matrix_ks(1)%matrix)
 
-!! set the new density matrix
-!DO ispin = 1, nspin
-!   CALL matrix_almo_to_qs(almo_scf_env%matrix_p(ispin), &
-!                          rho_ao(ispin)%matrix, &
-!                          almo_scf_env)
-!END DO
-!
-!! compute the corresponding KS matrix and new energy
-!CALL qs_rho_update_rho(rho, qs_env=qs_env)
-!CALL qs_ks_did_change(qs_env%ks_env, rho_changed=.TRUE.)
-!CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.FALSE., &
-!                         print_active=.TRUE.)
-!energy_new = energy%total
-
       ! Now we handle some special cases
       ! Maybe some of these would be better dealt with in qs_energies?
       IF (qs_env%run_rtp) THEN
@@ -324,12 +310,12 @@ CONTAINS
       CALL qs_ks_update_qs_env(qs_env, calculate_forces=.TRUE.)
 
       ! ALMO Code (in the spirit of the MP2 modifications below)
-      IF (ASSOCIATED(qs_env%almo_scf_env)) THEN
-         ! tell qs about the energy correction
-         NULLIFY (energy)
-         CALL get_qs_env(qs_env, energy=energy)
-         energy%total = energy%total+energy%singles_corr
-      END IF
+      !IF (ASSOCIATED(qs_env%almo_scf_env)) THEN
+      !   ! tell qs about the energy correction
+      !   NULLIFY (energy)
+      !   CALL get_qs_env(qs_env, energy=energy)
+      !   energy%total = energy%total+energy%singles_corr
+      !END IF
 
       ! MP2 Code
       IF (ASSOCIATED(qs_env%mp2_env)) THEN

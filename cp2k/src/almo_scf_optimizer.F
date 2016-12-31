@@ -11,7 +11,6 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_optimizer
-   USE qs_ks_methods,                   ONLY: qs_ks_update_qs_env
    USE almo_scf_diis_types,             ONLY: almo_scf_diis_extrapolate,&
                                               almo_scf_diis_init,&
                                               almo_scf_diis_push,&
@@ -25,9 +24,9 @@ MODULE almo_scf_optimizer
         construct_domain_s_inv, construct_domain_s_sqrt, get_overlap, newton_grad_to_step, &
         pseudo_invert_diagonal_blk, xalmo_initial_guess
    USE domain_submatrix_types,          ONLY: domain_map_type
-   USE almo_scf_qs,                     ONLY: almo_dm_to_qs_ks,&
-                                              almo_scf_update_ks_energy,&
-                                              matrix_qs_to_almo
+   USE almo_scf_qs,                     ONLY: almo_dm_to_almo_ks,&
+                                              almo_scf_update_ks_energy, &
+                                              almo_dm_to_qs_env
    USE almo_scf_types,                  ONLY: almo_scf_env_type,&
                                               optimizer_options_type
    USE cp_dbcsr_cholesky,               ONLY: cp_dbcsr_cholesky_decompose,&
@@ -187,19 +186,6 @@ CONTAINS
 
          iscf = iscf+1
 
-         ! get a copy of the current KS matrix
-         CALL get_qs_env(qs_env, matrix_ks=matrix_ks)
-         DO ispin = 1, nspin
-            CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
-                                   almo_scf_env%matrix_ks(ispin), &
-                                   almo_scf_env, .FALSE.)
-            CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
-                                   almo_scf_env%matrix_ks_blk(ispin), &
-                                   almo_scf_env, .TRUE.)
-            CALL cp_dbcsr_filter(almo_scf_env%matrix_ks(ispin), &
-                                 almo_scf_env%eps_filter)
-         ENDDO
-
          ! obtain projected KS matrix and the DIIS-error vector
          CALL almo_scf_ks_to_ks_blk(almo_scf_env)
 
@@ -309,9 +295,11 @@ CONTAINS
                                      use_sigma_inv_guess=use_prev_as_guess)
 
             ! compute the new KS matrix and new energy
-            CALL almo_dm_to_qs_ks(qs_env, &
+            CALL almo_dm_to_almo_ks(qs_env, &
                     almo_scf_env%matrix_p, &
+                    almo_scf_env%matrix_ks, &
                     energy_new, &
+                    almo_scf_env%eps_filter, &
                     almo_scf_env%mat_distr_aos)
 
          ENDIF ! prepare_to_exit
@@ -479,19 +467,6 @@ CONTAINS
 
          iscf = iscf+1
 
-         ! get a copy of the current KS matrix
-         CALL get_qs_env(qs_env, matrix_ks=matrix_ks)
-         DO ispin = 1, nspin
-            CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
-                                   almo_scf_env%matrix_ks(ispin), &
-                                   almo_scf_env, .FALSE.)
-            CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
-                                   almo_scf_env%matrix_ks_blk(ispin), &
-                                   almo_scf_env, .TRUE.)
-            CALL cp_dbcsr_filter(almo_scf_env%matrix_ks(ispin), &
-                                 almo_scf_env%eps_filter)
-         ENDDO
-
          ! obtain projected KS matrix and the DIIS-error vector
          CALL almo_scf_ks_to_ks_xx(almo_scf_env)
 
@@ -536,10 +511,6 @@ CONTAINS
                         1.0_dp-almo_scf_env%mixing_fraction, &
                         submatrix_mixing_old_blk(:, ispin), &
                         'N')
-                     !CALL cp_dbcsr_add(almo_scf_env%matrix_ks_blk(ispin),&
-                     !        matrix_mixing_old_blk(ispin),&
-                     !        almo_scf_env%mixing_fraction,&
-                     !        1.0_dp-almo_scf_env%mixing_fraction)
                   END DO
                ELSE
                   DO ispin = 1, nspin
@@ -679,9 +650,11 @@ CONTAINS
 
             ! compute the new KS matrix and new energy
             IF (.NOT. almo_scf_env%perturbative_delocalization) THEN
-               CALL almo_dm_to_qs_ks(qs_env, &
+               CALL almo_dm_to_almo_ks(qs_env, &
                        almo_scf_env%matrix_p, &
+                       almo_scf_env%matrix_ks, &
                        energy_new, &
+                       almo_scf_env%eps_filter, &
                        almo_scf_env%mat_distr_aos)
             ENDIF
 
@@ -690,6 +663,7 @@ CONTAINS
          IF (almo_scf_env%perturbative_delocalization) THEN
 
             ! exit after the first step if we do not need the SCF procedure
+            CALL almo_dm_to_qs_env(qs_env, almo_scf_env%matrix_p, almo_scf_env%mat_distr_aos)
             converged = .TRUE.
             prepare_to_exit = .TRUE.
 
@@ -777,7 +751,6 @@ CONTAINS
          line_search_error, next_step_size_guess, numer, prec_sf_mixing_s, spin_factor, step_size, &
          t1, t2, t_norm, tau, time_step
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: evals
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_ks
       TYPE(cp_dbcsr_type), ALLOCATABLE, DIMENSION(:)     :: m_theta, m_t_in_local
       TYPE(cp_dbcsr_type) :: FTsiginv, fvo_0, grad, inv_eiv, m_tmp_nn_1, m_tmp_no_1, &
          m_tmp_no_2, m_tmp_no_3, m_tmp_oo_1, matrix_sigma_inv_0, &
@@ -1153,16 +1126,12 @@ CONTAINS
                ELSE
                   !!! RZK-warning the KS matrix must be updated outside the spin loop
                   !!! Now the code works only for restricted orbitals
-                  CALL almo_dm_to_qs_ks(qs_env, &
+                  CALL almo_dm_to_almo_ks(qs_env, &
                           almo_scf_env%matrix_p, &
+                          almo_scf_env%matrix_ks, &
                           energy_new, &
+                          almo_scf_env%eps_filter, &
                           almo_scf_env%mat_distr_aos)
-                  CALL get_qs_env(qs_env, matrix_ks=matrix_ks)
-                  CALL matrix_qs_to_almo(matrix_ks(ispin)%matrix, &
-                                         almo_scf_env%matrix_ks(ispin), &
-                                         almo_scf_env, .FALSE.)
-                  CALL cp_dbcsr_filter(almo_scf_env%matrix_ks(ispin), &
-                                       almo_scf_env%eps_filter)
                ENDIF
 
                CALL compute_frequently_used_matrices(&
@@ -1920,6 +1889,10 @@ CONTAINS
             ! RZK-warning: must obtain MO coefficients from final theta
 
             IF (perturbation_only) THEN
+            
+               ! return perturbed density to qs_env
+               CALL almo_dm_to_qs_env(qs_env, almo_scf_env%matrix_p, &
+                       almo_scf_env%mat_distr_aos)
 
                ! compute Fvo for the zero-delocalization state
                CALL cp_dbcsr_init(fvo_0)
@@ -2052,11 +2025,6 @@ CONTAINS
                        energy=energy_new)
 
             ENDIF ! if perturbation only
-
-            !CALL qs_ks_update_qs_env(qs_env, &
-            !        calculate_forces=.FALSE., &
-            !        just_energy=.TRUE., &
-            !        print_active=.TRUE.)
 
          ENDIF ! if converged
 
