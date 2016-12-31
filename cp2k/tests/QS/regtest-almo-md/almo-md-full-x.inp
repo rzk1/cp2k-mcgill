@@ -6,11 +6,15 @@
 
 &MOTION
   &MD
-     ENSEMBLE NVE
-     TIMESTEP 0.5
-     TEMPERATURE 300
-     STEPS 10
-  &END
+    ENSEMBLE  LANGEVIN
+    STEPS  10
+    TIMESTEP     0.5
+    TEMPERATURE     300
+    &LANGEVIN
+      GAMMA     1.3499999999999998E-05
+      SHADOW_GAMMA 8.0E-06
+    &END LANGEVIN
+  &END MD
 &END
 
 &FORCE_EVAL
@@ -29,7 +33,7 @@
       ALMO_SCF_GUESS             ATOMIC
 
       &ALMO_OPTIMIZER_DIIS
-        MAX_ITER                 10
+        MAX_ITER                 20
         EPS_ERROR                1.0E-6
         N_DIIS                   5
       &END ALMO_OPTIMIZER_DIIS
@@ -39,7 +43,7 @@
  
       &XALMO_OPTIMIZER_PCG
         MAX_ITER                 100
-        EPS_ERROR                5.0E-4
+        EPS_ERROR                1.0E-6
         CONJUGATOR               FLETCHER_REEVES
         LIN_SEARCH_EPS_ERROR     0.1
         LIN_SEARCH_STEP_SIZE_GUESS 0.05
@@ -66,7 +70,7 @@
       MULTIPLE_UNIT_CELL 1 1 1
     &END
     &COORD
-@INCLUDE '../regtest-almo-1/ice-cut.xyz'
+@INCLUDE '../regtest-almo-1/ice.xyz'
     &END COORD
     &KIND H
       BASIS_SET SZV-GTH 
