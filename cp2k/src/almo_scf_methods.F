@@ -10,11 +10,10 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_methods
-   USE mathlib,                         ONLY: binomial
-   USE bibliography,                    ONLY: Kolafa2004, &
-                                              cite_reference
-   USE almo_scf_types,                  ONLY: almo_scf_env_type, &
+   USE almo_scf_types,                  ONLY: almo_scf_env_type,&
                                               almo_scf_history_type
+   USE bibliography,                    ONLY: Kolafa2004,&
+                                              cite_reference
    USE cp_dbcsr_interface,              ONLY: &
         cp_dbcsr_add, cp_dbcsr_add_on_diag, cp_dbcsr_col_block_sizes, cp_dbcsr_copy, &
         cp_dbcsr_create, cp_dbcsr_desymmetrize, cp_dbcsr_distribution, cp_dbcsr_filter, &
@@ -26,8 +25,7 @@ MODULE almo_scf_methods
         cp_dbcsr_reserve_block2d, cp_dbcsr_row_block_sizes, cp_dbcsr_scale, cp_dbcsr_set, &
         cp_dbcsr_set_diag, cp_dbcsr_transposed, cp_dbcsr_type, cp_dbcsr_work_create, &
         dbcsr_distribution_mp, dbcsr_mp_group, dbcsr_mp_numnodes, dbcsr_norm_maxabsnorm, &
-        dbcsr_type_no_symmetry, dbcsr_type_symmetric, cp_dbcsr_function_of_elements, &
-        dbcsr_func_artanh
+        dbcsr_type_no_symmetry, dbcsr_type_symmetric
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
@@ -45,6 +43,7 @@ MODULE almo_scf_methods
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
                                               matrix_sqrt_Newton_Schulz
    USE kinds,                           ONLY: dp
+   USE mathlib,                         ONLY: binomial
    USE util,                            ONLY: sort
 #include "./base/base_uses.f90"
 
@@ -1135,15 +1134,24 @@ CONTAINS
 
       INTEGER                                            :: handle, iblock_col, iblock_row, &
                                                             iblock_size, info, ispin, lwork, &
-                                                            nocc_of_block
+                                                            nocc_of_block, unit_nr
       LOGICAL                                            :: block_needed
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, work
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:, :)        :: data_copy
       REAL(kind=dp), DIMENSION(:, :), POINTER            :: data_p, p_new_block
       TYPE(cp_dbcsr_iterator)                            :: iter
       TYPE(cp_dbcsr_type)                                :: matrix_t_blk_tmp
+      TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
+
+      ! get a useful unit_nr
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      END IF
 
       DO ispin = 1, almo_scf_env%nspins
 
@@ -1187,9 +1195,11 @@ CONTAINS
                ALLOCATE (WORK(MAX(1, LWORK)))
                CALL DSYEV('V', 'L', iblock_size, data_copy, iblock_size, eigenvalues, WORK, LWORK, INFO)
                IF (INFO .NE. 0) THEN
-                  WRITE (*, *) 'BLOCK  = ', iblock_row
-                  WRITE (*, *) 'INFO   =', INFO
-                  WRITE (*, *) data_p(:, :)
+                  IF (unit_nr > 0) THEN
+                     WRITE (unit_nr, *) 'BLOCK  = ', iblock_row
+                     WRITE (unit_nr, *) 'INFO   =', INFO
+                     WRITE (unit_nr, *) data_p(:, :)
+                  END IF
                   CPABORT("DSYEV failed")
                END IF
 
@@ -1224,7 +1234,7 @@ CONTAINS
             !! generate a random set of ALMOs
             !! matrix_t_blk should already be initiated to the proper domain structure
             CALL cp_dbcsr_init_random(almo_scf_env%matrix_t_blk(ispin), &
-                                      keep_sparsity=.TRUE.) 
+                                      keep_sparsity=.TRUE.)
 
             CALL cp_dbcsr_init(matrix_t_blk_tmp)
             CALL cp_dbcsr_create(matrix_t_blk_tmp, &
@@ -1989,9 +1999,7 @@ CONTAINS
          frob_matrix_base = cp_dbcsr_frobenius_norm(tmp1)
          CALL cp_dbcsr_add_on_diag(tmp1, -1.0_dp)
          frob_matrix = cp_dbcsr_frobenius_norm(tmp1)
-         IF (unit_nr > 0) THEN
-            WRITE (unit_nr, *) "Error for (inv(A)*A-I)", frob_matrix/frob_matrix_base
-         ENDIF
+         IF (unit_nr > 0) WRITE (unit_nr, *) "Error for (inv(A)*A-I)", frob_matrix/frob_matrix_base
          CALL cp_dbcsr_release(tmp1)
       ENDIF
 
@@ -2009,9 +2017,7 @@ CONTAINS
          frob_matrix_base = cp_dbcsr_frobenius_norm(tmp1)
          CALL cp_dbcsr_add_on_diag(tmp1, -1.0_dp)
          frob_matrix = cp_dbcsr_frobenius_norm(tmp1)
-         IF (unit_nr > 0) THEN
-            WRITE (unit_nr, *) "Error for (trn(U)*U-I)", frob_matrix/frob_matrix_base
-         ENDIF
+         IF (unit_nr > 0) WRITE (unit_nr, *) "Error for (trn(U)*U-I)", frob_matrix/frob_matrix_base
          CALL cp_dbcsr_release(tmp1)
       ENDIF
 
@@ -2572,14 +2578,23 @@ CONTAINS
 
       CHARACTER(len=*), PARAMETER :: routineN = 'matrix_sqrt', routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, INFO, jj, LWORK
+      INTEGER                                            :: handle, INFO, jj, LWORK, unit_nr
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: test, testN
+      TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
 
       Asqrtinv = A
       INFO = 0
+
+      ! get a useful unit_nr
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      END IF
 
       !CALL DPOTRF('L', N, Ainv, N, INFO )
       !IF( INFO.NE.0 ) THEN
@@ -2611,7 +2626,7 @@ CONTAINS
       ALLOCATE (WORK(MAX(1, LWORK)))
       CALL DSYEV('V', 'L', N, Asqrtinv, N, eigenvalues, WORK, LWORK, INFO)
       IF (INFO .NE. 0) THEN
-         WRITE (*, *) 'DSYEV ERROR MESSAGE: ', INFO
+         IF (unit_nr > 0) WRITE (unit_nr, *) 'DSYEV ERROR MESSAGE: ', INFO
          CPABORT("DSYEV failed")
       END IF
       DEALLOCATE (WORK)
@@ -2684,13 +2699,22 @@ CONTAINS
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle, ii, INFO, jj, LWORK, range1_eiv, &
-                                                            range2_eiv, range3_eiv
+                                                            range2_eiv, range3_eiv, unit_nr
       LOGICAL                                            :: use_ranges
       REAL(KIND=dp)                                      :: my_shift
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: test, testN
+      TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
+
+      ! get a useful unit_nr
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      END IF
 
       IF (method .EQ. 1) THEN
          IF (PRESENT(range1)) THEN
@@ -2747,7 +2771,7 @@ CONTAINS
          ALLOCATE (WORK(MAX(1, LWORK)))
          CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
          IF (INFO .NE. 0) THEN
-            WRITE (*, *) 'DSYEV ERROR MESSAGE: ', INFO
+            IF (unit_nr > 0) WRITE (unit_nr, *) 'DSYEV ERROR MESSAGE: ', INFO
             CPABORT("DSYEV failed")
          END IF
          DEALLOCATE (WORK)
@@ -2847,13 +2871,22 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'newton_grad_to_step', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle
+      INTEGER                                            :: handle, unit_nr
       REAL(KIND=dp)                                      :: res_norm
       TYPE(cp_dbcsr_type)                                :: m_tmp_no_1, m_tmp_no_3, m_tmp_oo_2, &
                                                             matrix_f_ao, matrix_f_mo, matrix_f_vo, &
                                                             matrix_s_ao, matrix_s_mo, matrix_s_vo
+      TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
+
+      ! get a useful unit_nr
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      END IF
 
       CALL cp_dbcsr_init(matrix_s_ao)
       CALL cp_dbcsr_create(matrix_s_ao, &
@@ -3039,7 +3072,7 @@ CONTAINS
                         1.0_dp, 1.0_dp)
       CALL cp_dbcsr_norm(m_tmp_no_3, &
                          dbcsr_norm_maxabsnorm, norm_scalar=res_norm)
-      WRITE (*, *) "NEWTON step error: ", res_norm
+      IF (unit_nr > 0) WRITE (unit_nr, *) "NEWTON step error: ", res_norm
 
       CALL cp_dbcsr_release(m_tmp_no_3)
       CALL cp_dbcsr_release(m_tmp_no_1)
@@ -3082,7 +3115,7 @@ CONTAINS
 
       INTEGER :: ao_hori_offset, ao_vert_offset, block_col, block_row, col, copy, H_size, handle, &
          ii, INFO, jj, lev1_hori_offset, lev1_vert_offset, lev2_hori_offset, lev2_vert_offset, &
-         LWORK, nblkcols_tot, nblkrows_tot, orb_i, orb_j, row, zero_neg_eiv
+         LWORK, nblkcols_tot, nblkrows_tot, orb_i, orb_j, row, unit_nr, zero_neg_eiv
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: ao_block_sizes, ao_domain_sizes, &
                                                             mo_block_sizes
       INTEGER, DIMENSION(:), POINTER                     :: ao_blk_sizes, mo_blk_sizes
@@ -3095,8 +3128,17 @@ CONTAINS
       REAL(KIND=dp), DIMENSION(:, :), POINTER            :: block_p, block_p2, p_new_block
       TYPE(cp_dbcsr_type)                                :: matrix_F_ao_sym, matrix_F_mo_sym, &
                                                             matrix_S_ao_sym, matrix_S_mo_sym
+      TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
+
+      ! get a useful unit_nr
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      END IF
 
       nblkrows_tot = cp_dbcsr_nblkrows_total(quench_t)
       nblkcols_tot = cp_dbcsr_nblkcols_total(quench_t)
@@ -3458,7 +3500,7 @@ CONTAINS
       ALLOCATE (WORK(MAX(1, LWORK)))
       CALL DSYEV('V', 'L', H_size, Hinv, H_size, eigenvalues, WORK, LWORK, INFO)
       IF (INFO .NE. 0) THEN
-         WRITE (*, *) 'DSYEV ERROR MESSAGE: ', INFO
+         IF (unit_nr > 0) WRITE (unit_nr, *) 'DSYEV ERROR MESSAGE: ', INFO
          CPABORT("DSYEV failed")
       END IF
       DEALLOCATE (WORK)
@@ -3475,7 +3517,7 @@ CONTAINS
             zero_neg_eiv = zero_neg_eiv+1
          ENDIF
       ENDDO
-      WRITE (*, *) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv
+      IF (unit_nr > 0) WRITE (unit_nr, *) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv
       ALLOCATE (test2(H_size, H_size))
       test2(:, :) = MATMUL(Hinv, test)
       Hinv(:, :) = test2(:, :)
@@ -3540,7 +3582,7 @@ CONTAINS
             test_error = test_error+test(jj, ii)*test(jj, ii)
          ENDDO
       ENDDO
-      WRITE (*, *) "Hessian inversion error: ", SQRT(test_error)
+      IF (unit_nr > 0) WRITE (unit_nr, *) "Hessian inversion error: ", SQRT(test_error)
       DEALLOCATE (test)
 
       ! prepare the output vector
@@ -3553,7 +3595,7 @@ CONTAINS
       tmpr(:) = MATMUL(H, Step_vec)
       tmp(:) = tmpr(:)+Grad_vec(:)
       DEALLOCATE (tmpr)
-      WRITE (*, *) "NEWTOV step error: ", MAXVAL(ABS(tmp))
+      IF (unit_nr > 0) WRITE (unit_nr, *) "NEWTOV step error: ", MAXVAL(ABS(tmp))
 
       DEALLOCATE (tmp)
 
@@ -3724,39 +3766,51 @@ CONTAINS
 
 ! **************************************************************************************************
 !> \brief create the initial guess for XALMOs
+!> \param m_guess ...
+!> \param m_t_in ...
+!> \param m_t0 ...
+!> \param m_quench_t ...
+!> \param m_overlap ...
+!> \param m_sigma_tmpl ...
+!> \param nspins ...
+!> \param xalmo_history ...
+!> \param assume_t0_q0x ...
+!> \param optimize_theta ...
+!> \param envelope_amplitude ...
+!> \param eps_filter ...
+!> \param order_lanczos ...
+!> \param eps_lanczos ...
+!> \param max_iter_lanczos ...
 !> \par History
 !>       2016.11 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE xalmo_initial_guess(m_guess, m_t_in, m_t0, m_quench_t, &
-      m_overlap, m_sigma_tmpl, nspins, xalmo_history, assume_t0_q0x, &
-      optimize_theta, envelope_amplitude, eps_filter, order_lanczos, eps_lanczos, &
-      max_iter_lanczos)
+                                  m_overlap, m_sigma_tmpl, nspins, xalmo_history, assume_t0_q0x, &
+                                  optimize_theta, envelope_amplitude, eps_filter, order_lanczos, eps_lanczos, &
+                                  max_iter_lanczos)
 
       TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(INOUT)   :: m_guess
-      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)      :: m_t_in, m_t0, &
-                                                            m_quench_t, &
-                                                            m_sigma_tmpl
+      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)      :: m_t_in, m_t0, m_quench_t
       TYPE(cp_dbcsr_type), INTENT(IN)                    :: m_overlap
+      TYPE(cp_dbcsr_type), DIMENSION(:), INTENT(IN)      :: m_sigma_tmpl
+      INTEGER, INTENT(IN)                                :: nspins
       TYPE(almo_scf_history_type), INTENT(IN)            :: xalmo_history
-      INTEGER, INTENT(IN)                                :: nspins, &
-                                                            order_lanczos, &
-                                                            max_iter_lanczos
-      LOGICAL, INTENT(IN)                                :: assume_t0_q0x, &
-                                                            optimize_theta
-      REAL(KIND=dp), INTENT(IN)                          :: envelope_amplitude, &
-                                                            eps_filter, eps_lanczos
+      LOGICAL, INTENT(IN)                                :: assume_t0_q0x, optimize_theta
+      REAL(KIND=dp), INTENT(IN)                          :: envelope_amplitude, eps_filter
+      INTEGER, INTENT(IN)                                :: order_lanczos
+      REAL(KIND=dp), INTENT(IN)                          :: eps_lanczos
+      INTEGER, INTENT(IN)                                :: max_iter_lanczos
 
       CHARACTER(len=*), PARAMETER :: routineN = 'xalmo_initial_guess', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, iaspc, &
-                                                            ispin, istore, naspc, unit_nr
-      REAL(KIND=dp)                                      :: alpha, norm
-      TYPE(cp_logger_type), POINTER                      :: logger
+      INTEGER                                            :: handle, iaspc, ispin, istore, naspc, &
+                                                            unit_nr
       LOGICAL                                            :: aspc_guess
-      TYPE(cp_dbcsr_type)                                :: m_extrapolated, &
-                                                            m_sigma_tmp  
+      REAL(KIND=dp)                                      :: alpha
+      TYPE(cp_dbcsr_type)                                :: m_extrapolated, m_sigma_tmp
+      TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
 
@@ -3768,16 +3822,22 @@ CONTAINS
          unit_nr = -1
       ENDIF
 
+      IF (optimize_theta) THEN
+         CPWARN("unused option")
+         ! just not to trigger unused variable
+         alpha = envelope_amplitude
+      END IF
+
       ! if extrapolation order is zero then the standard guess is used
       ! ... the number of stored history points will remain zero if extrapolation order is zero
       IF (xalmo_history%istore == 0) THEN
          aspc_guess = .FALSE.
       ELSE
-         aspc_guess = .TRUE. 
+         aspc_guess = .TRUE.
       ENDIF
-      
+
       ! create initial guess
-      IF (.NOT.aspc_guess) THEN
+      IF (.NOT. aspc_guess) THEN
 
          DO ispin = 1, nspins
 
@@ -3797,34 +3857,34 @@ CONTAINS
          CALL cite_reference(Kolafa2004)
 
          naspc = MIN(xalmo_history%istore, xalmo_history%nstore)
-         IF ( unit_nr > 0 ) THEN
+         IF (unit_nr > 0) THEN
             WRITE (unit_nr, FMT="(/,T2,A,/,/,T3,A,I0)") &
                "Parameters for the always stable predictor-corrector (ASPC) method:", &
                "ASPC order: ", naspc
          END IF
 
          DO ispin = 1, nspins
-            
+
             CALL cp_dbcsr_init(m_extrapolated)
             CALL cp_dbcsr_create(m_extrapolated, &
-                    template=m_quench_t(ispin), matrix_type=dbcsr_type_no_symmetry)
-               
+                                 template=m_quench_t(ispin), matrix_type=dbcsr_type_no_symmetry)
+
             ! set to zero before accumulation
             CALL cp_dbcsr_set(m_guess(ispin), 0.0_dp)
 
-            ! extrapolation 
+            ! extrapolation
             DO iaspc = 1, naspc
 
                istore = MOD(xalmo_history%istore-iaspc, xalmo_history%nstore)+1
                alpha = (-1.0_dp)**(iaspc+1)*REAL(iaspc, KIND=dp)* &
                        binomial(2*naspc, naspc-iaspc)/binomial(2*naspc-2, naspc-1)
-               IF ( unit_nr > 0 ) THEN
+               IF (unit_nr > 0) THEN
                   WRITE (unit_nr, FMT="(T3,A2,I0,A4,F10.6)") &
                      "B(", iaspc, ") = ", alpha
                END IF
 
                ! m_extrapolated - initialize the correct sparsity pattern
-               ! it must be kept throughout extrapolation 
+               ! it must be kept throughout extrapolation
                CALL cp_dbcsr_copy(m_extrapolated, m_quench_t(ispin))
 
                ! project t0 onto the previous DMs
@@ -3832,14 +3892,14 @@ CONTAINS
                ! this is done to keep orbitals phase (i.e. sign) the same
                ! if this is not done the extrapolation will fail
                CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-                       xalmo_history%matrix_p_up_down(ispin,istore), &
-                       m_t0(ispin), &
-                       0.0_dp, m_extrapolated, &
-                       retain_sparsity=.TRUE.)
+                                      xalmo_history%matrix_p_up_down(ispin, istore), &
+                                      m_t0(ispin), &
+                                      0.0_dp, m_extrapolated, &
+                                      retain_sparsity=.TRUE.)
 
                ! now accumulate. correct sparsity is ensured
                CALL cp_dbcsr_add(m_guess(ispin), m_extrapolated, &
-                       1.0_dp, (1.0_dp*alpha)/naspc)
+                                 1.0_dp, (1.0_dp*alpha)/naspc)
 
             ENDDO !iaspc
 
@@ -3848,117 +3908,25 @@ CONTAINS
             ! normalize MOs
             CALL cp_dbcsr_init(m_sigma_tmp)
             CALL cp_dbcsr_create(m_sigma_tmp, &
-                    template=m_sigma_tmpl(ispin), matrix_type=dbcsr_type_no_symmetry)
+                                 template=m_sigma_tmpl(ispin), matrix_type=dbcsr_type_no_symmetry)
 
             CALL orthogonalize_mos(ket=m_guess(ispin), &
-                    overlap = m_sigma_tmp, &
-                    metric = m_overlap, &
-                    retain_locality = .TRUE., &
-                    only_normalize = .FALSE., &
-                    eps_filter = eps_filter, &
-                    order_lanczos = order_lanczos, &
-                    eps_lanczos = eps_lanczos, &
-                    max_iter_lanczos = max_iter_lanczos)
-            
+                                   overlap=m_sigma_tmp, &
+                                   metric=m_overlap, &
+                                   retain_locality=.TRUE., &
+                                   only_normalize=.FALSE., &
+                                   eps_filter=eps_filter, &
+                                   order_lanczos=order_lanczos, &
+                                   eps_lanczos=eps_lanczos, &
+                                   max_iter_lanczos=max_iter_lanczos)
+
             CALL cp_dbcsr_release(m_sigma_tmp)
 
             ! project the t0 space out from the extrapolated state
             ! this can be done outside this subroutine
             IF (assume_t0_q0x) THEN
                CALL cp_dbcsr_add(m_guess(ispin), m_t0(ispin), &
-                       1.0_dp, -1.0_dp)
-   
-               !! multiply by the pseudo-inverse of (S-RSR)
-               !! this part was brought from outside and was never adapted
-               !! perhaps it is not important and can be deleted later 
-               !IF (my_special_case .EQ. xalmo_case_fully_deloc) THEN
-
-               !   CALL cp_dbcsr_init(m_tmp_no_1)
-               !   CALL cp_dbcsr_init(m_tmp_nn_1)
-               !   CALL cp_dbcsr_init(prec_vv)
-               !   CALL cp_dbcsr_init(ST)
-               !   CALL cp_dbcsr_create(ST, &
-               !                          template=matrix_t_out(ispin), &
-               !                          matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_create(m_tmp_no_1, &
-               !                          template=matrix_t_out(ispin), &
-               !                          matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_create(m_tmp_nn_1, &
-               !                        template=almo_scf_env%matrix_s(1), &
-               !                        matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_create(prec_vv, &
-               !                        template=almo_scf_env%matrix_s(1), &
-               !                        matrix_type=dbcsr_type_no_symmetry)
-               !   ! First S-SRS
-               !   CALL cp_dbcsr_multiply("N","N",1.0_dp,&
-               !           almo_scf_env%matrix_s(1),&
-               !           almo_scf_env%matrix_t_blk(ispin),&
-               !           0.0_dp,ST,&
-               !           filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-               !                          ST, &
-               !                          almo_scf_env%matrix_sigma_inv_0deloc(ispin), &
-               !                          0.0_dp, m_tmp_no_1, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_desymmetrize(almo_scf_env%matrix_s(1), &
-               !                              m_tmp_nn_1)
-               !   CALL cp_dbcsr_multiply("N", "T", -1.0_dp, &
-               !                             ST, &
-               !                             m_tmp_no_1, &
-               !                             1.0_dp, m_tmp_nn_1, &
-               !                             filter_eps=almo_scf_env%eps_filter)
-
-               !   ! pseudo-invert the virtual projector
-               !   CALL cp_dbcsr_get_info(m_tmp_nn_1, nfullrows_total=dim0)
-               !   ALLOCATE (evals(dim0))
-               !   CALL cp_dbcsr_syevd(m_tmp_nn_1, prec_vv, evals, &
-               !                       almo_scf_env%para_env, almo_scf_env%blacs_env)
-               !   ! invert eigenvalues and use eigenvectors to compute the pseudo-inverse
-               !   zero_neg_eiv = 0
-               !   CALL cp_dbcsr_get_info(almo_scf_env%matrix_sigma_inv_0deloc(ispin), nfullrows_total=occ1)
-               !   DO jj = 1, dim0
-               !      IF (jj .LE. occ1) THEN
-               !         zero_neg_eiv = zero_neg_eiv+1
-               !         evals(jj) = evals(jj)*0.0_dp
-               !      ELSE
-               !         evals(jj) = 1.0_dp/evals(jj)
-               !      ENDIF
-               !   ENDDO
-               !   IF (unit_nr > 0) THEN
-               !      WRITE (*, *) 'ZERO OR NEGATIVE EIGENVALUES: ', zero_neg_eiv, SUM(evals(1:zero_neg_eiv))
-               !   ENDIF
-               !   CALL cp_dbcsr_init(inv_eiv)
-               !   CALL cp_dbcsr_create(inv_eiv, &
-               !                        template=m_tmp_nn_1, &
-               !                        matrix_type=dbcsr_type_no_symmetry)
-               !   CALL cp_dbcsr_add_on_diag(inv_eiv, 1.0_dp)
-               !   CALL cp_dbcsr_set_diag(inv_eiv, evals)
-               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-               !                          prec_vv, &
-               !                          inv_eiv, &
-               !                          0.0_dp, m_tmp_nn_1, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_multiply("N", "T", 1.0_dp, &
-               !                          m_tmp_nn_1, &
-               !                          prec_vv, &
-               !                          0.0_dp, inv_eiv, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_multiply("N", "N", 1.0_dp, &
-               !                          inv_eiv, &
-               !                          m_theta(ispin), &
-               !                          0.0_dp, m_tmp_no_1, &
-               !                          filter_eps=almo_scf_env%eps_filter)
-               !   CALL cp_dbcsr_copy(m_theta(ispin),m_tmp_no_1)
-
-               !   CALL cp_dbcsr_release(inv_eiv)
-               !   CALL cp_dbcsr_release(m_tmp_no_1)
-               !   CALL cp_dbcsr_release(m_tmp_nn_1)
-               !   CALL cp_dbcsr_release(prec_vv)
-               !   CALL cp_dbcsr_release(ST)
-               !   DEALLOCATE (evals)
-
-               !ENDIF !special_case
-
+                                 1.0_dp, -1.0_dp)
             ENDIF !assume_t0_q0x
 
          ENDDO !ispin

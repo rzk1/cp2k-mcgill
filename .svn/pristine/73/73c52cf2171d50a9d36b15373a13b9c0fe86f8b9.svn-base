@@ -1,0 +1,98 @@
+!--------------------------------------------------------------------------------------------------!
+!   CP2K: A general program to perform molecular dynamics simulations                              !
+!   Copyright (C) 2000 - 2016  CP2K developers group                                               !
+!--------------------------------------------------------------------------------------------------!
+
+! **************************************************************************************************
+!> \brief General methods for testing DBCSR tensors.
+!> \author Patrick Seewald
+! **************************************************************************************************
+MODULE dbcsr_tensor_test
+   USE dbcsr_api,                       ONLY: dbcsr_type_complex_4,&
+                                              dbcsr_type_complex_8,&
+                                              dbcsr_type_real_4,&
+                                              dbcsr_type_real_8
+   USE dbcsr_tensor,                    ONLY: &
+        dbcsr_t_copy, dbcsr_t_get_block, dbcsr_t_iterator, dbcsr_t_iterator_blocks_left, &
+        dbcsr_t_iterator_next_block, dbcsr_t_iterator_start, dbcsr_t_iterator_stop, dbcsr_t_ndims, &
+        dbcsr_t_reserve_blocks
+   USE dbcsr_tensor_block,              ONLY: block_nd
+   USE dbcsr_tensor_types,              ONLY: dbcsr_t_create,&
+                                              dbcsr_t_destroy,&
+                                              dbcsr_t_type
+   USE kinds,                           ONLY: real_4,&
+                                              real_8
+#include "../base/base_uses.f90"
+
+   IMPLICIT NONE
+   PRIVATE
+   CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'dbcsr_tensor_test'
+
+   PUBLIC :: &
+      dbcsr_t_equal
+
+CONTAINS
+
+! **************************************************************************************************
+!> \brief check if two (arbitrarily mapped and distributed) tensors are equal.
+!> \param tensor1 ...
+!> \param tensor2 ...
+!> \retval dbcsr_t_equal ...
+! **************************************************************************************************
+   FUNCTION dbcsr_t_equal(tensor1, tensor2)
+      TYPE(dbcsr_t_type), INTENT(INOUT)                  :: tensor1, tensor2
+      LOGICAL                                            :: dbcsr_t_equal
+
+      INTEGER                                            :: blk
+      TYPE(dbcsr_t_type)                                 :: tensor2_tmp
+      TYPE(dbcsr_t_iterator)                             :: iter
+      TYPE(block_nd)                                     :: blk_data1, blk_data2
+      INTEGER, DIMENSION(dbcsr_t_ndims(tensor1))         :: blk_size, ind_nd
+
+      ! create a copy of tensor2 that has exact same data format as tensor1
+      CALL dbcsr_t_create(tensor1, tensor2_tmp)
+      CALL dbcsr_t_reserve_blocks(tensor1, tensor2_tmp)
+      CALL dbcsr_t_copy(tensor2, tensor2_tmp)
+
+      dbcsr_t_equal = .TRUE.
+      MARK_USED(tensor2)
+
+      CALL dbcsr_t_iterator_start(iter, tensor1)
+
+      DO WHILE (dbcsr_t_iterator_blocks_left(iter))
+         CALL dbcsr_t_iterator_next_block(iter, ind_nd, blk, blk_size=blk_size)
+         CALL dbcsr_t_get_block(tensor1, ind_nd, blk_data1)
+         CALL dbcsr_t_get_block(tensor2_tmp, ind_nd, blk_data2)
+         IF (.NOT. blocks_equal(blk_data1, blk_data2)) THEN
+            dbcsr_t_equal = .FALSE.
+         ENDIF
+      ENDDO
+
+      CALL dbcsr_t_iterator_stop(iter)
+      CALL dbcsr_t_destroy(tensor2_tmp)
+   END FUNCTION
+
+! **************************************************************************************************
+!> \brief ...
+!> \param block1 ...
+!> \param block2 ...
+!> \retval blocks_equal ...
+! **************************************************************************************************
+   PURE FUNCTION blocks_equal(block1, block2)
+      TYPE(block_nd), INTENT(IN)                         :: block1, block2
+      LOGICAL                                            :: blocks_equal
+
+      SELECT CASE (block1%data_type)
+      CASE (dbcsr_type_real_4)
+         blocks_equal = MAXVAL(ABS(block1%r_sp%blk-block2%r_sp%blk)) .LT. 1.0E-12_real_4
+      CASE (dbcsr_type_real_8)
+         blocks_equal = MAXVAL(ABS(block1%r_dp%blk-block2%r_dp%blk)) .LT. 1.0E-12_real_8
+      CASE (dbcsr_type_complex_4)
+         blocks_equal = MAXVAL(ABS(block1%c_sp%blk-block2%c_sp%blk)) .LT. 1.0E-12_real_4
+      CASE (dbcsr_type_complex_8)
+         blocks_equal = MAXVAL(ABS(block1%c_dp%blk-block2%c_dp%blk)) .LT. 1.0E-12_real_8
+      END SELECT
+
+   END FUNCTION
+
+END MODULE
