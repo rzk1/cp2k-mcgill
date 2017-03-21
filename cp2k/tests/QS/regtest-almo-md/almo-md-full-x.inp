@@ -6,11 +6,15 @@
 
 &MOTION
   &MD
-     ENSEMBLE NVE
-     TIMESTEP 0.5
-     TEMPERATURE 300
-     STEPS 10
-  &END
+    ENSEMBLE  LANGEVIN
+    STEPS  10
+    TIMESTEP     0.5
+    TEMPERATURE     300
+    &LANGEVIN
+      GAMMA     1.3499999999999998E-05
+      SHADOW_GAMMA 8.0E-06
+    &END LANGEVIN
+  &END MD
 &END
 
 &FORCE_EVAL
@@ -27,6 +31,7 @@
       EPS_FILTER                 1.0E-8
       ALMO_ALGORITHM             DIAG
       ALMO_SCF_GUESS             ATOMIC
+      ALMO_EXTRAPOLATION_ORDER   4
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 10
