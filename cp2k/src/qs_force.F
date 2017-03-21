@@ -19,6 +19,7 @@ MODULE qs_force
                                               cp_dbcsr_copy,&
                                               cp_dbcsr_deallocate_matrix_set,&
                                               cp_dbcsr_init,&
+                                              cp_dbcsr_print,&
                                               cp_dbcsr_p_type,&
                                               cp_dbcsr_set
    USE cp_dbcsr_output,                 ONLY: cp_dbcsr_write_sparse_matrix
@@ -157,6 +158,7 @@ CONTAINS
       TYPE(qs_subsys_type), POINTER                      :: subsys
       TYPE(section_vals_type), POINTER                   :: dft_section, input, print_section
       TYPE(virial_type), POINTER                         :: virial
+!TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER :: matrix_ks
 
       CALL timeset(routineN, handle)
       NULLIFY (logger)
@@ -206,6 +208,12 @@ CONTAINS
       CALL get_qs_env(qs_env, &
                       dft_control=dft_control, &
                       para_env=para_env)
+
+!CALL get_qs_env(qs_env, energy=energy, rho=rho, matrix_ks=matrix_ks)
+!CALL qs_rho_get(rho, rho_ao=rho_ao)
+!WRITE(*,*) "FORCES"
+!CALL cp_dbcsr_print(rho_ao(1)%matrix)
+!CALL cp_dbcsr_print(matrix_ks(1)%matrix)
 
       ! Now we handle some special cases
       ! Maybe some of these would be better dealt with in qs_energies?
@@ -302,12 +310,12 @@ CONTAINS
       CALL qs_ks_update_qs_env(qs_env, calculate_forces=.TRUE.)
 
       ! ALMO Code (in the spirit of the MP2 modifications below)
-      IF (ASSOCIATED(qs_env%almo_scf_env)) THEN
-         ! tell qs about the energy correction
-         NULLIFY (energy)
-         CALL get_qs_env(qs_env, energy=energy)
-         energy%total = energy%total+energy%singles_corr
-      END IF
+      !IF (ASSOCIATED(qs_env%almo_scf_env)) THEN
+      !   ! tell qs about the energy correction
+      !   NULLIFY (energy)
+      !   CALL get_qs_env(qs_env, energy=energy)
+      !   energy%total = energy%total+energy%singles_corr
+      !END IF
 
       ! MP2 Code
       IF (ASSOCIATED(qs_env%mp2_env)) THEN

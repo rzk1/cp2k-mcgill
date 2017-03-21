@@ -1,0 +1,3 @@
+orthogonalize orbitals only if required in post-scf, this is a non-linear step
+
+MOLECULAR GUESS IS ON even when ALMO SCF is OFF

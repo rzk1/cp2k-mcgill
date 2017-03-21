@@ -3,6 +3,8 @@
 # Directories have been reordered according the execution time needed for a gfortran pdbg run using 2 MPI tasks
 # in case a new directory is added just add it at the top of the list..
 # the order will be regularly checked and modified...
+QS/regtest-almo-md
+QS/regtest-almo-eda
 Fist/regtest-plumed2                                        plumed2 
 TMC/regtest_ana_on_the_fly                                  parallel mpiranks>2 
 QS/regtest-sccs-3
