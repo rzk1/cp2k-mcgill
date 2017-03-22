@@ -42,6 +42,8 @@ MODULE almo_scf_optimizer
         cp_dbcsr_print_block_sum, cp_dbcsr_release, cp_dbcsr_reserve_block2d, cp_dbcsr_scale, &
         cp_dbcsr_set, cp_dbcsr_set_diag, cp_dbcsr_trace, cp_dbcsr_triu, cp_dbcsr_type, &
         cp_dbcsr_work_create, dbcsr_distribution_mp, dbcsr_func_dtanh, dbcsr_func_inverse, &
+        cp_dbcsr_nblkrows_total, cp_dbcsr_nblkcols_total, cp_dbcsr_col_block_sizes, &
+        cp_dbcsr_row_block_sizes, cp_dbcsr_get_block_p, &
         dbcsr_func_tanh, dbcsr_mp_numnodes, dbcsr_norm_maxabsnorm, dbcsr_type_no_symmetry
    USE cp_external_control,             ONLY: external_control
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
@@ -94,6 +96,7 @@ MODULE almo_scf_optimizer
 
    LOGICAL, PARAMETER :: debug_mode = .FALSE.
    LOGICAL, PARAMETER :: safe_mode = .FALSE.
+#define ALMO_MATHEMATICA 0
 
 CONTAINS
 
@@ -1169,6 +1172,15 @@ CONTAINS
                   energy_new = energy_new*spin_factor
                ENDIF
 
+#if (ALMO_MATHEMATICA==1)
+               IF (just_started) THEN
+                  CALL print_mathematica_matrix(almo_scf_env%matrix_s(1),"matrixS.dat")
+                  CALL print_mathematica_matrix(almo_scf_env%matrix_ks(ispin),"matrixF.dat")
+                  CALL print_mathematica_matrix(matrix_t_out(ispin),"matrixT.dat")
+                  CALL print_mathematica_matrix(quench_t(ispin),"matrixQ.dat")
+               ENDIF
+#endif
+
                ! save the previous gradient to compute beta
                ! do it only if the previous grad was computed
                ! for .NOT.line_search
@@ -1897,6 +1909,10 @@ CONTAINS
             IF (outer_prepare_to_exit) EXIT
 
          ENDDO ! outer SCF loop
+
+#if (ALMO_MATHEMATICA==1)
+         CALL print_mathematica_matrix(matrix_t_out(ispin),"matrixTf.dat")
+#endif
 
          ! post SCF-loop calculations
          IF (converged) THEN
@@ -5273,5 +5289,118 @@ CONTAINS
 
    END SUBROUTINE compute_gradient
 
+! *****************************************************************************
+!> \brief Serial code that prints matrices readable by Mathematica 
+!> \param matrix - matrix to print
+!> \param error ...
+!> \par History
+!>       2015.05 created [Rustam Z. Khaliullin]
+!> \author Rustam Z. Khaliullin
+! *****************************************************************************
+  SUBROUTINE print_mathematica_matrix(matrix,filename)
+    
+    TYPE(cp_dbcsr_type), INTENT(INOUT) :: matrix
+    CHARACTER(len=*)                   :: filename
+
+    CHARACTER(len=*), PARAMETER :: routineN = 'print_mathematica_matrix', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER :: hori_offset, vert_offset, Ncols, Nrows, col, row, jj, &
+      nblkcols_tot, nblkrows_tot, ncores, unit_nr, handle, fiunit
+    CHARACTER(LEN=20)                        :: formatstr, Scols
+    CHARACTER(LEN=200)                       :: logfile
+    INTEGER, ALLOCATABLE, DIMENSION(:)       :: ao_block_sizes, &
+                                                mo_block_sizes
+    INTEGER, DIMENSION(:), POINTER           :: ao_blk_sizes, mo_blk_sizes
+    LOGICAL                                  :: failure, found
+    REAL(KIND=dp), ALLOCATABLE, &
+      DIMENSION(:, :)                        :: H
+    REAL(KIND=dp), DIMENSION(:, :), POINTER  :: block_p
+    TYPE(cp_dbcsr_type)                      :: matrix_asym
+    TYPE(cp_logger_type), POINTER            :: logger
+
+    CALL timeset(routineN,handle)
+
+    ! get a useful output_unit
+    logger => cp_get_default_logger()
+    IF (logger%para_env%mepos == logger%para_env%source) THEN
+       unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+    ELSE
+       unit_nr = -1
+    ENDIF
+
+    ! serial code only
+    ncores = dbcsr_mp_numnodes(dbcsr_distribution_mp(&
+                cp_dbcsr_distribution(matrix)))
+    
+    IF (ncores.gt.1) THEN                            
+       CPABORT("serial code only")    
+    ENDIF
+
+    nblkrows_tot = cp_dbcsr_nblkrows_total(matrix)
+    nblkcols_tot = cp_dbcsr_nblkcols_total(matrix)
+    CPASSERT(nblkrows_tot==nblkcols_tot)
+    mo_blk_sizes => cp_dbcsr_col_block_sizes(matrix)
+    ao_blk_sizes => cp_dbcsr_row_block_sizes(matrix)
+    ALLOCATE(mo_block_sizes(nblkcols_tot),ao_block_sizes(nblkcols_tot))
+    mo_block_sizes(:)=mo_blk_sizes(:)
+    ao_block_sizes(:)=ao_blk_sizes(:)
+
+    CALL cp_dbcsr_init(matrix_asym)
+    CALL cp_dbcsr_create(matrix_asym,&
+            template=matrix,&
+            matrix_type=dbcsr_type_no_symmetry)
+    CALL cp_dbcsr_desymmetrize(matrix,matrix_asym)
+
+    Ncols=SUM(mo_block_sizes)
+    Nrows=SUM(ao_block_sizes)
+    ALLOCATE(H(Nrows,Ncols))
+    H(:,:)=0.0_dp
+    
+    hori_offset=0
+    DO col = 1, nblkcols_tot
+
+       vert_offset=0
+       DO row = 1, nblkrows_tot
+          
+          CALL cp_dbcsr_get_block_p(matrix_asym, row, col, block_p, found)
+          IF (found) THEN
+      
+             H(vert_offset+1:vert_offset+ao_block_sizes(row),&
+               hori_offset+1:hori_offset+mo_block_sizes(col))&
+               =block_p(:,:)
+
+          ENDIF
+          
+          vert_offset=vert_offset+ao_block_sizes(row)
+   
+       ENDDO
+
+       hori_offset=hori_offset+mo_block_sizes(col)
+
+    ENDDO ! loop over electron blocks 
+
+    CALL cp_dbcsr_release(matrix_asym)
+   
+    IF (unit_nr>0) THEN
+       logfile=TRIM(ADJUSTL(filename))
+       OPEN (fiunit,file=logfile,status='REPLACE')
+       WRITE(Scols,"(I10)") Ncols
+       formatstr="("//TRIM(Scols)//"E27.17)"
+       DO jj=1, Nrows
+          WRITE(fiunit,formatstr) H(jj,:)
+       ENDDO
+       CLOSE(fiunit)
+    ENDIF
+
+    DEALLOCATE(mo_block_sizes)
+    DEALLOCATE(ao_block_sizes)
+    DEALLOCATE(H)
+
+    CALL timestop(handle)
+  
+  END SUBROUTINE print_mathematica_matrix 
+
 END MODULE almo_scf_optimizer
+
 
