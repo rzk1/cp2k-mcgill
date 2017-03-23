@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2016  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -21,18 +21,6 @@ MODULE almo_scf_qs
                                               pbc
    USE cp_control_types,                ONLY: dft_control_type
    USE cp_dbcsr_cp2k_link,              ONLY: cp_dbcsr_alloc_block_from_nbl
-   USE cp_dbcsr_interface,              ONLY: &
-        cp_dbcsr_allocate_matrix_set, cp_dbcsr_complete_redistribute, cp_dbcsr_copy, &
-        cp_dbcsr_copy_into_existing, cp_dbcsr_create, cp_dbcsr_desymmetrize, &
-        cp_dbcsr_distribution, cp_dbcsr_distribution_new, cp_dbcsr_distribution_release, &
-        cp_dbcsr_filter, cp_dbcsr_finalize, cp_dbcsr_get_block_p, cp_dbcsr_get_info, &
-        cp_dbcsr_get_num_blocks, cp_dbcsr_get_stored_coordinates, cp_dbcsr_init, &
-        cp_dbcsr_multiply, cp_dbcsr_nblkcols_total, cp_dbcsr_nblkrows_total, cp_dbcsr_p_type, &
-        cp_dbcsr_release, cp_dbcsr_reserve_block2d, cp_dbcsr_row_block_sizes, cp_dbcsr_set, &
-        cp_dbcsr_type, cp_dbcsr_work_create, dbcsr_distribution_col_clusters, &
-        dbcsr_distribution_col_dist, dbcsr_distribution_mp, dbcsr_distribution_obj, &
-        dbcsr_distribution_row_clusters, dbcsr_distribution_row_dist, dbcsr_mp_group, &
-        dbcsr_mp_mynode, dbcsr_mp_numnodes, dbcsr_type_no_symmetry
    USE cp_fm_struct,                    ONLY: cp_fm_struct_create,&
                                               cp_fm_struct_release,&
                                               cp_fm_struct_type
@@ -43,6 +31,14 @@ MODULE almo_scf_qs
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
    USE cp_units,                        ONLY: cp_unit_to_cp2k
+   USE dbcsr_api,                       ONLY: &
+        dbcsr_allocate_matrix_set, dbcsr_complete_redistribute, dbcsr_copy, &
+        dbcsr_copy_into_existing, dbcsr_create, dbcsr_desymmetrize, dbcsr_distribution_get, &
+        dbcsr_distribution_new, dbcsr_distribution_release, dbcsr_distribution_type, dbcsr_filter, &
+        dbcsr_finalize, dbcsr_get_block_p, dbcsr_get_info, dbcsr_get_num_blocks, &
+        dbcsr_get_stored_coordinates, dbcsr_multiply, dbcsr_nblkcols_total, dbcsr_nblkrows_total, &
+        dbcsr_p_type, dbcsr_release, dbcsr_reserve_block2d, dbcsr_set, dbcsr_type, &
+        dbcsr_type_no_symmetry, dbcsr_work_create
    USE input_constants,                 ONLY: almo_constraint_ao_overlap,&
                                               almo_constraint_block_diagonal,&
                                               almo_constraint_distance,&
@@ -53,7 +49,7 @@ MODULE almo_scf_qs
                                               do_bondparm_vdw
    USE kinds,                           ONLY: dp
    USE message_passing,                 ONLY: mp_allgather
-   USE molecule_types_new,              ONLY: get_molecule_set_info,&
+   USE molecule_types,                  ONLY: get_molecule_set_info,&
                                               molecule_type
    USE particle_types,                  ONLY: particle_type
    USE qs_energy_types,                 ONLY: qs_energy_type
@@ -87,10 +83,15 @@ MODULE almo_scf_qs
 
    CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'almo_scf_qs'
 
-   PUBLIC :: almo_scf_init_qs, matrix_almo_create, matrix_qs_to_almo, &
-             almo_scf_dm_to_ks, calculate_w_matrix_almo, &
-             almo_scf_construct_quencher, almo_scf_update_ks_energy, &
-             matrix_almo_to_qs
+   PUBLIC :: matrix_almo_create, &
+             almo_scf_construct_quencher, &
+             calculate_w_matrix_almo, &
+             init_almo_ks_matrix_via_qs, & 
+             almo_scf_update_ks_energy, &
+             construct_qs_mos, &
+             matrix_qs_to_almo, &
+             almo_dm_to_almo_ks, &
+             almo_dm_to_qs_env
 
 CONTAINS
 
@@ -112,7 +113,7 @@ CONTAINS
                                  name_new, size_keys, symmetry_new, &
                                  spin_key, init_domains)
 
-      TYPE(cp_dbcsr_type)                                :: matrix_new, matrix_qs
+      TYPE(dbcsr_type)                                   :: matrix_new, matrix_qs
       TYPE(almo_scf_env_type), INTENT(IN)                :: almo_scf_env
       CHARACTER(len=*), INTENT(IN)                       :: name_new
       INTEGER, DIMENSION(2), INTENT(IN)                  :: size_keys
@@ -129,9 +130,9 @@ CONTAINS
       INTEGER, DIMENSION(:), POINTER :: blk_distr, blk_sizes, block_sizes_new, cluster_distr, &
          cluster_distr_new, col_cluster_new, col_distr_new, col_sizes_new, distr_new_array, &
          row_cluster_new, row_distr_new, row_sizes_new
-      LOGICAL                                            :: active, tr
+      LOGICAL                                            :: active, tr, one_dim_is_mo
       REAL(KIND=dp), DIMENSION(:, :), POINTER            :: p_new_block
-      TYPE(dbcsr_distribution_obj)                       :: dist_new, dist_qs
+      TYPE(dbcsr_distribution_type)                      :: dist_new, dist_qs
 
 ! dimension size: AO, MO, etc
 !                 almo_mat_dim_aobasis - no. of AOs,
@@ -141,7 +142,7 @@ CONTAINS
 !  dbcsr_type_antisymmetric, dbcsr_type_hermitian, dbcsr_type_antihermitian
 !  (see dbcsr_lib/dbcsr_types.F for other values)
 ! spin_key: either 1 or 2 (0 is allowed for matrics in the AO basis)
-!    TYPE(cp_dbcsr_iterator)                  :: iter
+!    TYPE(dbcsr_iterator_type)                  :: iter
 !    REAL(KIND=dp), ALLOCATABLE, DIMENSION(:) :: allones
 !-----------------------------------------------------------------------
 
@@ -158,7 +159,7 @@ CONTAINS
 
       ! obtain distribution from the qs matrix - it might be useful
       ! to get the structure of the AO dimensions
-      dist_qs = cp_dbcsr_distribution(matrix_qs)
+      CALL dbcsr_get_info(matrix_qs, distribution=dist_qs)
 
       natoms = almo_scf_env%natoms
       nmols = almo_scf_env%nmolecules
@@ -167,11 +168,9 @@ CONTAINS
 
          ! distribution pattern is the same for all matrix types (ao, occ, virt)
          IF (dimen == 1) THEN !rows
-            blk_distr => dbcsr_distribution_row_dist(dist_qs)
-            cluster_distr => dbcsr_distribution_row_clusters(dist_qs)
+            CALL dbcsr_distribution_get(dist_qs, row_dist=blk_distr, row_cluster=cluster_distr)
          ELSE !columns
-            blk_distr => dbcsr_distribution_col_dist(dist_qs)
-            cluster_distr => dbcsr_distribution_col_clusters(dist_qs)
+            CALL dbcsr_distribution_get(dist_qs, col_dist=blk_distr, col_cluster=cluster_distr)
          ENDIF
 
          NULLIFY (cluster_distr_new)
@@ -179,7 +178,7 @@ CONTAINS
          IF (size_keys(dimen) == almo_mat_dim_aobasis) THEN ! this dimension is AO
 
             ! structure of an AO dimension can be copied from matrix_qs
-            blk_sizes => cp_dbcsr_row_block_sizes(matrix_qs)
+            CALL dbcsr_get_info(matrix_qs, row_blk_size=blk_sizes)
 
             ! atomic clustering of AOs
             IF (almo_scf_env%mat_distr_aos == almo_mat_distr_atomic) THEN
@@ -239,6 +238,9 @@ CONTAINS
                   ALLOCATE (block_sizes_new(nlength))
                   IF (size_keys(dimen) == almo_mat_dim_occ) THEN
                      block_sizes_new(:) = almo_scf_env%nocc_of_domain(:, spin_key)
+                     ! Handle zero-electron fragments by adding one-orbital that
+                     ! must remain zero at all times
+                     WHERE ( block_sizes_new == 0 ) block_sizes_new = 1
                   ELSE IF (size_keys(dimen) == almo_mat_dim_virt_disc) THEN
                      block_sizes_new(:) = almo_scf_env%nvirt_disc_of_domain(:, spin_key)
                   ELSE IF (size_keys(dimen) == almo_mat_dim_virt_full) THEN
@@ -295,36 +297,35 @@ CONTAINS
       ENDDO ! both rows and columns are done
 
       ! Create the distribution
-      CALL cp_dbcsr_distribution_new(dist_new, &
-                                     dbcsr_distribution_mp(dist_qs), row_distr_new, col_distr_new, &
-                                     row_cluster_new, col_cluster_new, &
-                                     reuse_arrays=.TRUE.)
+      CALL dbcsr_distribution_new(dist_new, template=dist_qs, &
+                                  row_dist=row_distr_new, col_dist=col_distr_new, &
+                                  row_cluster=row_cluster_new, col_cluster=col_cluster_new, &
+                                  reuse_arrays=.TRUE.)
 
       ! Create the matrix
-      CALL cp_dbcsr_init(matrix_new)
-      CALL cp_dbcsr_create(matrix_new, name_new, &
-                           dist_new, symmetry_new, &
-                           row_sizes_new, col_sizes_new, reuse_arrays=.TRUE.)
-      CALL cp_dbcsr_distribution_release(dist_new)
+      CALL dbcsr_create(matrix_new, name_new, &
+                        dist_new, symmetry_new, &
+                        row_sizes_new, col_sizes_new, reuse_arrays=.TRUE.)
+      CALL dbcsr_distribution_release(dist_new)
 
       ! fill out reqired blocks with 1.0_dp to tell the dbcsr library
       ! which blocks to keep
       IF (init_domains) THEN
 
-         mynode = dbcsr_mp_mynode(dbcsr_distribution_mp(cp_dbcsr_distribution(matrix_new)))
-         CALL cp_dbcsr_work_create(matrix_new, work_mutable=.TRUE.)
+         CALL dbcsr_distribution_get(dist_new, mynode=mynode)
+         CALL dbcsr_work_create(matrix_new, work_mutable=.TRUE.)
 
          ! startQQQ - this part of the code scales quadratically
          ! therefore it is replaced with a less general but linear scaling algorithm below
          ! the quadratic algorithm is kept to be re-written later
-         !QQQnblkrows_tot = cp_dbcsr_nblkrows_total(matrix_new)
-         !QQQnblkcols_tot = cp_dbcsr_nblkcols_total(matrix_new)
+         !QQQnblkrows_tot = dbcsr_nblkrows_total(matrix_new)
+         !QQQnblkcols_tot = dbcsr_nblkcols_total(matrix_new)
          !QQQDO row = 1, nblkrows_tot
          !QQQ   DO col = 1, nblkcols_tot
          !QQQ      tr = .FALSE.
          !QQQ      iblock_row = row
          !QQQ      iblock_col = col
-         !QQQ      CALL cp_dbcsr_get_stored_coordinates(matrix_new, iblock_row, iblock_col, tr, hold)
+         !QQQ      CALL dbcsr_get_stored_coordinates(matrix_new, iblock_row, iblock_col, tr, hold)
 
          !QQQ      IF(hold.EQ.mynode) THEN
          !QQQ
@@ -362,7 +363,7 @@ CONTAINS
 
          !QQQ         IF (active) THEN
          !QQQ            NULLIFY (p_new_block)
-         !QQQ            CALL cp_dbcsr_reserve_block2d(matrix_new, iblock_row, iblock_col, p_new_block)
+         !QQQ            CALL dbcsr_reserve_block2d(matrix_new, iblock_row, iblock_col, p_new_block)
          !QQQ            CPPostcondition(ASSOCIATED(p_new_block),cp_failure_level,routineP,failure)
          !QQQ            p_new_block(:,:) = 1.0_dp
          !QQQ         ENDIF
@@ -370,23 +371,48 @@ CONTAINS
          !QQQ      ENDIF ! mynode
          !QQQ   ENDDO
          !QQQENDDO
+         !QQQtake care of zero-electron fragments
          ! endQQQ - end of the quadratic part
          ! start linear-scaling replacement:
          ! works only for molecular blocks AND molecular distributions
-         nblkrows_tot = cp_dbcsr_nblkrows_total(matrix_new)
+         nblkrows_tot = dbcsr_nblkrows_total(matrix_new)
          DO row = 1, nblkrows_tot
             tr = .FALSE.
             iblock_row = row
             iblock_col = row
-            CALL cp_dbcsr_get_stored_coordinates(matrix_new, iblock_row, iblock_col, hold)
+            CALL dbcsr_get_stored_coordinates(matrix_new, iblock_row, iblock_col, hold)
 
             IF (hold .EQ. mynode) THEN
 
                active = .TRUE.
 
+               one_dim_is_mo = .FALSE.
+               DO dimen = 1, 2 ! 1 - row, 2 - column dimension
+                  IF (size_keys(dimen) == almo_mat_dim_occ ) one_dim_is_mo = .TRUE.
+               ENDDO
+               IF (one_dim_is_mo .AND. almo_scf_env%nocc_of_domain(row, spin_key)==0) active = .FALSE. 
+               
+               one_dim_is_mo = .FALSE.
+               DO dimen = 1, 2
+                  IF (size_keys(dimen) == almo_mat_dim_virt ) one_dim_is_mo = .TRUE.
+               ENDDO
+               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_of_domain(row, spin_key)==0) active = .FALSE. 
+               
+               one_dim_is_mo = .FALSE.
+               DO dimen = 1, 2
+                  IF (size_keys(dimen) == almo_mat_dim_virt_disc ) one_dim_is_mo = .TRUE.
+               ENDDO
+               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_disc_of_domain(row, spin_key)==0) active = .FALSE. 
+
+               one_dim_is_mo = .FALSE.
+               DO dimen = 1, 2
+                  IF (size_keys(dimen) == almo_mat_dim_virt_full ) one_dim_is_mo = .TRUE.
+               ENDDO
+               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_full_of_domain(row, spin_key)==0) active = .FALSE. 
+
                IF (active) THEN
                   NULLIFY (p_new_block)
-                  CALL cp_dbcsr_reserve_block2d(matrix_new, iblock_row, iblock_col, p_new_block)
+                  CALL dbcsr_reserve_block2d(matrix_new, iblock_row, iblock_col, p_new_block)
                   CPASSERT(ASSOCIATED(p_new_block))
                   p_new_block(:, :) = 1.0_dp
                ENDIF
@@ -397,7 +423,7 @@ CONTAINS
 
       ENDIF ! init_domains
 
-      CALL cp_dbcsr_finalize(matrix_new)
+      CALL dbcsr_finalize(matrix_new)
 
       CALL timestop(handle)
 
@@ -407,38 +433,37 @@ CONTAINS
 !> \brief convert between two types of matrices: QS style to ALMO style
 !> \param matrix_qs ...
 !> \param matrix_almo ...
-!> \param almo_scf_env ...
+!> \param mat_distr_aos ...
 !> \param keep_sparsity ...
 !> \par History
 !>       2011.06 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE matrix_qs_to_almo(matrix_qs, matrix_almo, almo_scf_env, &
-                                keep_sparsity)
-      TYPE(cp_dbcsr_type)                                :: matrix_qs, matrix_almo
-      TYPE(almo_scf_env_type)                            :: almo_scf_env
+   SUBROUTINE matrix_qs_to_almo(matrix_qs, matrix_almo, mat_distr_aos, keep_sparsity)
+
+      TYPE(dbcsr_type)                                   :: matrix_qs, matrix_almo
+      INTEGER                                            :: mat_distr_aos
       LOGICAL, INTENT(IN)                                :: keep_sparsity
 
       CHARACTER(len=*), PARAMETER :: routineN = 'matrix_qs_to_almo', &
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle
-      TYPE(cp_dbcsr_type)                                :: matrix_qs_nosym
+      TYPE(dbcsr_type)                                   :: matrix_qs_nosym
 
       CALL timeset(routineN, handle)
       !RZK-warning if it's not a N(AO)xN(AO) matrix then stop
 
-      SELECT CASE (almo_scf_env%mat_distr_aos)
+      SELECT CASE (mat_distr_aos)
       CASE (almo_mat_distr_atomic)
          ! automatic data_type conversion
-         CALL cp_dbcsr_copy(matrix_almo, matrix_qs, &
-                            keep_sparsity=keep_sparsity)
+         CALL dbcsr_copy(matrix_almo, matrix_qs, &
+                         keep_sparsity=keep_sparsity)
       CASE (almo_mat_distr_molecular)
          ! desymmetrize the qs matrix
-         CALL cp_dbcsr_init(matrix_qs_nosym)
-         CALL cp_dbcsr_create(matrix_qs_nosym, template=matrix_qs, &
-                              matrix_type=dbcsr_type_no_symmetry)
-         CALL cp_dbcsr_desymmetrize(matrix_qs, matrix_qs_nosym)
+         CALL dbcsr_create(matrix_qs_nosym, template=matrix_qs, &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_desymmetrize(matrix_qs, matrix_qs_nosym)
 
          ! perform the magic complete_redistribute
          ! before calling complete_redistribute set all blocks to zero
@@ -447,10 +472,10 @@ CONTAINS
          ! in the final redistributed matrix. this is a bug in
          ! complete_redistribute. RZK-warning it should be later corrected by calling
          ! dbcsr_set to 0.0 from within complete_redistribute
-         CALL cp_dbcsr_set(matrix_almo, 0.0_dp)
-         CALL cp_dbcsr_complete_redistribute(matrix_qs_nosym, matrix_almo, &
-                                             keep_sparsity=keep_sparsity); 
-         CALL cp_dbcsr_release(matrix_qs_nosym)
+         CALL dbcsr_set(matrix_almo, 0.0_dp)
+         CALL dbcsr_complete_redistribute(matrix_qs_nosym, matrix_almo, &
+                                          keep_sparsity=keep_sparsity); 
+         CALL dbcsr_release(matrix_qs_nosym)
 
       CASE DEFAULT
          CPABORT("")
@@ -464,14 +489,14 @@ CONTAINS
 !> \brief convert between two types of matrices: ALMO style to QS style
 !> \param matrix_almo ...
 !> \param matrix_qs ...
-!> \param almo_scf_env ...
+!> \param mat_distr_aos ...
 !> \par History
 !>       2011.06 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE matrix_almo_to_qs(matrix_almo, matrix_qs, almo_scf_env)
-      TYPE(cp_dbcsr_type)                                :: matrix_almo, matrix_qs
-      TYPE(almo_scf_env_type), INTENT(IN)                :: almo_scf_env
+   SUBROUTINE matrix_almo_to_qs(matrix_almo, matrix_qs, mat_distr_aos)
+      TYPE(dbcsr_type)                                   :: matrix_almo, matrix_qs
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
 
       CHARACTER(len=*), PARAMETER :: routineN = 'matrix_almo_to_qs', &
          routineP = moduleN//':'//routineN
@@ -481,58 +506,38 @@ CONTAINS
       CALL timeset(routineN, handle)
       ! RZK-warning if it's not a N(AO)xN(AO) matrix then stop
 
-!    IF (ls_mstruct%single_precision) THEN
-!       CALL cp_dbcsr_init (matrix_tmp)
-!       CALL cp_dbcsr_create (matrix_tmp, template=matrix_ls,&
-!            data_type=dbcsr_type_real_8)
-!       CALL cp_dbcsr_copy (matrix_tmp, matrix_ls)
-!    ENDIF
-
-      SELECT CASE (almo_scf_env%mat_distr_aos)
+      SELECT CASE (mat_distr_aos)
       CASE (almo_mat_distr_atomic)
-!       IF (ls_mstruct%single_precision) THEN
-!          CALL cp_dbcsr_copy_into_existing (matrix_qs, matrix_tmp)
-!       ELSE
-         CALL cp_dbcsr_copy_into_existing(matrix_qs, matrix_almo)
-!       ENDIF
+         CALL dbcsr_copy_into_existing(matrix_qs, matrix_almo)
       CASE (almo_mat_distr_molecular)
-         CALL cp_dbcsr_set(matrix_qs, 0.0_dp)
-!       IF (ls_mstruct%single_precision) THEN
-!          CALL cp_dbcsr_complete_redistribute(matrix_tmp, matrix_qs, keep_sparsity=.TRUE.)
-!       ELSE
-         CALL cp_dbcsr_complete_redistribute(matrix_almo, matrix_qs, keep_sparsity=.TRUE.)
-!       ENDIF
+         CALL dbcsr_set(matrix_qs, 0.0_dp)
+         CALL dbcsr_complete_redistribute(matrix_almo, matrix_qs, keep_sparsity=.TRUE.)
       CASE DEFAULT
          CPABORT("")
       END SELECT
-
-!    IF (ls_mstruct%single_precision) THEN
-!       CALL cp_dbcsr_release(matrix_tmp)
-!    ENDIF
 
       CALL timestop(handle)
 
    END SUBROUTINE matrix_almo_to_qs
 
 ! **************************************************************************************************
-!> \brief Initialization of QS and ALMOs
-!>        Some parts can be factored-out since they are common
-!>        for the other SCF methods
-!> \param qs_env ...
-!> \param almo_scf_env ...
+!> \brief Initialization of the QS and ALMO KS matrix
 !> \par History
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_init_qs(qs_env, almo_scf_env)
-      TYPE(qs_environment_type), POINTER                 :: qs_env
-      TYPE(almo_scf_env_type)                            :: almo_scf_env
+   SUBROUTINE init_almo_ks_matrix_via_qs(qs_env, matrix_ks, mat_distr_aos, eps_filter)
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_init_qs', &
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(dbcsr_type), DIMENSION(:)                     :: matrix_ks
+      INTEGER                                            :: mat_distr_aos
+      REAL(KIND=dp)                                      :: eps_filter
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'init_almo_ks_matrix_via_qs', &
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle, ispin, ncol_fm, nrow_fm, nspin
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_ks, matrix_s
+      TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_qs_ks, matrix_qs_s
       TYPE(cp_fm_struct_type), POINTER                   :: fm_struct_tmp
       TYPE(cp_fm_type), POINTER                          :: mo_fm_copy
       TYPE(dft_control_type), POINTER                    :: dft_control
@@ -549,36 +554,70 @@ CONTAINS
       ! get basic quantities from the qs_env
       CALL get_qs_env(qs_env, &
                       dft_control=dft_control, &
-                      matrix_s=matrix_s, &
-                      matrix_ks=matrix_ks, &
+                      matrix_s=matrix_qs_s, &
+                      matrix_ks=matrix_qs_ks, &
                       ks_env=ks_env, &
                       sab_orb=sab_orb)
 
       nspin = dft_control%nspins
 
-      ! create matrix_ks if necessary
-      IF (.NOT. ASSOCIATED(matrix_ks)) THEN
-         CALL cp_dbcsr_allocate_matrix_set(matrix_ks, nspin)
+      ! create matrix_ks in the QS env if necessary
+      IF (.NOT. ASSOCIATED(matrix_qs_ks)) THEN
+         CALL dbcsr_allocate_matrix_set(matrix_qs_ks, nspin)
          DO ispin = 1, nspin
-            ALLOCATE (matrix_ks(ispin)%matrix)
-            CALL cp_dbcsr_init(matrix_ks(ispin)%matrix)
-            CALL cp_dbcsr_create(matrix_ks(ispin)%matrix, &
-                                 template=matrix_s(1)%matrix)
-            CALL cp_dbcsr_alloc_block_from_nbl(matrix_ks(ispin)%matrix, sab_orb)
-            CALL cp_dbcsr_set(matrix_ks(ispin)%matrix, 0.0_dp)
+            ALLOCATE (matrix_qs_ks(ispin)%matrix)
+            CALL dbcsr_create(matrix_qs_ks(ispin)%matrix, &
+                    template=matrix_qs_s(1)%matrix)
+            CALL cp_dbcsr_alloc_block_from_nbl(matrix_qs_ks(ispin)%matrix, sab_orb)
+            CALL dbcsr_set(matrix_qs_ks(ispin)%matrix, 0.0_dp)
          ENDDO
-         CALL set_ks_env(ks_env, matrix_ks=matrix_ks)
+         CALL set_ks_env(ks_env, matrix_ks=matrix_qs_ks)
       ENDIF
+
+      ! copy to ALMO
+      DO ispin = 1, nspin
+         CALL matrix_qs_to_almo(matrix_qs_ks(ispin)%matrix, &
+                 matrix_ks(ispin), mat_distr_aos, .FALSE.)
+         CALL dbcsr_filter(matrix_ks(ispin), eps_filter)
+      ENDDO
+
+      CALL timestop(handle)
+
+   END SUBROUTINE init_almo_ks_matrix_via_qs
+
+! **************************************************************************************************
+!> \brief Create MOs in the QS env to be able to return ALMOs to QS
+!> \par History
+!>       2016.12 created [Yifei Shi]
+!> \author Yifei Shi
+! **************************************************************************************************
+   SUBROUTINE construct_qs_mos(qs_env, almo_scf_env)
+
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(almo_scf_env_type), INTENT(INOUT)             :: almo_scf_env
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'construct_qs_mos', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, ispin, ncol_fm, nrow_fm
+      TYPE(cp_fm_struct_type), POINTER                   :: fm_struct_tmp
+      TYPE(cp_fm_type), POINTER                          :: mo_fm_copy
+      TYPE(dft_control_type), POINTER                    :: dft_control
+      TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos
+      TYPE(qs_scf_env_type), POINTER                     :: scf_env
+
+      CALL timeset(routineN, handle)
+
 
       ! create and init scf_env (this is necessary to return MOs to qs)
       NULLIFY (mos, mo_fm_copy, fm_struct_tmp, scf_env)
       CALL scf_env_create(scf_env)
 
-      CALL qs_scf_env_initialize(qs_env, scf_env)
+      !CALL qs_scf_env_initialize(qs_env, scf_env)
       CALL set_qs_env(qs_env, scf_env=scf_env)
-      CALL get_qs_env(qs_env, mos=mos)
+      CALL get_qs_env(qs_env, dft_control=dft_control, mos=mos)
 
-      CALL cp_dbcsr_get_info(almo_scf_env%matrix_t(1), nfullrows_total=nrow_fm, nfullcols_total=ncol_fm)
+      CALL dbcsr_get_info(almo_scf_env%matrix_t(1), nfullrows_total=nrow_fm, nfullcols_total=ncol_fm)
 
       ! allocate and init mo_set
       DO ispin = 1, almo_scf_env%nspins
@@ -609,11 +648,50 @@ CONTAINS
 
       CALL timestop(handle)
 
-   END SUBROUTINE almo_scf_init_qs
+   END SUBROUTINE construct_qs_mos
 
 ! **************************************************************************************************
-!> \brief use the density matrix in almo_scf_env
-!>        to compute the new energy and KS matrix
+!> \brief return density matrix to the qs_env
+!> \param qs_env ...
+!> \par History
+!>       2011.05 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE almo_dm_to_qs_env(qs_env, matrix_p, mat_distr_aos)
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(dbcsr_type), DIMENSION(:)                     :: matrix_p
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_dm_to_qs_env', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, ispin, nspins
+      TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: rho_ao
+      TYPE(qs_rho_type), POINTER                         :: rho
+
+      CALL timeset(routineN, handle)
+
+      NULLIFY (rho, rho_ao)
+      nspins = SIZE(matrix_p)
+      CALL get_qs_env(qs_env, rho=rho)
+      CALL qs_rho_get(rho, rho_ao=rho_ao)
+
+      ! set the new density matrix
+      DO ispin = 1, nspins
+         CALL matrix_almo_to_qs(matrix_p(ispin), &
+                                rho_ao(ispin)%matrix, &
+                                mat_distr_aos)
+      END DO
+      CALL qs_rho_update_rho(rho, qs_env=qs_env)
+      CALL qs_ks_did_change(qs_env%ks_env, rho_changed=.TRUE.)
+
+      CALL timestop(handle)
+
+   END SUBROUTINE almo_dm_to_qs_env
+
+! **************************************************************************************************
+!> \brief uses the ALMO density matrix
+!>        to compute KS matrix (inside QS environment) and the new energy
 !> \param qs_env ...
 !> \param almo_scf_env ...
 !> \param energy_new ...
@@ -621,43 +699,72 @@ CONTAINS
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_dm_to_ks(qs_env, almo_scf_env, energy_new)
+   SUBROUTINE almo_dm_to_qs_ks(qs_env, matrix_p, energy_total, mat_distr_aos)
       TYPE(qs_environment_type), POINTER                 :: qs_env
-      TYPE(almo_scf_env_type)                            :: almo_scf_env
-      REAL(KIND=dp)                                      :: energy_new
+      TYPE(dbcsr_type), DIMENSION(:)                     :: matrix_p
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
+      REAL(KIND=dp)                                      :: energy_total
 
-      CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_dm_to_ks', &
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_dm_to_qs_ks', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, ispin, nspin
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: rho_ao
+      INTEGER                                            :: handle
       TYPE(qs_energy_type), POINTER                      :: energy
-      TYPE(qs_rho_type), POINTER                         :: rho
 
-      NULLIFY (rho, rho_ao)
       CALL timeset(routineN, handle)
 
-      nspin = almo_scf_env%nspins
-      CALL get_qs_env(qs_env, energy=energy, rho=rho)
-      CALL qs_rho_get(rho, rho_ao=rho_ao)
-
-      ! set the new density matrix
-      DO ispin = 1, nspin
-         CALL matrix_almo_to_qs(almo_scf_env%matrix_p(ispin), &
-                                rho_ao(ispin)%matrix, &
-                                almo_scf_env)
-      END DO
-
-      ! compute the corresponding KS matrix and new energy
-      CALL qs_rho_update_rho(rho, qs_env=qs_env)
-      CALL qs_ks_did_change(qs_env%ks_env, rho_changed=.TRUE.)
+      NULLIFY(energy)
+      CALL get_qs_env(qs_env, energy=energy)
+      CALL almo_dm_to_qs_env(qs_env, matrix_p, mat_distr_aos)
       CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.FALSE., &
                                print_active=.TRUE.)
-      energy_new = energy%total
+      energy_total = energy%total
 
       CALL timestop(handle)
 
-   END SUBROUTINE almo_scf_dm_to_ks
+   END SUBROUTINE almo_dm_to_qs_ks
+
+! **************************************************************************************************
+!> \brief uses the ALMO density matrix
+!>        to compute ALMO KS matrix and the new energy
+!> \par History
+!>       2011.05 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE almo_dm_to_almo_ks(qs_env, matrix_p, matrix_ks, energy_total, eps_filter, &
+      mat_distr_aos)
+
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(dbcsr_type), DIMENSION(:)                     :: matrix_p, matrix_ks
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
+      REAL(KIND=dp)                                      :: energy_total, eps_filter
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'almo_dm_to_almo_ks', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, nspins, ispin
+      TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_qs_ks
+
+      CALL timeset(routineN, handle)
+
+      ! update KS matrix in the QS env
+      CALL almo_dm_to_qs_ks(qs_env, matrix_p, energy_total, mat_distr_aos)
+
+      nspins = SIZE(matrix_ks)
+
+      ! get KS matrix from the QS env and convert to the ALMO format
+      CALL get_qs_env(qs_env, matrix_ks=matrix_qs_ks)
+      DO ispin=1, nspins
+         CALL matrix_qs_to_almo(matrix_qs_ks(ispin)%matrix, &
+                 matrix_ks(ispin), &
+                 mat_distr_aos, .FALSE.)
+         CALL dbcsr_filter(matrix_ks(ispin), eps_filter)
+      ENDDO
+
+      CALL timestop(handle)
+
+   END SUBROUTINE almo_dm_to_almo_ks
+
 
 ! **************************************************************************************************
 !> \brief update qs_env total energy
@@ -731,9 +838,10 @@ CONTAINS
       REAL(KIND=dp), DIMENSION(3)                        :: rab
       REAL(KIND=dp), DIMENSION(:, :), POINTER            :: p_new_block
       TYPE(cell_type), POINTER                           :: cell
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_s
-      TYPE(cp_dbcsr_type)                                :: matrix_s_sym
       TYPE(cp_logger_type), POINTER                      :: logger
+      TYPE(dbcsr_distribution_type)                      :: dist
+      TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_s
+      TYPE(dbcsr_type)                                   :: matrix_s_sym
       TYPE(molecule_type), DIMENSION(:), POINTER         :: molecule_set
       TYPE(neighbor_list_iterator_p_type), &
          DIMENSION(:), POINTER                           :: nl_iterator, nl_iterator2
@@ -771,17 +879,16 @@ CONTAINS
       ENDIF
 
       ! create a symmetrized copy of the ao overlap
-      CALL cp_dbcsr_init(matrix_s_sym)
-      CALL cp_dbcsr_create(matrix_s_sym, &
-                           template=almo_scf_env%matrix_s(1), &
-                           matrix_type=dbcsr_type_no_symmetry)
-      CALL cp_dbcsr_get_info(almo_scf_env%matrix_s(1), &
-                             matrix_type=sym)
+      CALL dbcsr_create(matrix_s_sym, &
+                        template=almo_scf_env%matrix_s(1), &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_get_info(almo_scf_env%matrix_s(1), &
+                          matrix_type=sym)
       IF (sym .EQ. dbcsr_type_no_symmetry) THEN
-         CALL cp_dbcsr_copy(matrix_s_sym, almo_scf_env%matrix_s(1))
+         CALL dbcsr_copy(matrix_s_sym, almo_scf_env%matrix_s(1))
       ELSE
-         CALL cp_dbcsr_desymmetrize(almo_scf_env%matrix_s(1), &
-                                    matrix_s_sym)
+         CALL dbcsr_desymmetrize(almo_scf_env%matrix_s(1), &
+                                 matrix_s_sym)
       ENDIF
 
       ALLOCATE (almo_scf_env%quench_t(almo_scf_env%nspins))
@@ -801,18 +908,14 @@ CONTAINS
                               init_domains=.FALSE.)
 
       ! initialize distance quencher
-      CALL cp_dbcsr_work_create(almo_scf_env%quench_t(ispin), &
-                                work_mutable=.TRUE.)
+      CALL dbcsr_work_create(almo_scf_env%quench_t(ispin), &
+                             work_mutable=.TRUE.)
 
-      nblkrows_tot = cp_dbcsr_nblkrows_total(almo_scf_env%quench_t(ispin))
-      nblkcols_tot = cp_dbcsr_nblkcols_total(almo_scf_env%quench_t(ispin))
+      nblkrows_tot = dbcsr_nblkrows_total(almo_scf_env%quench_t(ispin))
+      nblkcols_tot = dbcsr_nblkcols_total(almo_scf_env%quench_t(ispin))
 
-      mynode = dbcsr_mp_mynode(dbcsr_distribution_mp( &
-                               cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
-      nNodes = dbcsr_mp_numnodes(dbcsr_distribution_mp( &
-                                 cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
-      GroupID = dbcsr_mp_group(dbcsr_distribution_mp( &
-                               cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
+      CALL dbcsr_get_info(almo_scf_env%quench_t(ispin), distribution=dist)
+      CALL dbcsr_distribution_get(dist, numnodes=nNodes, group=GroupID, mynode=mynode)
 
       ! create global atom neighbor list from the local lists
       ! first, calculate number of local pairs
@@ -858,9 +961,6 @@ CONTAINS
 
       ! fifth, communicate all list data
       ALLOCATE (global_list(global_list_length))
-!WRITE(*,*) "LENGTH: ", list_length_cpu
-!WRITE(*,*) "OFFSET: ", list_offset_cpu
-!WRITE(*,*) "LOCAL:  ", local_list
       CALL mp_allgather(local_list, global_list, &
                         list_length_cpu, list_offset_cpu, GroupID)
       DEALLOCATE (list_length_cpu, list_offset_cpu)
@@ -933,14 +1033,11 @@ CONTAINS
       ! O(N) loop over domain pairs
       DO row = 1, nblkrows_tot
          DO col = 1, current_number_neighbors(row)
-            !DO col = 1, nblkcols_tot
             tr = .FALSE.
             iblock_row = row
             iblock_col = domain_neighbor_list(row, col)
-            !iblock_col = col
-!IF (unit_nr>0) WRITE(*,*) iblock_row, iblock_col
-            CALL cp_dbcsr_get_stored_coordinates(almo_scf_env%quench_t(ispin), &
-                                                 iblock_row, iblock_col, hold)
+            CALL dbcsr_get_stored_coordinates(almo_scf_env%quench_t(ispin), &
+                                              iblock_row, iblock_col, hold)
 
             IF (hold .EQ. mynode) THEN
 
@@ -994,8 +1091,8 @@ CONTAINS
                   IF (block_active) THEN
 
                      NULLIFY (p_new_block)
-                     CALL cp_dbcsr_reserve_block2d(almo_scf_env%quench_t(ispin), &
-                                                   iblock_row, iblock_col, p_new_block)
+                     CALL dbcsr_reserve_block2d(almo_scf_env%quench_t(ispin), &
+                                                iblock_row, iblock_col, p_new_block)
                      CPASSERT(ASSOCIATED(p_new_block))
                      p_new_block(:, :) = 1.0_dp
 
@@ -1019,8 +1116,8 @@ CONTAINS
                         ! ao domains are molecular / electron groups are molecular
 
                         ! compute the maximum overlap between the atoms of the two molecules
-                        CALL cp_dbcsr_get_block_p(matrix_s_sym, &
-                                                  iblock_row, iblock_col, p_new_block, found)
+                        CALL dbcsr_get_block_p(matrix_s_sym, &
+                                               iblock_row, iblock_col, p_new_block, found)
                         IF (found) THEN
                            !   CPErrorMessage(cp_failure_level,routineP,"S block not found")
                            !   CPPrecondition(.FALSE.,cp_failure_level,routineP,failure)
@@ -1050,8 +1147,8 @@ CONTAINS
 
                         ! ao domains are atomic / electron groups are atomic
                         ! compute max overlap between atoms: domain_row and domain_col
-                        CALL cp_dbcsr_get_block_p(matrix_s_sym, &
-                                                  iblock_row, iblock_col, p_new_block, found)
+                        CALL dbcsr_get_block_p(matrix_s_sym, &
+                                               iblock_row, iblock_col, p_new_block, found)
                         IF (found) THEN
                            !   CPErrorMessage(cp_failure_level,routineP,"S block not found")
                            !   CPPrecondition(.FALSE.,cp_failure_level,routineP,failure)
@@ -1084,8 +1181,8 @@ CONTAINS
                   ! Fill in non-zero blocks if AOs are close to the electron center
                   IF (overlap .LT. s1) THEN
                      NULLIFY (p_new_block)
-                     CALL cp_dbcsr_reserve_block2d(almo_scf_env%quench_t(ispin), &
-                                                   iblock_row, iblock_col, p_new_block)
+                     CALL dbcsr_reserve_block2d(almo_scf_env%quench_t(ispin), &
+                                                iblock_row, iblock_col, p_new_block)
                      CPASSERT(ASSOCIATED(p_new_block))
                      IF (overlap .LE. s0) THEN
                         p_new_block(:, :) = 1.0_dp
@@ -1191,8 +1288,9 @@ CONTAINS
                   contact1_radius = cp_unit_to_cp2k(contact1_radius, "angstrom")
                   contact2_radius = cp_unit_to_cp2k(contact2_radius, "angstrom")
 
-!RZK-warning the procedure is faulty for molecules: the closest contacts should be found using
-! the element specific radii
+                  !RZK-warning the procedure is faulty for molecules: 
+                  ! the closest contacts should be found using
+                  ! the element specific radii
 
                   ! compute inner and outer cutoff radii
                   r0 = almo_scf_env%quencher_r0_factor*(contact1_radius+contact2_radius)
@@ -1213,8 +1311,8 @@ CONTAINS
                   ! Fill in non-zero blocks if AOs are close to the electron center
                   IF (distance .LT. r1) THEN
                      NULLIFY (p_new_block)
-                     CALL cp_dbcsr_reserve_block2d(almo_scf_env%quench_t(ispin), &
-                                                   iblock_row, iblock_col, p_new_block)
+                     CALL dbcsr_reserve_block2d(almo_scf_env%quench_t(ispin), &
+                                                iblock_row, iblock_col, p_new_block)
                      CPASSERT(ASSOCIATED(p_new_block))
                      IF (distance .LE. r0) THEN
                         p_new_block(:, :) = 1.0_dp
@@ -1253,23 +1351,17 @@ CONTAINS
       DEALLOCATE (domain_neighbor_list)
       DEALLOCATE (current_number_neighbors)
 
-      CALL cp_dbcsr_finalize(almo_scf_env%quench_t(ispin))
-      !CALL cp_dbcsr_scale(almo_scf_env%quench_t(ispin),&
+      CALL dbcsr_finalize(almo_scf_env%quench_t(ispin))
+      !CALL dbcsr_scale(almo_scf_env%quench_t(ispin),&
       !        almo_scf_env%envelope_amplitude)
-      CALL cp_dbcsr_filter(almo_scf_env%quench_t(ispin), &
-                           almo_scf_env%eps_filter)
+      CALL dbcsr_filter(almo_scf_env%quench_t(ispin), &
+                        almo_scf_env%eps_filter)
 
       ! check that both domain_map and quench_t have the same number of entries
-      nblks = cp_dbcsr_get_num_blocks(almo_scf_env%quench_t(ispin))
+      nblks = dbcsr_get_num_blocks(almo_scf_env%quench_t(ispin))
       IF (nblks .NE. domain_map_local_entries) THEN
          CPABORT("number of blocks is wrong")
       ENDIF
-
-      ! communicate local parts of the domain map
-      !nNodes = dbcsr_mp_numnodes(dbcsr_distribution_mp(&
-      !   cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
-      !GroupID = dbcsr_mp_group(dbcsr_distribution_mp(&
-      !   cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
 
       ! first, communicate map sizes on the other nodes
       ALLOCATE (domain_entries_cpu(nNodes), offset_for_cpu(nNodes))
@@ -1372,15 +1464,15 @@ CONTAINS
 
       !ENDDO ! ispin
       IF (almo_scf_env%nspins .EQ. 2) THEN
-         CALL cp_dbcsr_copy(almo_scf_env%quench_t(2), &
-                            almo_scf_env%quench_t(1))
+         CALL dbcsr_copy(almo_scf_env%quench_t(2), &
+                         almo_scf_env%quench_t(1))
          almo_scf_env%domain_map(2)%pairs(:, :) = &
             almo_scf_env%domain_map(1)%pairs(:, :)
          almo_scf_env%domain_map(2)%index1(:) = &
             almo_scf_env%domain_map(1)%index1(:)
       ENDIF
 
-      CALL cp_dbcsr_release(matrix_s_sym)
+      CALL dbcsr_release(matrix_s_sym)
 
       IF (almo_scf_env%domain_layout_mos == almo_domain_layout_molecular .OR. &
           almo_scf_env%domain_layout_aos == almo_domain_layout_molecular) THEN
@@ -1389,17 +1481,17 @@ CONTAINS
       ENDIF
 
       !mynode = dbcsr_mp_mynode(dbcsr_distribution_mp(&
-      !   cp_dbcsr_distribution(almo_scf_env%quench_t(ispin))))
-      !nblkrows_tot = cp_dbcsr_nblkrows_total(almo_scf_env%quench_t(ispin))
-      !nblkcols_tot = cp_dbcsr_nblkcols_total(almo_scf_env%quench_t(ispin))
+      !   dbcsr_distribution(almo_scf_env%quench_t(ispin))))
+      !nblkrows_tot = dbcsr_nblkrows_total(almo_scf_env%quench_t(ispin))
+      !nblkcols_tot = dbcsr_nblkcols_total(almo_scf_env%quench_t(ispin))
       !DO row = 1, nblkrows_tot
       !   DO col = 1, nblkcols_tot
       !      tr = .FALSE.
       !      iblock_row = row
       !      iblock_col = col
-      !      CALL cp_dbcsr_get_stored_coordinates(almo_scf_env%quench_t(ispin),&
+      !      CALL dbcsr_get_stored_coordinates(almo_scf_env%quench_t(ispin),&
       !              iblock_row, iblock_col, tr, hold)
-      !      CALL cp_dbcsr_get_block_p(almo_scf_env%quench_t(ispin),&
+      !      CALL dbcsr_get_block_p(almo_scf_env%quench_t(ispin),&
       !              row, col, p_new_block, found)
       !      write(*,*) "RST_NOTE:", mynode, row, col, hold, found
       !   ENDDO
@@ -1419,7 +1511,7 @@ CONTAINS
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
    SUBROUTINE calculate_w_matrix_almo(matrix_w, almo_scf_env)
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER       :: matrix_w
+      TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_w
       TYPE(almo_scf_env_type)                            :: almo_scf_env
 
       CHARACTER(len=*), PARAMETER :: routineN = 'calculate_w_matrix_almo', &
@@ -1427,7 +1519,7 @@ CONTAINS
 
       INTEGER                                            :: handle, ispin
       REAL(KIND=dp)                                      :: scaling
-      TYPE(cp_dbcsr_type)                                :: tmp_nn1, tmp_no1, tmp_oo1, tmp_oo2
+      TYPE(dbcsr_type)                                   :: tmp_nn1, tmp_no1, tmp_oo1, tmp_oo2
 
       CALL timeset(routineN, handle)
 
@@ -1439,44 +1531,40 @@ CONTAINS
 
       DO ispin = 1, almo_scf_env%nspins
 
-         CALL cp_dbcsr_init(tmp_nn1)
-         CALL cp_dbcsr_create(tmp_nn1, template=almo_scf_env%matrix_s(1), &
-                              matrix_type=dbcsr_type_no_symmetry)
-         CALL cp_dbcsr_init(tmp_no1)
-         CALL cp_dbcsr_create(tmp_no1, template=almo_scf_env%matrix_t(ispin), &
-                              matrix_type=dbcsr_type_no_symmetry)
-         CALL cp_dbcsr_init(tmp_oo1)
-         CALL cp_dbcsr_create(tmp_oo1, template=almo_scf_env%matrix_sigma_inv(ispin), &
-                              matrix_type=dbcsr_type_no_symmetry)
-         CALL cp_dbcsr_init(tmp_oo2)
-         CALL cp_dbcsr_create(tmp_oo2, template=almo_scf_env%matrix_sigma_inv(ispin), &
-                              matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_create(tmp_nn1, template=almo_scf_env%matrix_s(1), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_create(tmp_no1, template=almo_scf_env%matrix_t(ispin), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_create(tmp_oo1, template=almo_scf_env%matrix_sigma_inv(ispin), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_create(tmp_oo2, template=almo_scf_env%matrix_sigma_inv(ispin), &
+                           matrix_type=dbcsr_type_no_symmetry)
 
-         CALL cp_dbcsr_copy(tmp_nn1, almo_scf_env%matrix_ks(ispin))
+         CALL dbcsr_copy(tmp_nn1, almo_scf_env%matrix_ks(ispin))
          ! 1. TMP_NO1=F.T
-         CALL cp_dbcsr_multiply("N", "N", scaling, tmp_nn1, almo_scf_env%matrix_t(ispin), &
-                                0.0_dp, tmp_no1, filter_eps=almo_scf_env%eps_filter)
+         CALL dbcsr_multiply("N", "N", scaling, tmp_nn1, almo_scf_env%matrix_t(ispin), &
+                             0.0_dp, tmp_no1, filter_eps=almo_scf_env%eps_filter)
          ! 2. TMP_OO1=T^(tr).TMP_NO1=T^(tr).(FT)
-         CALL cp_dbcsr_multiply("T", "N", 1.0_dp, almo_scf_env%matrix_t(ispin), tmp_no1, &
-                                0.0_dp, tmp_oo1, filter_eps=almo_scf_env%eps_filter)
+         CALL dbcsr_multiply("T", "N", 1.0_dp, almo_scf_env%matrix_t(ispin), tmp_no1, &
+                             0.0_dp, tmp_oo1, filter_eps=almo_scf_env%eps_filter)
          ! 3. TMP_OO2=TMP_OO1.siginv=(T^(tr)FT).siginv
-         CALL cp_dbcsr_multiply("N", "N", 1.0_dp, tmp_oo1, almo_scf_env%matrix_sigma_inv(ispin), &
-                                0.0_dp, tmp_oo2, filter_eps=almo_scf_env%eps_filter)
+         CALL dbcsr_multiply("N", "N", 1.0_dp, tmp_oo1, almo_scf_env%matrix_sigma_inv(ispin), &
+                             0.0_dp, tmp_oo2, filter_eps=almo_scf_env%eps_filter)
          ! 4. TMP_OO1=siginv.TMP_OO2=siginv.(T^(tr)FTsiginv)
-         CALL cp_dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_sigma_inv(ispin), tmp_oo2, &
-                                0.0_dp, tmp_oo1, filter_eps=almo_scf_env%eps_filter)
+         CALL dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_sigma_inv(ispin), tmp_oo2, &
+                             0.0_dp, tmp_oo1, filter_eps=almo_scf_env%eps_filter)
          ! 5. TMP_NO1=T.TMP_OO1.=T.(siginvT^(tr)FTsiginv)
-         CALL cp_dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_t(ispin), tmp_oo1, &
-                                0.0_dp, tmp_no1, filter_eps=almo_scf_env%eps_filter)
+         CALL dbcsr_multiply("N", "N", 1.0_dp, almo_scf_env%matrix_t(ispin), tmp_oo1, &
+                             0.0_dp, tmp_no1, filter_eps=almo_scf_env%eps_filter)
          ! 6. TMP_NN1=TMP_NO1.T^(tr)=(TsiginvT^(tr)FTsiginv).T^(tr)=RFR
-         CALL cp_dbcsr_multiply("N", "T", 1.0_dp, tmp_no1, almo_scf_env%matrix_t(ispin), &
-                                0.0_dp, tmp_nn1, filter_eps=almo_scf_env%eps_filter)
-         CALL matrix_almo_to_qs(tmp_nn1, matrix_w(ispin)%matrix, almo_scf_env)
+         CALL dbcsr_multiply("N", "T", 1.0_dp, tmp_no1, almo_scf_env%matrix_t(ispin), &
+                             0.0_dp, tmp_nn1, filter_eps=almo_scf_env%eps_filter)
+         CALL matrix_almo_to_qs(tmp_nn1, matrix_w(ispin)%matrix, almo_scf_env%mat_distr_aos)
 
-         CALL cp_dbcsr_release(tmp_nn1)
-         CALL cp_dbcsr_release(tmp_no1)
-         CALL cp_dbcsr_release(tmp_oo1)
-         CALL cp_dbcsr_release(tmp_oo2)
+         CALL dbcsr_release(tmp_nn1)
+         CALL dbcsr_release(tmp_no1)
+         CALL dbcsr_release(tmp_oo1)
+         CALL dbcsr_release(tmp_oo2)
 
       ENDDO
 

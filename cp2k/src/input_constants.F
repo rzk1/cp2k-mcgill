@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2016  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -583,6 +583,11 @@ MODULE input_constants
                                                shape_function_density = 2
    INTEGER, PARAMETER, PUBLIC               :: ref_charge_atomic = 100, &
                                                ref_charge_mulliken = 200
+   INTEGER, PARAMETER, PUBLIC               :: radius_covalent = 10, &
+                                               radius_user = 11, &
+                                               radius_single = 12, &
+                                               radius_vdw = 13, &
+                                               radius_default = 14
 
    ! MAO
    INTEGER, PARAMETER, PUBLIC               :: mao_basis_orb = 2000, &
@@ -632,17 +637,48 @@ MODULE input_constants
                                                outer_scf_s2_constraint = 124, &
                                                outer_scf_becke_constraint = 125, &
                                                outer_scf_none = 126, &
-                                               outer_scf_basis_center_opt = 127
+                                               outer_scf_basis_center_opt = 127, &
+                                               outer_scf_cdft_constraint = 128, &
+                                               outer_scf_hirshfeld_constraint = 129
 
    ! outer scf optimizers
    INTEGER, PARAMETER, PUBLIC               :: outer_scf_optimizer_sd = 1001, &
                                                outer_scf_optimizer_diis = 1002, &
                                                outer_scf_optimizer_none = 1003, &
-                                               outer_scf_optimizer_bisect = 1004
+                                               outer_scf_optimizer_bisect = 1004, &
+                                               outer_scf_optimizer_broyden = 1005, &
+                                               outer_scf_optimizer_newton = 1006, &
+                                               outer_scf_optimizer_secant = 1007, &
+                                               outer_scf_optimizer_newton_ls = 1008
+
+   ! outer scf broyden optimizer types
+   INTEGER, PARAMETER, PUBLIC               :: broyden_type_1 = 1101, &
+                                               broyden_type_1_explicit = 1102, &
+                                               broyden_type_2 = 1103, &
+                                               broyden_type_2_explicit = 1104, &
+                                               broyden_type_1_ls = 1105, &
+                                               broyden_type_1_explicit_ls = 1106, &
+                                               broyden_type_2_ls = 1107, &
+                                               broyden_type_2_explicit_ls = 1108
+
+   ! finite difference types for calculation of inverse jacobian
+   INTEGER, PARAMETER, PUBLIC               :: jacobian_fd1 = 1, &
+                                               jacobian_fd1_backward = 2, &
+                                               jacobian_fd2 = 3, &
+                                               jacobian_fd2_backward = 4, &
+                                               jacobian_fd1_central = 5
 
    ! s2 restraint forms
    INTEGER, PARAMETER, PUBLIC               :: do_s2_restraint = 872, &
                                                do_s2_constraint = 873
+
+   ! Becke cutoff schemes
+   INTEGER, PARAMETER, PUBLIC               :: becke_cutoff_global = 790, &
+                                               becke_cutoff_element = 791
+
+   ! CDFT constraint and control types
+   INTEGER, PARAMETER, PUBLIC               :: ot2cdft = 101, &
+                                               cdft2ot = 102
 
    ! ROKS schemes
    INTEGER, PARAMETER, PUBLIC               :: general_roks = 1, &
@@ -757,16 +793,6 @@ MODULE input_constants
    INTEGER, PARAMETER, PUBLIC               :: do_diag_sl = 1, &
                                                do_diag_sl2 = 2, &
                                                do_diag_elpa = 3
-   ! ELPA kernel
-   INTEGER, PARAMETER, PUBLIC               :: elpa_gen = 1, &
-                                               elpa_gen_sim = 2, &
-                                               elpa_bgp = 3, &
-                                               elpa_bgq = 4, &
-                                               elpa_sse = 5, &
-                                               elpa_avx_b2 = 6, &
-                                               elpa_avx_b4 = 7, &
-                                               elpa_avx_b6 = 8
-
    ! FFT library
    ! these might need sync with fft_lib.F
    INTEGER, PARAMETER, PUBLIC               :: do_fft_sg = 1, &
@@ -873,6 +899,10 @@ MODULE input_constants
                                    virt_minimal = 2, &
                                    virt_occ_size = 3, &
                                    virt_number = 4
+
+   ! spd matrix inversion algorithm
+   INTEGER, PARAMETER, PUBLIC   :: spd_inversion_ls_hotelling = 0, &
+                                   spd_inversion_dense_cholesky = 1
 
    ! some MP2 parameters
    INTEGER, PARAMETER, PUBLIC               :: mp2_method_none = 0, &

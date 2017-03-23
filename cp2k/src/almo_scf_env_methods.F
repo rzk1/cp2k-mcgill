@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2016  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -132,6 +132,8 @@ CONTAINS
                                 i_val=almo_scf_env%almo_scf_guess)
       CALL section_vals_val_get(almo_scf_section, "ALMO_ALGORITHM", &
                                 i_val=almo_scf_env%almo_update_algorithm)
+      CALL section_vals_val_get(almo_scf_section, "MO_OVERLAP_INV_ALG", &
+                                i_val=almo_scf_env%sigma_inv_algorithm)
       CALL section_vals_val_get(almo_scf_section, "DELOCALIZE_METHOD", &
                                 i_val=almo_scf_env%deloc_method)
       CALL section_vals_val_get(almo_scf_section, "XALMO_R_CUTOFF_FACTOR", &

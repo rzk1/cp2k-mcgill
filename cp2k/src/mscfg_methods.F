@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2016  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -15,10 +15,6 @@
 MODULE mscfg_methods
    USE atomic_kind_types,               ONLY: get_atomic_kind
    USE cell_types,                      ONLY: cell_type
-   USE cp_dbcsr_interface,              ONLY: cp_dbcsr_copy,&
-                                              cp_dbcsr_create,&
-                                              cp_dbcsr_init,&
-                                              dbcsr_type_no_symmetry
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
@@ -27,6 +23,9 @@ MODULE mscfg_methods
    USE cp_subsys_types,                 ONLY: cp_subsys_get,&
                                               cp_subsys_release,&
                                               cp_subsys_type
+   USE dbcsr_api,                       ONLY: dbcsr_copy,&
+                                              dbcsr_create,&
+                                              dbcsr_type_no_symmetry
    USE force_env_types,                 ONLY: force_env_get,&
                                               force_env_type
    USE global_types,                    ONLY: global_environment_type
@@ -39,7 +38,7 @@ MODULE mscfg_methods
                                               section_vals_val_get,&
                                               section_vals_val_set
    USE kinds,                           ONLY: default_string_length
-   USE molecule_types_new,              ONLY: get_molecule_set_info,&
+   USE molecule_types,                  ONLY: get_molecule_set_info,&
                                               molecule_type
    USE mscfg_types,                     ONLY: molecular_scf_guess_env_init,&
                                               molecular_scf_guess_env_type,&
@@ -278,12 +277,11 @@ CONTAINS
          mscfg_env%nmosets_of_frag(ifrag) = nmosets_of_frag
          DO imo = 1, nmosets_of_frag
             ! the matrices have been allocated already - copy the results there
-            CALL cp_dbcsr_init(mscfg_env%mos_of_frag(ifrag, imo))
-            CALL cp_dbcsr_create(mscfg_env%mos_of_frag(ifrag, imo), &
-                                 template=mos_of_frag(imo)%mo_set%mo_coeff_b, &
-                                 matrix_type=dbcsr_type_no_symmetry)
-            CALL cp_dbcsr_copy(mscfg_env%mos_of_frag(ifrag, imo), &
-                               mos_of_frag(imo)%mo_set%mo_coeff_b)
+            CALL dbcsr_create(mscfg_env%mos_of_frag(ifrag, imo), &
+                              template=mos_of_frag(imo)%mo_set%mo_coeff_b, &
+                              matrix_type=dbcsr_type_no_symmetry)
+            CALL dbcsr_copy(mscfg_env%mos_of_frag(ifrag, imo), &
+                            mos_of_frag(imo)%mo_set%mo_coeff_b)
          ENDDO
          !
          ! Clean up
@@ -376,7 +374,8 @@ CONTAINS
 
       INTEGER                                            :: almo_guess_type, frz_term_type, &
                                                             method_name_id, scf_guess_type
-      LOGICAL                                            :: is_crystal, is_fast_dirty
+      LOGICAL                                            :: is_crystal, is_fast_dirty, &
+                                                            almo_scf_is_on
       TYPE(molecular_scf_guess_env_type), POINTER        :: mscfg_env
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(section_vals_type), POINTER                   :: force_env_section, subsection
@@ -385,6 +384,7 @@ CONTAINS
       ! What kind of options are we using in the loop ?
       is_fast_dirty = .TRUE.
       is_crystal = .FALSE.
+      almo_scf_is_on= .FALSE.
 
       NULLIFY (qs_env, mscfg_env, force_env_section, subsection)
       CALL force_env_get(force_env, force_env_section=force_env_section)
@@ -407,6 +407,10 @@ CONTAINS
          NULLIFY (subsection)
          subsection => section_vals_get_subs_vals(force_env_section, "DFT%ALMO_SCF")
          CALL section_vals_val_get(subsection, "ALMO_SCF_GUESS", i_val=almo_guess_type)
+         ! check whether ALMO SCF is on
+         NULLIFY (subsection)
+         subsection => section_vals_get_subs_vals(force_env_section, "DFT%QS")
+         CALL section_vals_val_get(subsection, "ALMO_SCF", l_val=almo_scf_is_on)
 
          ! check SCF guess option
          NULLIFY (subsection)
@@ -421,7 +425,7 @@ CONTAINS
 
          ! Are we doing the loop ?
          IF (scf_guess_type .EQ. molecular_guess .OR. & ! SCF guess is molecular
-             almo_guess_type .EQ. molecular_guess .OR. & ! ALMO SCF guess is molecular
+             (almo_guess_type .EQ. molecular_guess .AND. almo_scf_is_on) .OR. & ! ALMO SCF guess is molecular
              frz_term_type .NE. almo_frz_none) THEN ! ALMO FRZ term is requested
 
             do_mol_loop = .TRUE.

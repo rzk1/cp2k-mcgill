@@ -1,15 +1,14 @@
-# Guillimin: module load intel/2017.00
+# Guillimin: module load intel/2017.00 +(optional)FFTW/3.3-openmpi-intel
 CC         = mpiicc
 FC         = mpiifort
 LD         = mpiifort
 AR         = xiar -r
 
-DFLAGS     = -D__MKL -D__INTEL -D__parallel -D__SCALAPACK
-#!!!! NO FFTW3: -D__FFTW3
+DFLAGS     = -D__MKL -D__INTEL -D__parallel -D__SCALAPACK -D__FFTW3
 CPPFLAGS   = -C -traditional $(DFLAGS)
 FCFLAGS    = $(DFLAGS) -O3 -xHost -heap-arrays 64 -fpp -free -unroll -pc 64 -convert big_endian
 LDFLAGS    = $(FCFLAGS) -static-intel
-LIBS       = -mkl=cluster # include FFTW3 library when FFTW3 is available 
+LIBS       = -mkl=cluster -lfftw3 # include FFTW3 library when FFTW3 is available 
 #LIBS       = /home/rzk/dev/lib/libint-1.1.4/lib/libderiv.a /home/rzk/dev/lib/libint-1.1.4/lib/libint.a -lstdc++ -mkl=cluster 
 
 OBJECTS_ARCHITECTURE = machine_intel.o

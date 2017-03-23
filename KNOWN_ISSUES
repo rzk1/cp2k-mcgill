@@ -1,0 +1,7 @@
+orthogonalize orbitals only if they are required in post-scf
+
+zero-electron fragments are implemented by inserting a block of size 1 into any OCC_MO matrix dimension. a special care must be taken when these blocks are inverted, diagonalized. So far not all procedures are zero-electron-safe. the following (and many others) must be corrected:
+
+* pseudoinvert_diagonal_blk
+* p_blk_to_t_blk
+* apply_projector
