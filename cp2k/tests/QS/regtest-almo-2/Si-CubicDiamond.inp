@@ -21,7 +21,8 @@
 
       EPS_FILTER                 5.0E-12
       ALMO_ALGORITHM             PCG
-      DELOCALIZE_METHOD          FULL_X
+      MO_OVERLAP_INV_ALG         DENSE_CHOLESKY         
+      DELOCALIZE_METHOD          XALMO_SCF
       XALMO_R_CUTOFF_FACTOR      0.6
       ALMO_SCF_GUESS             ATOMIC
 
@@ -42,7 +43,7 @@
       &END ALMO_OPTIMIZER_PCG
 
       &XALMO_OPTIMIZER_PCG
-        MAX_ITER                 25
+        MAX_ITER                 50
         EPS_ERROR                1.0E-5
         CONJUGATOR               HESTENES_STIEFEL
         PRECONDITIONER           DEFAULT

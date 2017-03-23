@@ -1,4 +1,4 @@
-# Guillimin: module load intel/2017.00 FFTW/3.3-openmpi-intel
+# Guillimin: module load intel/2017.00 +(optional)FFTW/3.3-openmpi-intel
 CC         = mpiicc
 FC         = mpiifort
 LD         = mpiifort

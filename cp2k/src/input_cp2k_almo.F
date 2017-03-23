@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2016  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -18,7 +18,8 @@ MODULE input_cp2k_almo
         almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, almo_frz_crystal, &
         almo_frz_none, almo_scf_diag, almo_scf_pcg, atomic_guess, cg_dai_yuan, cg_fletcher, &
         cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, &
-        cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, prec_default, prec_zero
+        cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, prec_default, prec_zero, &
+        spd_inversion_ls_hotelling, spd_inversion_dense_cholesky
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
                                               keyword_type
@@ -65,7 +66,7 @@ CONTAINS
                           description="Settings for a class of efficient linear scaling methods based "// &
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
-                          n_keywords=7, n_subsections=3, repeats=.FALSE., &
+                          n_keywords=8, n_subsections=3, repeats=.FALSE., &
                           citations=(/Khaliullin2013/))
 
       NULLIFY (keyword)
@@ -84,8 +85,19 @@ CONTAINS
                           enum_desc=s2a("SCF calculations on single molecules controled by the regular SCF "// &
                                         "keywords outside ALMO options. This kind of calculation is expensive "// &
                                         "and only recommended if ALMO SCF does not converge from the ATOMIC guess.", &
-                                        "Superpoisiton of atomic densities."), &
+                                        "Superposition of atomic densities."), &
                           enum_i_vals=(/molecular_guess, atomic_guess/))
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="MO_OVERLAP_INV_ALG", &
+                          description="Algorithm to invert MO overlap matrix.", &
+                          usage="MO_OVERLAP_INV_ALG HOTELLING", &
+                          default_i_val=spd_inversion_ls_hotelling, &
+                          enum_c_vals=s2a("LS_HOTELLING", "DENSE_CHOLESKY"), &
+                          enum_desc=s2a("Linear scaling iterative Hotelling algorithm. Fast for large sparse matrices.", &
+                                        "Stable but dense Cholesky algorithm. Cubically scaling."), &
+                          enum_i_vals=(/spd_inversion_ls_hotelling, spd_inversion_dense_cholesky/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 

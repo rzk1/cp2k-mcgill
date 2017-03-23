@@ -5,6 +5,14 @@
 # the order will be regularly checked and modified...
 QS/regtest-almo-md
 QS/regtest-almo-eda
+QS/regtest-elpa-qr                                          elpa_qr mpiranks==1||mpiranks==2||mpiranks==4||mpiranks==6||mpiranks==8
+QMMM/QS/regtest-cdft                                        parallel mpiranks>1
+QS/regtest-cdft-4-3
+QS/regtest-cdft-4-2
+QS/regtest-cdft-4-1
+QS/regtest-cdft-3                                           parallel mpiranks>1
+QS/regtest-cdft-2
+QS/regtest-cdft-1
 Fist/regtest-plumed2                                        plumed2 
 TMC/regtest_ana_on_the_fly                                  parallel mpiranks>2 
 QS/regtest-sccs-3
@@ -25,6 +33,8 @@ QS/regtest-pao-2
 QS/regtest-tddfpt-2                                         libint
 QS/regtest-ps-implicit-2-1
 Pimd
+QS/regtest-mom-1
+QS/regtest-mom-2                                            libint
 QS/regtest-mp2-stress                                       libint 
 QS/regtest-hfx                                              libint 
 QS/regtest-admm-qps                                         libint 
@@ -104,6 +114,8 @@ QS/regtest-hybrid-3                                         libint
 QS/regtest-almo-1
 QS/regtest-pexsi                                            pexsi 
 QS/regtest-hfx-stress                                       libint 
+QS/regtest-almo-md
+QS/regtest-almo-eda
 Fist/regtest-6
 ATOM/regtest-1
 SE/regtest
@@ -170,8 +182,6 @@ Fist/regtest-8
 Fist/regtest-10
 QS/regtest-rtp-1
 QS/regtest-nmr-3
-QS/regtest-mom-1
-QS/regtest-mom-2                                            libint
 QMMM/QS/regtest-2-swave
 FE/regtest-1
 TMC/regtest                                                 parallel mpiranks>1 
@@ -206,3 +216,5 @@ QS/regtest-elpa                                             elpa mpiranks==1||mp
 optimize_input/regtest-1
 FE/regtest-2
 Fist/regtest-quip                                           quip 
+Fist/regtest-field
+

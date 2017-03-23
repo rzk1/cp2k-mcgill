@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2016  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -14,14 +14,6 @@ MODULE qs_force
    USE atomic_kind_types,               ONLY: atomic_kind_type,&
                                               get_atomic_kind_set
    USE cp_control_types,                ONLY: dft_control_type
-   USE cp_dbcsr_interface,              ONLY: cp_dbcsr_add,&
-                                              cp_dbcsr_allocate_matrix_set,&
-                                              cp_dbcsr_copy,&
-                                              cp_dbcsr_deallocate_matrix_set,&
-                                              cp_dbcsr_init,&
-                                              cp_dbcsr_print,&
-                                              cp_dbcsr_p_type,&
-                                              cp_dbcsr_set
    USE cp_dbcsr_output,                 ONLY: cp_dbcsr_write_sparse_matrix
    USE cp_fm_types,                     ONLY: cp_fm_type
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
@@ -31,9 +23,16 @@ MODULE qs_force
                                               cp_print_key_should_output,&
                                               cp_print_key_unit_nr
    USE cp_para_types,                   ONLY: cp_para_env_type
+   USE dbcsr_api,                       ONLY: dbcsr_add,&
+                                              dbcsr_allocate_matrix_set,&
+                                              dbcsr_copy,&
+                                              dbcsr_deallocate_matrix_set,&
+                                              dbcsr_p_type,&
+                                              dbcsr_set
    USE dft_plus_u,                      ONLY: plus_u
    USE efield_utils,                    ONLY: calculate_ecore_efield
-   USE input_constants,                 ONLY: do_admm_purify_none
+   USE input_constants,                 ONLY: do_admm_purify_none,&
+                                              outer_scf_hirshfeld_constraint
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
@@ -141,12 +140,12 @@ CONTAINS
       LOGICAL                                            :: has_unit_metric, omit_headers
       TYPE(admm_type), POINTER                           :: admm_env
       TYPE(atomic_kind_type), DIMENSION(:), POINTER      :: atomic_kind_set
-      TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER :: matrix_ks_aux_fit, matrix_p_mp2, matrix_s, &
-         matrix_s_aux_fit, matrix_s_aux_fit_vs_orb, matrix_w, matrix_w_mp2, rho_ao
-      TYPE(cp_dbcsr_p_type), DIMENSION(:, :), POINTER    :: matrix_w_kp
       TYPE(cp_fm_type), POINTER                          :: mo_coeff, mo_coeff_aux_fit
       TYPE(cp_logger_type), POINTER                      :: logger
       TYPE(cp_para_env_type), POINTER                    :: para_env
+      TYPE(dbcsr_p_type), DIMENSION(:), POINTER :: matrix_ks_aux_fit, matrix_p_mp2, matrix_s, &
+         matrix_s_aux_fit, matrix_s_aux_fit_vs_orb, matrix_w, matrix_w_mp2, rho_ao
+      TYPE(dbcsr_p_type), DIMENSION(:, :), POINTER       :: matrix_w_kp
       TYPE(dft_control_type), POINTER                    :: dft_control
       TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos, mos_aux_fit
       TYPE(mo_set_type), POINTER                         :: mo_set
@@ -158,7 +157,6 @@ CONTAINS
       TYPE(qs_subsys_type), POINTER                      :: subsys
       TYPE(section_vals_type), POINTER                   :: dft_section, input, print_section
       TYPE(virial_type), POINTER                         :: virial
-!TYPE(cp_dbcsr_p_type), DIMENSION(:), POINTER :: matrix_ks
 
       CALL timeset(routineN, handle)
       NULLIFY (logger)
@@ -182,10 +180,11 @@ CONTAINS
                                atom_of_kind=atom_of_kind, &
                                kind_of=kind_of)
 
-      NULLIFY (force, subsys)
+      NULLIFY (force, subsys, dft_control)
       CALL get_qs_env(qs_env, &
                       force=force, &
-                      subsys=subsys)
+                      subsys=subsys, &
+                      dft_control=dft_control)
       IF (.NOT. ASSOCIATED(force)) THEN
          !   *** Allocate the force data structure ***
          nkind = SIZE(atomic_kind_set)
@@ -198,22 +197,24 @@ CONTAINS
       END IF
       CALL zero_qs_force(force)
 
+      ! Check if Becke potential is needed and save it until forces have been calculated
+      IF (dft_control%qs_control%becke_constraint) &
+         dft_control%qs_control%becke_control%save_pot = .TRUE.
+
+      IF (dft_control%qs_control%cdft) THEN
+         IF (dft_control%qs_control%cdft_control%type == outer_scf_hirshfeld_constraint) &
+            dft_control%qs_control%cdft_control%save_pot = .TRUE.
+      END IF
+
       ! Set parameter for P screening with MP2
       IF (ASSOCIATED(qs_env%mp2_env)) qs_env%mp2_env%not_last_hfx = .TRUE.
 
       ! recalculate energy with forces
       CALL qs_energies(qs_env, calc_forces=.TRUE.)
 
-      NULLIFY (dft_control, para_env)
+      NULLIFY (para_env)
       CALL get_qs_env(qs_env, &
-                      dft_control=dft_control, &
                       para_env=para_env)
-
-!CALL get_qs_env(qs_env, energy=energy, rho=rho, matrix_ks=matrix_ks)
-!CALL qs_rho_get(rho, rho_ao=rho_ao)
-!WRITE(*,*) "FORCES"
-!CALL cp_dbcsr_print(rho_ao(1)%matrix)
-!CALL cp_dbcsr_print(matrix_ks(1)%matrix)
 
       ! Now we handle some special cases
       ! Maybe some of these would be better dealt with in qs_energies?
@@ -223,13 +224,12 @@ CONTAINS
                          ks_env=ks_env, &
                          matrix_w=matrix_w, &
                          matrix_s=matrix_s)
-         CALL cp_dbcsr_allocate_matrix_set(matrix_w, dft_control%nspins)
+         CALL dbcsr_allocate_matrix_set(matrix_w, dft_control%nspins)
          DO ispin = 1, dft_control%nspins
             ALLOCATE (matrix_w(ispin)%matrix)
-            CALL cp_dbcsr_init(matrix_w(ispin)%matrix)
-            CALL cp_dbcsr_copy(matrix_w(ispin)%matrix, matrix_s(1)%matrix, &
-                               name="W MATRIX")
-            CALL cp_dbcsr_set(matrix_w(ispin)%matrix, 0.0_dp)
+            CALL dbcsr_copy(matrix_w(ispin)%matrix, matrix_s(1)%matrix, &
+                            name="W MATRIX")
+            CALL dbcsr_set(matrix_w(ispin)%matrix, 0.0_dp)
          END DO
          CALL set_ks_env(ks_env, matrix_w=matrix_w)
 
@@ -309,14 +309,6 @@ CONTAINS
       ! Compute grid-based forces
       CALL qs_ks_update_qs_env(qs_env, calculate_forces=.TRUE.)
 
-      ! ALMO Code (in the spirit of the MP2 modifications below)
-      !IF (ASSOCIATED(qs_env%almo_scf_env)) THEN
-      !   ! tell qs about the energy correction
-      !   NULLIFY (energy)
-      !   CALL get_qs_env(qs_env, energy=energy)
-      !   energy%total = energy%total+energy%singles_corr
-      !END IF
-
       ! MP2 Code
       IF (ASSOCIATED(qs_env%mp2_env)) THEN
          NULLIFY (matrix_p_mp2, matrix_w_mp2, rho, ks_env, energy)
@@ -332,7 +324,7 @@ CONTAINS
          ! with MP2 we have to recalculate the SCF energy with the
          ! correct density
          DO ispin = 1, dft_control%nspins
-            CALL cp_dbcsr_add(rho_ao(ispin)%matrix, matrix_p_mp2(ispin)%matrix, 1.0_dp, -1.0_dp)
+            CALL dbcsr_add(rho_ao(ispin)%matrix, matrix_p_mp2(ispin)%matrix, 1.0_dp, -1.0_dp)
          END DO
          CALL qs_rho_update_rho(rho, qs_env=qs_env)
          CALL qs_ks_did_change(ks_env, rho_changed=.TRUE.)
@@ -344,20 +336,20 @@ CONTAINS
          dft_section => section_vals_get_subs_vals(input, "DFT")
          ! Get the HF+MP2 density
          DO ispin = 1, dft_control%nspins
-            CALL cp_dbcsr_add(rho_ao(ispin)%matrix, matrix_p_mp2(ispin)%matrix, 1.0_dp, 1.0_dp)
+            CALL dbcsr_add(rho_ao(ispin)%matrix, matrix_p_mp2(ispin)%matrix, 1.0_dp, 1.0_dp)
          END DO
          CALL qs_rho_update_rho(rho, qs_env=qs_env)
          CALL qs_ks_did_change(ks_env, rho_changed=.TRUE.)
          CALL qs_scf_compute_properties(qs_env, dft_section, wf_type='MP2   ')
          ! Get everything back
          DO ispin = 1, dft_control%nspins
-            CALL cp_dbcsr_add(rho_ao(ispin)%matrix, matrix_p_mp2(ispin)%matrix, 1.0_dp, -1.0_dp)
+            CALL dbcsr_add(rho_ao(ispin)%matrix, matrix_p_mp2(ispin)%matrix, 1.0_dp, -1.0_dp)
          END DO
          CALL qs_rho_update_rho(rho, qs_env=qs_env)
          CALL qs_ks_did_change(ks_env, rho_changed=.TRUE.)
 
          ! deallocate mp2_W
-         CALL cp_dbcsr_deallocate_matrix_set(matrix_w_mp2)
+         CALL dbcsr_deallocate_matrix_set(matrix_w_mp2)
          CALL set_ks_env(ks_env, matrix_w_mp2=Null())
 
       END IF
@@ -455,7 +447,7 @@ CONTAINS
       CALL get_qs_env(qs_env=qs_env, &
                       matrix_w_kp=matrix_w_kp, &
                       ks_env=ks_env)
-      CALL cp_dbcsr_deallocate_matrix_set(matrix_w_kp)
+      CALL dbcsr_deallocate_matrix_set(matrix_w_kp)
       CALL set_ks_env(ks_env, matrix_w=Null(), matrix_w_kp=Null())
 
       DEALLOCATE (atom_of_kind, kind_of)
