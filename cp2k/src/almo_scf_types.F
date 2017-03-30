@@ -203,6 +203,7 @@ MODULE almo_scf_types
 
       ! Controls for the SCF procedure
       REAL(KIND=dp)         :: eps_filter
+      INTEGER               :: xalmo_trial_wf
       INTEGER               :: almo_scf_guess
       REAL(KIND=dp)         :: eps_prev_guess
       INTEGER               :: order_lanczos
@@ -338,6 +339,7 @@ MODULE almo_scf_types
       TYPE(optimizer_options_type)                   :: opt_block_diag_pcg
       TYPE(optimizer_options_type)                   :: opt_xalmo_diis
       TYPE(optimizer_options_type)                   :: opt_xalmo_pcg
+      TYPE(optimizer_options_type)                   :: opt_xalmo_newton_pcg_solver
       TYPE(optimizer_options_type)                   :: opt_k_pcg
 
       ! keywords that control electron delocalization treatment

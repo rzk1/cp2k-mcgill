@@ -872,7 +872,8 @@ MODULE input_constants
 
    INTEGER, PARAMETER, PUBLIC   :: almo_scf_dm_sign = 1, &
                                    almo_scf_diag = 2, &
-                                   almo_scf_pcg = 3
+                                   almo_scf_pcg = 3, &
+                                   almo_scf_skip = 4
 
    ! optimizer parameters
    INTEGER, PARAMETER, PUBLIC   :: cg_zero = 0, &
@@ -887,7 +888,8 @@ MODULE input_constants
                                    optimizer_pcg = 2
    INTEGER, PARAMETER, PUBLIC   :: prec_zero = 0, &
                                    prec_default = -1, &
-                                   prec_ks_plus_s = 4
+                                   prec_ks_plus_s = 4, &
+                                   prec_solve_newton_raphson_eq = 1
    INTEGER, PARAMETER, PUBLIC   :: xalmo_case_block_diag = 0, &
                                    xalmo_case_fully_deloc = 1, &
                                    xalmo_case_normal = -1

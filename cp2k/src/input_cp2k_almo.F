@@ -19,7 +19,7 @@ MODULE input_cp2k_almo
         almo_frz_none, almo_scf_diag, almo_scf_pcg, atomic_guess, cg_dai_yuan, cg_fletcher, &
         cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, &
         cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, prec_default, prec_zero, &
-        spd_inversion_ls_hotelling, spd_inversion_dense_cholesky
+        spd_inversion_ls_hotelling, spd_inversion_dense_cholesky, almo_scf_skip
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
                                               keyword_type
@@ -120,16 +120,30 @@ CONTAINS
                           usage="ALMO_ALGORITHM DIAG", &
                           default_i_val=almo_scf_diag, &
                           !enum_c_vals=s2a("DIAG", "DM_SIGN","PCG"),&
-                          enum_c_vals=s2a("DIAG", "PCG"), &
+                          !enum_c_vals=s2a("DIAG", "PCG"), &
+                          enum_c_vals=s2a("DIAG", "PCG", "SKIP"),&
                           enum_desc=s2a("DIIS-accelerated diagonalization controlled by ALMO_OPTIMIZER_DIIS. "// &
                                         "Recommended for large systems containing small fragments.", &
                                         !"Update the density matrix using linear scaling routines. "//&
                                         !"Recommended if large fragments are present.",&
-                                        "Energy minimization with a PCG algorithm controlled by ALMO_OPTIMIZER_PCG."), &
+                                        "Energy minimization with a PCG algorithm controlled by ALMO_OPTIMIZER_PCG.", &
+                                        "Skip optimization of block-diagonal ALMOs."),&
                           !enum_i_vals=(/almo_scf_diag,almo_scf_dm_sign,almo_scf_pcg/),&
-                          enum_i_vals=(/almo_scf_diag, almo_scf_pcg/))
+                          enum_i_vals=(/almo_scf_diag,almo_scf_pcg,almo_scf_skip/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
+
+       CALL keyword_create(keyword, name="XALMO_TRIAL_WF",&
+            description="Determines the form of the trial XALMOs.",&
+            usage="XALMO_TRIAL_WF SIMPLE",&
+            default_i_val=xalmo_trial_r0_out,&
+            enum_c_vals=s2a("SIMPLE", "PROJECT_R0_OUT"),&
+            enum_desc=s2a("Straightforward AO-basis expansion.",&
+                          "Block-diagonal ALMOs plus the XALMO term projected onto the unoccupied "//&
+                          "ALMO-subspace."),&
+            enum_i_vals=(/xalmo_trial_simplex,xalmo_trial_r0_out/))
+       CALL section_add_keyword(section,keyword)
+       CALL keyword_release(keyword)
 
       CALL keyword_create( &
          keyword, name="DELOCALIZE_METHOD", &
@@ -571,7 +585,7 @@ CONTAINS
 !>       2014.10 fully integrated [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE create_optimizer_section(section, optimizer_id)
+   RECURSIVE SUBROUTINE create_optimizer_section(section, optimizer_id)
 
       TYPE(section_type), POINTER                        :: section
       INTEGER, INTENT(IN)                                :: optimizer_id
@@ -601,7 +615,16 @@ CONTAINS
          CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of extended ALMOs.", &
                              n_keywords=6, n_subsections=0, repeats=.FALSE.)
+         NULLIFY(subsection)
+         CALL create_optimizer_section(subsection,optimizer_newton_pcg_solver)
+         CALL section_add_subsection(section, subsection)
+         CALL section_release(subsection)
          optimizer_type = optimizer_pcg
+       CASE(optimizer_newton_pcg_solver)
+          CALL section_create(section,"XALMO_NEWTON_PCG_SOLVER",&
+               description="Controls an iterative solver of the Newton-Raphson linear equation.",&
+               n_keywords=4, n_subsections=0, repeats=.FALSE.)
+          optimizer_type=optimizer_lin_eq_pcg
       CASE DEFAULT
          CPABORT("No default values allowed")
       END SELECT
@@ -632,19 +655,39 @@ CONTAINS
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
 
-      CASE (optimizer_pcg)
+      CASE (optimizer_pcg,optimizer_lin_eq_pcg)
 
-         CALL keyword_create(keyword, name="LIN_SEARCH_EPS_ERROR", &
-                             description="Target value of the gradient norm during the linear search", &
-                             usage="LIN_SEARCH_EPS_ERROR 1.E-2", default_r_val=1.0E-3_dp)
-         CALL section_add_keyword(section, keyword)
-         CALL keyword_release(keyword)
+         IF (optimizer_type.EQ.optimizer_pcg) THEN
 
-         CALL keyword_create(keyword, name="LIN_SEARCH_STEP_SIZE_GUESS", &
-                             description="The size of the first step in the linear search", &
-                             usage="LIN_SEARCH_STEP_SIZE_GUESS 0.1", default_r_val=1.0_dp)
-         CALL section_add_keyword(section, keyword)
-         CALL keyword_release(keyword)
+            CALL keyword_create(keyword, name="LIN_SEARCH_EPS_ERROR", &
+                                description="Target value of the gradient norm during the linear search", &
+                                usage="LIN_SEARCH_EPS_ERROR 1.E-2", default_r_val=1.0E-3_dp)
+            CALL section_add_keyword(section, keyword)
+            CALL keyword_release(keyword)
+
+            CALL keyword_create(keyword, name="LIN_SEARCH_STEP_SIZE_GUESS", &
+                                description="The size of the first step in the linear search", &
+                                usage="LIN_SEARCH_STEP_SIZE_GUESS 0.1", default_r_val=1.0_dp)
+            CALL section_add_keyword(section, keyword)
+            CALL keyword_release(keyword)
+
+            CALL keyword_create(keyword, name="CONJUGATOR", &
+                                description="Various methods to compute step directions in the PCG optimization", &
+                                usage="CONJUGATOR POLAK_RIBIERE", &
+                                default_i_val=cg_hager_zhang, &
+                                enum_c_vals=s2a("ZERO", "POLAK_RIBIERE", "FLETCHER_REEVES", &
+                                                "HESTENES_STIEFEL", "FLETCHER", "LIU_STOREY", "DAI_YUAN", "HAGER_ZHANG"), &
+                                enum_desc=s2a("Steepest descent", "Polak and Ribiere", &
+                                              "Fletcher and Reeves", "Hestenes and Stiefel", &
+                                              "Fletcher (Conjugate descent)", "Liu and Storey", &
+                                              "Dai and Yuan", "Hager and Zhang"), &
+                                enum_i_vals=(/cg_zero, cg_polak_ribiere, cg_fletcher_reeves, &
+                                              cg_hestenes_stiefel, cg_fletcher, cg_liu_storey, &
+                                              cg_dai_yuan, cg_hager_zhang/))
+            CALL section_add_keyword(section, keyword)
+            CALL keyword_release(keyword)
+
+         ENDIF
 
          CALL keyword_create(keyword, name="MAX_ITER_OUTER_LOOP", &
                              description="Maximum number of iterations in the outer loop. "// &
@@ -661,22 +704,6 @@ CONTAINS
                              enum_c_vals=s2a("DEFAULT", "NONE"), &
                              enum_desc=s2a("Default preconditioner", "Do not use preconditioner"), &
                              enum_i_vals=(/prec_default, prec_zero/))
-         CALL section_add_keyword(section, keyword)
-         CALL keyword_release(keyword)
-
-         CALL keyword_create(keyword, name="CONJUGATOR", &
-                             description="Various methods to compute step directions in the PCG optimization", &
-                             usage="CONJUGATOR POLAK_RIBIERE", &
-                             default_i_val=cg_hager_zhang, &
-                             enum_c_vals=s2a("ZERO", "POLAK_RIBIERE", "FLETCHER_REEVES", &
-                                             "HESTENES_STIEFEL", "FLETCHER", "LIU_STOREY", "DAI_YUAN", "HAGER_ZHANG"), &
-                             enum_desc=s2a("Steepest descent", "Polak and Ribiere", &
-                                           "Fletcher and Reeves", "Hestenes and Stiefel", &
-                                           "Fletcher (Conjugate descent)", "Liu and Storey", &
-                                           "Dai and Yuan", "Hager and Zhang"), &
-                             enum_i_vals=(/cg_zero, cg_polak_ribiere, cg_fletcher_reeves, &
-                                           cg_hestenes_stiefel, cg_fletcher, cg_liu_storey, &
-                                           cg_dai_yuan, cg_hager_zhang/))
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
 

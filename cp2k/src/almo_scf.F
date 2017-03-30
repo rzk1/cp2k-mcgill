@@ -74,7 +74,8 @@ MODULE almo_scf
         almo_domain_layout_molecular, almo_mat_distr_atomic, almo_mat_distr_molecular, &
         almo_scf_diag, almo_scf_dm_sign, almo_scf_pcg, atomic_guess, molecular_guess, &
         optimizer_diis, optimizer_pcg, restart_guess, virt_full, virt_number, virt_occ_size, &
-        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal
+        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
+        almo_scf_skip, xalmo_trial_simplex
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
@@ -208,6 +209,7 @@ CONTAINS
       almo_scf_env%opt_block_diag_pcg%optimizer_type = optimizer_pcg
       almo_scf_env%opt_xalmo_diis%optimizer_type = optimizer_diis
       almo_scf_env%opt_xalmo_pcg%optimizer_type = optimizer_pcg
+      almo_scf_env%opt_xalmo_newton_pcg_solver%optimizer_type=optimizer_lin_eq_pcg
 
       ! get info from the qs_env
       CALL get_qs_env(qs_env, &
@@ -830,15 +832,19 @@ CONTAINS
 
          WRITE (unit_nr, '(T2,A,T48,E33.3)') "eps_filter:", almo_scf_env%eps_filter
 
-         WRITE (unit_nr, '(T2,A)') "optimization of block-diagonal ALMOs:"
-         SELECT CASE (almo_scf_env%almo_update_algorithm)
-         CASE (almo_scf_diag)
-            ! the DIIS algorith is the only choice for the diagonlaization-based algorithm
-            CALL print_optimizer_options(almo_scf_env%opt_block_diag_diis, unit_nr)
-         CASE (almo_scf_pcg)
-            ! print out PCG options
-            CALL print_optimizer_options(almo_scf_env%opt_block_diag_pcg, unit_nr)
-         END SELECT
+         IF (almo_scf_env%almo_update_algorithm.EQ.almo_scf_skip) THEN
+            WRITE(unit_nr,'(T2,A)') "skip optimization of block-diagonal ALMOs"
+         ELSE
+            WRITE (unit_nr, '(T2,A)') "optimization of block-diagonal ALMOs:"
+            SELECT CASE (almo_scf_env%almo_update_algorithm)
+            CASE (almo_scf_diag)
+               ! the DIIS algorith is the only choice for the diagonlaization-based algorithm
+               CALL print_optimizer_options(almo_scf_env%opt_block_diag_diis, unit_nr)
+            CASE (almo_scf_pcg)
+               ! print out PCG options
+               CALL print_optimizer_options(almo_scf_env%opt_block_diag_pcg, unit_nr)
+            END SELECT
+         ENDIF
 
          SELECT CASE (almo_scf_env%deloc_method)
          CASE (almo_deloc_none)
@@ -1082,8 +1088,9 @@ CONTAINS
          unit_nr = -1
       ENDIF
 
-      IF (almo_scf_env%almo_update_algorithm .EQ. almo_scf_pcg) THEN
-
+      SELECT CASE (almo_scf_env%almo_update_algorithm)
+      CASE (almo_scf_pcg)
+       
          ! ALMO PCG optimizer as a special case of XALMO PCG
          CALL almo_scf_xalmo_pcg(qs_env=qs_env, &
                                  almo_scf_env=almo_scf_env, &
@@ -1109,12 +1116,28 @@ CONTAINS
          ENDDO
          !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
 
-      ELSE
-
+      CASE (almo_scf_diag)
+       
          ! mixing/DIIS optimizer
          CALL almo_scf_block_diagonal(qs_env, almo_scf_env, &
                                       almo_scf_env%opt_block_diag_diis)
 
+      CASE (almo_scf_skip)
+    
+         DO ispin = 1, almo_scf_env%nspins
+            CALL orthogonalize_mos(ket=almo_scf_env%matrix_t_blk(ispin), &
+                                   overlap=almo_scf_env%matrix_sigma_blk(ispin), &
+                                   metric=almo_scf_env%matrix_s_blk(1), &
+                                   retain_locality=.TRUE., &
+                                   only_normalize=.FALSE., &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   eps_filter=almo_scf_env%eps_filter, &
+                                   order_lanczos=almo_scf_env%order_lanczos, &
+                                   eps_lanczos=almo_scf_env%eps_lanczos, &
+                                   max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         ENDDO
+         !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
+    
       ENDIF
 
       ! we might need a copy of the converged KS and sigma_inv
@@ -1263,7 +1286,8 @@ CONTAINS
                                  quench_t=no_quench, &
                                  matrix_t_in=almo_scf_env%matrix_t_blk, &
                                  matrix_t_out=almo_scf_env%matrix_t, &
-                                 assume_t0_q0x=.TRUE., &
+                                 !assume_t0_q0x=.TRUE., &
+                                 assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
                                  perturbation_only=.TRUE., &
                                  special_case=xalmo_case_fully_deloc)
 
@@ -1295,7 +1319,8 @@ CONTAINS
                                     quench_t=almo_scf_env%quench_t, &
                                     matrix_t_in=almo_scf_env%matrix_t_blk, &
                                     matrix_t_out=almo_scf_env%matrix_t, &
-                                    assume_t0_q0x=.TRUE., &
+                                    !assume_t0_q0x=.TRUE., &
+                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
                                     perturbation_only=.TRUE., &
                                     special_case=xalmo_case_normal)
 
@@ -1327,7 +1352,8 @@ CONTAINS
                                     quench_t=almo_scf_env%quench_t, &
                                     matrix_t_in=almo_scf_env%matrix_t_blk, &
                                     matrix_t_out=almo_scf_env%matrix_t, &
-                                    assume_t0_q0x=.TRUE., &
+                                    !assume_t0_q0x=.TRUE., &
+                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
                                     perturbation_only=.FALSE., &
                                     special_case=xalmo_case_normal)
 
