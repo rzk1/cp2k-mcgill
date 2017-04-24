@@ -18,7 +18,7 @@ MODULE almo_scf_optimizer
                                               almo_scf_diis_type
    USE almo_scf_methods,                ONLY: &
         almo_scf_ks_blk_to_tv_blk, almo_scf_ks_to_ks_blk, almo_scf_ks_to_ks_xx, &
-        almo_scf_ks_xx_to_tv_xx, almo_scf_p_blk_to_t_blk, almo_scf_t_to_p, &
+        almo_scf_ks_xx_to_tv_xx, almo_scf_p_blk_to_t_blk, almo_scf_t_to_proj, &
         apply_domain_operators, orthogonalize_mos, &
         apply_projector, construct_domain_preconditioner, construct_domain_r_down, &
         construct_domain_s_inv, construct_domain_s_sqrt, get_overlap, &
@@ -313,7 +313,7 @@ CONTAINS
             ! obtain density matrix from ALMOs
             DO ispin = 1, almo_scf_env%nspins
 
-               CALL almo_scf_t_to_p(t=almo_scf_env%matrix_t_blk(ispin), &
+               CALL almo_scf_t_to_proj(t=almo_scf_env%matrix_t_blk(ispin), &
                                     p=almo_scf_env%matrix_p(ispin), &
                                     eps_filter=almo_scf_env%eps_filter, &
                                     orthog_orbs=.FALSE., &
@@ -579,7 +579,7 @@ CONTAINS
                ENDIF
 
                ! update now
-               CALL almo_scf_t_to_p( &
+               CALL almo_scf_t_to_proj( &
                   t=almo_scf_env%matrix_t(ispin), &
                   p=almo_scf_env%matrix_p(ispin), &
                   eps_filter=almo_scf_env%eps_filter, &
@@ -1118,7 +1118,7 @@ CONTAINS
                        special_case=my_special_case)
 
                ! compute the density matrix
-               CALL almo_scf_t_to_p( &
+               CALL almo_scf_t_to_proj( &
                   t=matrix_t_out(ispin), &
                   p=almo_scf_env%matrix_p(ispin), &
                   eps_filter=almo_scf_env%eps_filter, &
@@ -3594,7 +3594,7 @@ CALL dbcsr_copy(m_tmp_no_2, grad)
 
             ! obtain density matrix from updated MOs
             ! RZK-later sigma and sigma_inv are lost here
-            CALL almo_scf_t_to_p(t=almo_scf_env%matrix_t(ispin), &
+            CALL almo_scf_t_to_proj(t=almo_scf_env%matrix_t(ispin), &
                                  p=almo_scf_env%matrix_p(ispin), &
                                  eps_filter=almo_scf_env%eps_filter, &
                                  orthog_orbs=.FALSE., &

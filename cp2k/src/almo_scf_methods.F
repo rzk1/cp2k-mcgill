@@ -58,7 +58,7 @@ MODULE almo_scf_methods
    CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'almo_scf_methods'
 
    PUBLIC almo_scf_ks_to_ks_blk, almo_scf_p_blk_to_t_blk, &
-      almo_scf_t_to_p, almo_scf_ks_blk_to_tv_blk, &
+      almo_scf_t_to_proj, almo_scf_ks_blk_to_tv_blk, &
       almo_scf_ks_xx_to_tv_xx, &
       apply_projector, get_overlap, &
       generator_to_unitary, &
@@ -1404,7 +1404,7 @@ CONTAINS
 !>       2011.07 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE almo_scf_t_to_p(t, p, eps_filter, orthog_orbs, nocc_of_domain, s, sigma, sigma_inv, &
+   SUBROUTINE almo_scf_t_to_proj(t, p, eps_filter, orthog_orbs, nocc_of_domain, s, sigma, sigma_inv, &
                               use_guess, algorithm, para_env, blacs_env)
 
       TYPE(dbcsr_type), INTENT(IN)                       :: t
@@ -1419,7 +1419,7 @@ CONTAINS
       TYPE(cp_para_env_type), POINTER, OPTIONAL          :: para_env
       TYPE(cp_blacs_env_type), POINTER, OPTIONAL         :: blacs_env
 
-      CHARACTER(LEN=*), PARAMETER :: routineN = 'almo_scf_t_to_p', &
+      CHARACTER(LEN=*), PARAMETER :: routineN = 'almo_scf_t_to_proj', &
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle, my_algorithm
@@ -1504,7 +1504,7 @@ CONTAINS
 
       CALL timestop(handle)
 
-   END SUBROUTINE almo_scf_t_to_p
+   END SUBROUTINE almo_scf_t_to_proj
 
 
 ! **************************************************************************************************

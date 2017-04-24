@@ -23,7 +23,7 @@ MODULE almo_scf
                                               molecular_scf_guess_env_type
    USE cp_para_types,                   ONLY: cp_para_env_type
    USE almo_scf_methods,                ONLY: almo_scf_p_blk_to_t_blk,&
-                                              almo_scf_t_to_p,&
+                                              almo_scf_t_to_proj,&
                                               distribute_domains,&
                                               orthogonalize_mos
    USE almo_scf_optimizer,              ONLY: almo_scf_block_diagonal,&
@@ -618,7 +618,7 @@ CONTAINS
                                 eps_lanczos=almo_scf_env%eps_lanczos, &
                                 max_iter_lanczos=almo_scf_env%max_iter_lanczos)
 
-         CALL almo_scf_t_to_p(t=almo_scf_env%matrix_t_blk(ispin), &
+         CALL almo_scf_t_to_proj(t=almo_scf_env%matrix_t_blk(ispin), &
                               p=almo_scf_env%matrix_p(ispin), &
                               eps_filter=almo_scf_env%eps_filter, &
                               orthog_orbs=.FALSE., &
@@ -822,7 +822,8 @@ CONTAINS
 
       CHARACTER(len=13)                                  :: neig_string
       CHARACTER(len=33)                                  :: deloc_method_string
-      INTEGER                                            :: handle, idomain, index1_prev
+      INTEGER                                            :: handle, idomain, &
+                                                            sum_temp, index1_prev
 
       CALL timeset(routineN, handle)
 
@@ -922,7 +923,46 @@ CONTAINS
 
          WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
 
-         IF (almo_scf_env%ndomains .LE. 200) THEN
+         ! print fragmentation statistics
+         WRITE (unit_nr, '(T2,A,T48,I33)') "No. of fragments:", &
+               almo_scf_env%ndomains
+
+         WRITE (unit_nr, '(T2,A)') "No. of basis set functions on fragments (min, av, max, total):"
+         sum_temp = SUM(almo_scf_env%nbasis_of_domain(:))
+         WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+                  MINVAL(almo_scf_env%nbasis_of_domain(:)), &
+                  (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+                  MAXVAL(almo_scf_env%nbasis_of_domain(:)), &
+                  sum_temp
+
+         WRITE (unit_nr, '(T2,A)') "No. of fragment occupied MOs (min, av, max, total):"
+         sum_temp = SUM(almo_scf_env%nocc_of_domain(:,:))
+         WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+                  MINVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+                  (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+                  MAXVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+                  sum_temp
+
+         WRITE (unit_nr, '(T2,A)') "No. of fragment virtual MOs (min, av, max, total):"
+         sum_temp = SUM(almo_scf_env%nvirt_of_domain(:,:))
+         WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+                  MINVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+                  (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+                  MAXVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+                  sum_temp
+
+         WRITE (unit_nr, '(T2,A)') "Fragment charges (min, av, max, total):"
+         sum_temp = SUM(almo_scf_env%charge_of_domain(:))
+         WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+                  MINVAL(almo_scf_env%charge_of_domain(:)), &
+                  (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+                  MAXVAL(almo_scf_env%charge_of_domain(:)), &
+                  sum_temp
+
+         WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
+         WRITE (unit_nr, '()')
+
+         IF (almo_scf_env%ndomains .LE. 128) THEN
 
             ! print fragment info
             WRITE (unit_nr, '(T2,A13,A13,A13,A13,A13,A13)') &
@@ -984,13 +1024,17 @@ CONTAINS
 
             END SELECT
 
-            WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
+         ELSE ! too big to print details for each fragment
 
-         ENDIF
+            WRITE (unit_nr, '(T2,A)') "The system is too big to print details for each fragment."
+
+         ENDIF ! how many fragments?
+
+         WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
 
          WRITE (unit_nr, '()')
 
-      ENDIF
+      ENDIF ! unit_nr > 0
 
       CALL timestop(handle)
 
