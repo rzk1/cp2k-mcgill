@@ -64,30 +64,32 @@ CONTAINS
 !> \author Joost VandeVondele
 ! **************************************************************************************************
    SUBROUTINE invert_Hotelling(matrix_inverse, matrix, threshold, use_inv_as_guess, &
-                               norm_convergence, filter_eps, silent)
+                               norm_convergence, filter_eps, accelerator, silent)
 
       TYPE(dbcsr_type), INTENT(INOUT), TARGET            :: matrix_inverse, matrix
       REAL(KIND=dp), INTENT(IN)                          :: threshold
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_inv_as_guess
+      INTEGER, INTENT(IN), OPTIONAL                      :: accelerator
       REAL(KIND=dp), INTENT(IN), OPTIONAL                :: norm_convergence, filter_eps
       LOGICAL, INTENT(IN), OPTIONAL                      :: silent
 
       CHARACTER(LEN=*), PARAMETER :: routineN = 'invert_Hotelling', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, i, nrow, unit_nr
+      INTEGER                                            :: handle, i, nrow, unit_nr, &
+                                                            accelerator_type, &
+                                                            max_iter_lanczos
       INTEGER(KIND=int_8)                                :: flop1, flop2
-      LOGICAL                                            :: use_inv_guess
+      LOGICAL                                            :: use_inv_guess, converged, &
+                                                            arnoldi_converged
       REAL(KIND=dp)                                      :: convergence, frob_matrix, &
                                                             gershgorin_norm, max_ev, &
                                                             maxnorm_matrix, min_ev, occ_matrix, &
-                                                            t1, t2
-      TYPE(arnoldi_data_type)                            :: my_arnoldi
+                                                            t1, t2, eps_lanczos, scalingf
       TYPE(cp_logger_type), POINTER                      :: logger
-      TYPE(dbcsr_p_type), DIMENSION(1)                   :: mymat
       TYPE(dbcsr_type), TARGET                           :: tmp1, tmp2
-
-! turn this off for the time being
+      !TYPE(arnoldi_data_type)                            :: my_arnoldi
+      !TYPE(dbcsr_p_type), DIMENSION(1)                   :: mymat
 
       CALL timeset(routineN, handle)
 
@@ -104,58 +106,90 @@ CONTAINS
       convergence = threshold
       IF (PRESENT(norm_convergence)) convergence = norm_convergence
 
+      accelerator_type = 1
+      IF (PRESENT(accelerator)) accelerator_type = accelerator
+
       use_inv_guess = .FALSE.
       IF (PRESENT(use_inv_as_guess)) use_inv_guess = use_inv_as_guess
+
+      ! generate the initial guess 
       IF (.NOT. use_inv_guess) THEN
-         ! initialize matrix to unity and use arnoldi to scale it into the convergence range
-         gershgorin_norm = dbcsr_gershgorin_norm(matrix)
-         frob_matrix = dbcsr_frobenius_norm(matrix)
-         CALL dbcsr_set(matrix_inverse, 0.0_dp)
-         CALL dbcsr_add_on_diag(matrix_inverse, 1.0_dp)
-         ! everything commutes, therefor our all products will be symmetric
+
+         SELECT CASE (accelerator_type)
+         CASE (0)
+            gershgorin_norm = dbcsr_gershgorin_norm(matrix)
+            frob_matrix = dbcsr_frobenius_norm(matrix)
+            CALL dbcsr_set(matrix_inverse, 0.0_dp)
+            CALL dbcsr_add_on_diag(matrix_inverse,1/MIN(gershgorin_norm,frob_matrix))
+         CASE (1)
+            ! initialize matrix to unity and use arnoldi (below) to scale it into the convergence range
+            CALL dbcsr_set(matrix_inverse, 0.0_dp)
+            CALL dbcsr_add_on_diag(matrix_inverse, 1.0_dp)
+         CASE DEFAULT
+            CPABORT("Illegal accelerator type")
+         END SELECT
+
+         ! everything commutes, therefore our all products will be symmetric
          CALL dbcsr_create(tmp1, template=matrix_inverse)
+
       ELSE
+
          ! It is unlikely that our guess will commute with the matrix, therefore the first product will
          ! be non symmetric
          CALL dbcsr_create(tmp1, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
+
       ENDIF
 
-      CALL dbcsr_get_info(matrix, nfullrows_total=nrow)
       CALL dbcsr_create(tmp2, template=matrix_inverse)
 
       IF (unit_nr > 0) WRITE (unit_nr, *)
 
       ! scale the approximate inverse to be within the convergence radius
       t1 = m_walltime()
+
       CALL dbcsr_multiply("N", "N", 1.0_dp, matrix_inverse, matrix, &
                           0.0_dp, tmp1, flop=flop1, filter_eps=filter_eps)
 
-      mymat(1)%matrix => tmp1
-      CALL setup_arnoldi_data(my_arnoldi, mymat, max_iter=30, threshold=1.0E-3_dp, selection_crit=1, &
-                              nval_request=2, nrestarts=2, generalized_ev=.FALSE., iram=.TRUE.)
-      CALL arnoldi_ev(mymat, my_arnoldi)
-      max_eV = REAL(get_selected_ritz_val(my_arnoldi, 2), dp)
-      min_eV = REAL(get_selected_ritz_val(my_arnoldi, 1), dp)
-      CALL deallocate_arnoldi_data(my_arnoldi)
+      IF (accelerator_type == 1) THEN
 
-      occ_matrix = dbcsr_get_occupation(matrix_inverse)
-      ! 2.0 would be the correct scaling howver, we should make sure here, that we are in the convergence radius
-      CALL dbcsr_scale(tmp1, 1.9_dp/(min_ev+max_ev))
-      CALL dbcsr_scale(matrix_inverse, 1.9_dp/(min_ev+max_ev))
-      min_ev = min_ev*1.9_dp/(min_ev+max_ev)
+         ! scale the matrix to get into the convergence range
+         eps_lanczos = 1.0E-3_dp
+         max_iter_lanczos = 64
+         CALL arnoldi_extremal(tmp1, max_eV, min_eV, threshold=eps_lanczos, &
+                               max_iter=max_iter_lanczos, converged=arnoldi_converged)
+         !mymat(1)%matrix => tmp1
+         !CALL setup_arnoldi_data(my_arnoldi, mymat, max_iter=30, threshold=1.0E-3_dp, selection_crit=1, &
+         !                        nval_request=2, nrestarts=2, generalized_ev=.FALSE., iram=.TRUE.)
+         !CALL arnoldi_ev(mymat, my_arnoldi)
+         !max_eV = REAL(get_selected_ritz_val(my_arnoldi, 2), dp)
+         !min_eV = REAL(get_selected_ritz_val(my_arnoldi, 1), dp)
+         !CALL deallocate_arnoldi_data(my_arnoldi)
 
+         IF (unit_nr > 0) THEN
+            WRITE (unit_nr, *)
+            WRITE (unit_nr, '(T6,A,1X,L1,A,E12.3)') "Lanczos converged: ", arnoldi_converged, " threshold:", eps_lanczos
+            WRITE (unit_nr, '(T6,A,1X,E12.3,E12.3)') "Est. extremal eigenvalues:", max_eV, min_eV
+            WRITE (unit_nr, '(T6,A,1X,E12.3)') "Est. condition number :", max_eV/MAX(min_eV, EPSILON(min_eV))
+         ENDIF
+
+         ! 2.0 would be the correct scaling however, we should make sure here, that we are in the convergence radius
+         scalingf = 1.9_dp/(max_eV+min_eV)
+         CALL dbcsr_scale(tmp1, scalingf)
+         CALL dbcsr_scale(matrix_inverse, scalingf)
+         min_ev = min_ev*scalingf
+
+      ENDIF
+
+      ! done with the initial guess, start iterations
+      converged = .FALSE.
       DO i = 1, 100
 
          ! tmp1 = S^-1 S
 
          ! for the convergence check
-         !frob_matrix_base=dbcsr_frobenius_norm(tmp1)
          CALL dbcsr_add_on_diag(tmp1, -1.0_dp)
-         frob_matrix = dbcsr_frobenius_norm(tmp1)
-
          CALL dbcsr_norm(tmp1, &
                          dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix)
-
          CALL dbcsr_add_on_diag(tmp1, +1.0_dp)
 
          ! tmp2 = S^-1 S S^-1
@@ -169,8 +203,10 @@ CONTAINS
          occ_matrix = dbcsr_get_occupation(matrix_inverse)
 
          ! use the scalar form of the algorithm to trace the EV
-         min_ev = min_ev*(2.0_dp-min_ev)
-         IF (PRESENT(norm_convergence)) maxnorm_matrix = ABS(min_eV-1.0_dp)
+         IF (accelerator_type == 1) THEN
+            min_ev = min_ev*(2.0_dp-min_ev)
+            IF (PRESENT(norm_convergence)) maxnorm_matrix = ABS(min_eV-1.0_dp)
+         ENDIF
 
          IF (unit_nr > 0) THEN
             WRITE (unit_nr, '(T6,A,1X,I3,1X,F10.8,E12.3,F12.3,F13.3)') "Hotelling iter", i, occ_matrix, &
@@ -179,17 +215,26 @@ CONTAINS
             CALL m_flush(unit_nr)
          ENDIF
 
-         IF (maxnorm_matrix < convergence) EXIT
+         IF (maxnorm_matrix < convergence) THEN
+            converged = .TRUE.
+            EXIT
+         ENDIF
 
          ! scale the matrix for improved convergence
-         min_ev = min_ev*2.0_dp/(min_ev+1.0_dp)
-         CALL dbcsr_scale(matrix_inverse, 2.0_dp/(min_ev+1.0_dp))
+         IF (accelerator_type == 1) THEN
+            min_ev = min_ev*2.0_dp/(min_ev+1.0_dp)
+            CALL dbcsr_scale(matrix_inverse, 2.0_dp/(min_ev+1.0_dp))
+         ENDIF
 
          t1 = m_walltime()
          CALL dbcsr_multiply("N", "N", 1.0_dp, matrix_inverse, matrix, &
                              0.0_dp, tmp1, flop=flop1, filter_eps=filter_eps)
 
       ENDDO
+
+      IF (.NOT.converged) THEN
+         CPABORT("Hotelling inversion did not converge")
+      ENDIF
 
       ! try to symmetrize the output matrix
       IF (dbcsr_get_matrix_type(matrix_inverse) == dbcsr_type_no_symmetry) THEN
@@ -349,7 +394,8 @@ CONTAINS
       LOGICAL                                            :: arnoldi_converged
       REAL(KIND=dp)                                      :: a, b, c, conv, d, frob_matrix, &
                                                             frob_matrix_base, max_ev, min_ev, oa, &
-                                                            ob, oc, occ_matrix, od, scaling, t1, t2
+                                                            ob, oc, occ_matrix, od, scaling, t1, t2, &
+                                                            gershgorin_norm
       TYPE(cp_logger_type), POINTER                      :: logger
       TYPE(dbcsr_type)                                   :: tmp1, tmp2, tmp3
 
@@ -377,17 +423,28 @@ CONTAINS
       CALL dbcsr_copy(matrix_sqrt, matrix)
 
       ! scale the matrix to get into the convergence range
-      CALL arnoldi_extremal(matrix_sqrt, max_ev, min_ev, threshold=eps_lanczos, &
-                            max_iter=max_iter_lanczos, converged=arnoldi_converged)
-      IF (unit_nr > 0) THEN
-         WRITE (unit_nr, *)
-         WRITE (unit_nr, '(T6,A,1X,L1,A,E12.3)') "Lanczos converged: ", arnoldi_converged, " threshold:", eps_lanczos
-         WRITE (unit_nr, '(T6,A,1X,E12.3,E12.3)') "Est. extremal eigenvalues:", max_ev, min_ev
-         WRITE (unit_nr, '(T6,A,1X,E12.3)') "Est. condition number :", max_ev/MAX(min_ev, EPSILON(min_ev))
+      IF (order == 0) THEN
+
+         gershgorin_norm = dbcsr_gershgorin_norm(matrix_sqrt)
+         frob_matrix = dbcsr_frobenius_norm(matrix_sqrt)
+         scaling=1.0_dp/MIN(frob_matrix,gershgorin_norm)
+
+      ELSE
+
+         ! scale the matrix to get into the convergence range
+         CALL arnoldi_extremal(matrix_sqrt, max_ev, min_ev, threshold=eps_lanczos, &
+                               max_iter=max_iter_lanczos, converged=arnoldi_converged)
+         IF (unit_nr > 0) THEN
+            WRITE (unit_nr, *)
+            WRITE (unit_nr, '(T6,A,1X,L1,A,E12.3)') "Lanczos converged: ", arnoldi_converged, " threshold:", eps_lanczos
+            WRITE (unit_nr, '(T6,A,1X,E12.3,E12.3)') "Est. extremal eigenvalues:", max_ev, min_ev
+            WRITE (unit_nr, '(T6,A,1X,E12.3)') "Est. condition number :", max_ev/MAX(min_ev, EPSILON(min_ev))
+         ENDIF
+         ! conservatively assume we get a relatively large error (100*threshold_lanczos) in the estimates
+         ! and adjust the scaling to be on the safe side
+         scaling = 2.0_dp/(max_ev+min_ev+100*eps_lanczos)
+
       ENDIF
-      ! conservatively assume we get a relatively large error (100*threshold_lanczos) in the estimates
-      ! and adjust the scaling to be on the safe side
-      scaling = 2/(max_ev+min_ev+100*eps_lanczos)
 
       CALL dbcsr_scale(matrix_sqrt, scaling)
       CALL dbcsr_filter(matrix_sqrt, threshold)
@@ -407,7 +464,7 @@ CONTAINS
 
          flop4 = 0; flop5 = 0
          SELECT CASE (order)
-         CASE (2)
+         CASE (0,2)
             ! update the above to 0.5*(3*I-Zk*Yk)
             CALL dbcsr_add_on_diag(tmp1, -2.0_dp)
             CALL dbcsr_scale(tmp1, -0.5_dp)
@@ -464,7 +521,7 @@ CONTAINS
             ! final scale
             CALL dbcsr_scale(tmp1, 35.0_dp/128.0_dp)
          CASE DEFAULT
-            CPABORT("")
+            CPABORT("Illegal order value")
          END SELECT
 
          ! tmp2 = Yk * tmp1 = Y(k+1)

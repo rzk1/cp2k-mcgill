@@ -1042,6 +1042,7 @@ CONTAINS
                                         almo_scf_env%matrix_s_blk(1), &
                                         threshold=almo_scf_env%eps_filter, &
                                         order=almo_scf_env%order_lanczos, &
+                                        !order=0, &
                                         eps_lanczos=almo_scf_env%eps_lanczos, &
                                         max_iter_lanczos=almo_scf_env%max_iter_lanczos)
       ELSE IF (almo_scf_env%almo_update_algorithm .EQ. almo_scf_dm_sign) THEN

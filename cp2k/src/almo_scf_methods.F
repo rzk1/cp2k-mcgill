@@ -1471,7 +1471,10 @@ CONTAINS
                matrix_inverse=sigma_inv, & 
                matrix=sigma, & 
                use_inv_as_guess=use_sigma_inv_guess, & 
-               threshold=eps_filter) 
+               !use_inv_as_guess=.FALSE., & 
+               threshold=eps_filter, &
+               filter_eps=eps_filter, &
+               silent=.FALSE.) 
          ELSE IF (my_algorithm==spd_inversion_dense_cholesky) THEN
             ! invert using cholesky 
             CALL dbcsr_copy(sigma_inv, sigma)  
