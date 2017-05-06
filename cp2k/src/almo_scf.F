@@ -820,7 +820,9 @@ CONTAINS
 
       CHARACTER(len=13)                                  :: neig_string
       CHARACTER(len=33)                                  :: deloc_method_string
-      INTEGER                                            :: handle, idomain, index1_prev
+      INTEGER                                            :: handle, idomain, &
+                                                            sum_temp, index1_prev
+      INTEGER, DIMENSION(:), ALLOCATABLE                 :: nneighbors
 
       CALL timeset(routineN, handle)
 
@@ -914,21 +916,105 @@ CONTAINS
          !    WRITE(unit_nr,'(T2,A,T48,A33)') "Parallel distribution for MOs","MOLECULAR"
          !END SELECT
 
+         ! print fragment's statistics
          WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
+         WRITE (unit_nr, '(T2,A,T48,I33)') "Total fragments:", &
+               almo_scf_env%ndomains
 
-         IF (almo_scf_env%ndomains .LE. 200) THEN
+         sum_temp = SUM(almo_scf_env%nbasis_of_domain(:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Basis set size per fragment (min, av, max, total):", &
+            MINVAL(almo_scf_env%nbasis_of_domain(:)), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL(almo_scf_env%nbasis_of_domain(:)), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL(almo_scf_env%nbasis_of_domain(:)), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL(almo_scf_env%nbasis_of_domain(:)), &
+         !         sum_temp
+
+         sum_temp = SUM(almo_scf_env%nocc_of_domain(:,:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Occupied MOs per fragment (min, av, max, total):", &
+            MINVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+         !         sum_temp
+
+         sum_temp = SUM(almo_scf_env%nvirt_of_domain(:,:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Virtual MOs per fragment (min, av, max, total):", &
+            MINVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+         !         sum_temp
+
+         sum_temp = SUM(almo_scf_env%charge_of_domain(:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Charges per fragment (min, av, max, total):", &
+            MINVAL(almo_scf_env%charge_of_domain(:)), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL(almo_scf_env%charge_of_domain(:)), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL(almo_scf_env%charge_of_domain(:)), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL(almo_scf_env%charge_of_domain(:)), &
+         !         sum_temp
+
+         ! compute the number of neighbors of each fragment
+         ALLOCATE(nneighbors(almo_scf_env%ndomains))
+
+         DO idomain = 1, almo_scf_env%ndomains
+
+            IF (idomain .EQ. 1) THEN
+               index1_prev = 1
+            ELSE
+               index1_prev = almo_scf_env%domain_map(1)%index1(idomain-1)
+            ENDIF
+
+            SELECT CASE (almo_scf_env%deloc_method)
+            CASE (almo_deloc_none)
+               nneighbors(idomain) = 0
+            CASE (almo_deloc_x, almo_deloc_scf, almo_deloc_x_then_scf)
+               nneighbors(idomain) = almo_scf_env%ndomains - 1 ! minus self
+            CASE (almo_deloc_xalmo_1diag, almo_deloc_xalmo_x, almo_deloc_xalmo_scf)
+               nneighbors(idomain) = almo_scf_env%domain_map(1)%index1(idomain)-index1_prev-1 ! minus self
+            CASE DEFAULT
+               nneighbors(idomain) = -1
+            END SELECT
+
+         ENDDO ! cycle over domains
+
+         sum_temp = SUM(nneighbors(:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Deloc. neighbors of fragment (min, av, max, total):", &
+            MINVAL( nneighbors(:) ), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL( nneighbors(:) ), &
+            sum_temp
+
+         WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
+         WRITE (unit_nr, '()')
+
+         IF (almo_scf_env%ndomains .LE. 64) THEN
 
             ! print fragment info
-            WRITE (unit_nr, '(T2,A13,A13,A13,A13,A13,A13)') &
+            WRITE (unit_nr, '(T2,A10,A13,A13,A13,A13,A13)') &
                "Fragment", "Basis Set", "Occupied", "Virtual", "Charge", "Deloc Neig" !,"Discarded Virt"
             WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
             DO idomain = 1, almo_scf_env%ndomains
-
-               IF (idomain .EQ. 1) THEN
-                  index1_prev = 1
-               ELSE
-                  index1_prev = almo_scf_env%domain_map(1)%index1(idomain-1)
-               ENDIF
 
                SELECT CASE (almo_scf_env%deloc_method)
                CASE (almo_deloc_none)
@@ -936,13 +1022,12 @@ CONTAINS
                CASE (almo_deloc_x, almo_deloc_scf, almo_deloc_x_then_scf)
                   neig_string = "ALL"
                CASE (almo_deloc_xalmo_1diag, almo_deloc_xalmo_x, almo_deloc_xalmo_scf)
-                  WRITE (neig_string, '(I13)') &
-                     almo_scf_env%domain_map(1)%index1(idomain)-index1_prev-1 ! minus self
+                  WRITE (neig_string, '(I13)') nneighbors(idomain) 
                CASE DEFAULT
                   neig_string = "N/A"
                END SELECT
 
-               WRITE (unit_nr, '(T2,I13,I13,I13,I13,I13,A13)') &
+               WRITE (unit_nr, '(T2,I10,I13,I13,I13,I13,A13)') &
                   idomain, almo_scf_env%nbasis_of_domain(idomain), &
                   SUM(almo_scf_env%nocc_of_domain(idomain, :)), &
                   SUM(almo_scf_env%nvirt_of_domain(idomain, :)), &
@@ -969,8 +1054,8 @@ CONTAINS
                      index1_prev = almo_scf_env%domain_map(1)%index1(idomain-1)
                   ENDIF
 
-                  WRITE (unit_nr, '(T2,I13,":")') idomain
-                  WRITE (unit_nr, '(T15,5I13)') &
+                  WRITE (unit_nr, '(T2,I10,":")') idomain
+                  WRITE (unit_nr, '(T12,11I6)') &
                      almo_scf_env%domain_map(1)%pairs &
                      (index1_prev:almo_scf_env%domain_map(1)%index1(idomain)-1, 1) ! includes self
 
@@ -983,6 +1068,8 @@ CONTAINS
          ENDIF
 
          WRITE (unit_nr, '()')
+
+         DEALLOCATE(nneighbors)
 
       ENDIF
 
