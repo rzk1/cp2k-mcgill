@@ -144,6 +144,8 @@ CONTAINS
       CALL section_vals_val_get(almo_scf_section, "XALMO_EXTRAPOLATION_ORDER", &
                                 i_val=almo_scf_env%xalmo_extrapolation_order)
       almo_scf_env%xalmo_extrapolation_order = MAX(0, almo_scf_env%xalmo_extrapolation_order)
+      CALL section_vals_val_get(almo_scf_section, "RETURN_ORTHOGONALIZED_MOS", &
+                                l_val=almo_scf_env%return_orthogonalized_mos)
 
       ! optimizers
       CALL section_vals_val_get(almo_opt_diis_section, "EPS_ERROR", &

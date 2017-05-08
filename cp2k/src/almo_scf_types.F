@@ -199,7 +199,8 @@ MODULE almo_scf_types
       LOGICAL              :: s_inv_done
       LOGICAL              :: s_sqrt_done
       REAL(KIND=dp)        :: almo_scf_energy
-      LOGICAL               :: orthogonal_basis, fixed_mu
+      LOGICAL              :: orthogonal_basis, fixed_mu
+      LOGICAL              :: return_orthogonalized_mos
 
       ! Controls for the SCF procedure
       REAL(KIND=dp)         :: eps_filter

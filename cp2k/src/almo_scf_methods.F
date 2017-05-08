@@ -1472,8 +1472,9 @@ CONTAINS
                matrix=sigma, & 
                use_inv_as_guess=use_sigma_inv_guess, & 
                !use_inv_as_guess=.FALSE., & 
-               threshold=eps_filter, &
+               threshold=eps_filter*10.0_dp, &
                filter_eps=eps_filter, &
+               !accelerator=0, &
                silent=.FALSE.) 
          ELSE IF (my_algorithm==spd_inversion_dense_cholesky) THEN
             ! invert using cholesky 

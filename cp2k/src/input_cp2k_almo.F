@@ -66,7 +66,7 @@ CONTAINS
                           description="Settings for a class of efficient linear scaling methods based "// &
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
-                          n_keywords=8, n_subsections=3, repeats=.FALSE., &
+                          n_keywords=9, n_subsections=3, repeats=.FALSE., &
                           citations=(/Khaliullin2013/))
 
       NULLIFY (keyword)
@@ -111,7 +111,7 @@ CONTAINS
       CALL keyword_create(keyword, name="XALMO_EXTRAPOLATION_ORDER", &
                           description="Number of previous states used for the ASPC extrapolation of the initial guess "// &
                           "for the delocalization correction.", &
-                          usage="XALMO_EXTRAPOLATION_ORDER 1", default_i_val=3)
+                          usage="XALMO_EXTRAPOLATION_ORDER 1", default_i_val=0)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
@@ -160,6 +160,14 @@ CONTAINS
                           "R_cutoff = XALMO_R_CUTOFF_FACTOR*(radius(at1)+radius(at2))", &
                           usage="XALMO_R_CUTOFF_FACTOR 1.6", default_r_val=1.50_dp)
       CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="RETURN_ORTHOGONALIZED_MOS",&
+           description="Orthogonalize final ALMOs before they are returned"// &
+           "to Quickstep (i.e. for calculation of properties)", &
+           usage="RETURN_ORTHOGONALIZED_MOS .TRUE.", default_l_val=.FALSE.,&
+           lone_keyword_l_val=.TRUE.)
+      CALL section_add_keyword(section,keyword)
       CALL keyword_release(keyword)
 
       !CALL keyword_create(keyword, name="DELOCALIZE_EPS_ITER",&

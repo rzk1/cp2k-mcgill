@@ -1489,7 +1489,7 @@ CONTAINS
       INTEGER                                            :: handle, ispin
       TYPE(cp_fm_type), POINTER                          :: mo_coeff
       TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_w
-      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:)        :: matrix_t_orthogonal
+      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:)        :: matrix_t_processed
       TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos
       TYPE(qs_scf_env_type), POINTER                     :: scf_env
 
@@ -1499,30 +1499,34 @@ CONTAINS
       CALL almo_scf_store_extrapolation_data(almo_scf_env)
 
       ! orthogonalize orbitals before returning them to QS
-      ALLOCATE (matrix_t_orthogonal(almo_scf_env%nspins))
+      ALLOCATE (matrix_t_processed(almo_scf_env%nspins))
 
       DO ispin = 1, almo_scf_env%nspins
 
-         CALL dbcsr_create(matrix_t_orthogonal(ispin), &
+         CALL dbcsr_create(matrix_t_processed(ispin), &
                            template=almo_scf_env%matrix_t(ispin), &
                            matrix_type=dbcsr_type_no_symmetry)
 
-         CALL dbcsr_copy(matrix_t_orthogonal(ispin), &
+         CALL dbcsr_copy(matrix_t_processed(ispin), &
                          almo_scf_env%matrix_t(ispin))
 
-         CALL orthogonalize_mos(ket=matrix_t_orthogonal(ispin), &
-                                overlap=almo_scf_env%matrix_sigma(ispin), &
-                                metric=almo_scf_env%matrix_s(1), &
-                                retain_locality=.FALSE., &
-                                only_normalize=.FALSE., &
-                                nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
-                                eps_filter=almo_scf_env%eps_filter, &
-                                order_lanczos=almo_scf_env%order_lanczos, &
-                                eps_lanczos=almo_scf_env%eps_lanczos, &
-                                max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         IF (almo_scf_env%return_orthogonalized_mos) THEN
+
+            CALL orthogonalize_mos(ket=matrix_t_processed(ispin), &
+                                   overlap=almo_scf_env%matrix_sigma(ispin), &
+                                   metric=almo_scf_env%matrix_s(1), &
+                                   retain_locality=.FALSE., &
+                                   only_normalize=.FALSE., &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   eps_filter=almo_scf_env%eps_filter, &
+                                   order_lanczos=almo_scf_env%order_lanczos, &
+                                   eps_lanczos=almo_scf_env%eps_lanczos, &
+                                   max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         ENDIF
+
       ENDDO
 
-      ! return orthogonalized orbitals to QS
+      ! return orbitals to QS
       NULLIFY (mos, mo_coeff, scf_env)
 
       CALL get_qs_env(qs_env, mos=mos, scf_env=scf_env)
@@ -1531,10 +1535,10 @@ CONTAINS
          ! Currently only fm version of mo_set is usable.
          ! First transform the matrix_t to fm version
          CALL get_mo_set(mos(ispin)%mo_set, mo_coeff=mo_coeff)
-         CALL copy_dbcsr_to_fm(matrix_t_orthogonal(ispin), mo_coeff)
-         CALL dbcsr_release(matrix_t_orthogonal(ispin))
+         CALL copy_dbcsr_to_fm(matrix_t_processed(ispin), mo_coeff)
+         CALL dbcsr_release(matrix_t_processed(ispin))
       ENDDO
-      DEALLOCATE (matrix_t_orthogonal)
+      DEALLOCATE (matrix_t_processed)
 
       ! calculate post scf properties
       ! CALL almo_post_scf_compute_properties(qs_env, almo_scf_env)
