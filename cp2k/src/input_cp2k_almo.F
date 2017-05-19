@@ -18,8 +18,9 @@ MODULE input_cp2k_almo
         almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, almo_frz_crystal, &
         almo_frz_none, almo_scf_diag, almo_scf_pcg, atomic_guess, cg_dai_yuan, cg_fletcher, &
         cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, &
-        cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, prec_default, prec_zero, &
-        spd_inversion_ls_hotelling, spd_inversion_dense_cholesky, almo_scf_skip
+        cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, xalmo_prec_zero, xalmo_prec_domain, &
+        xalmo_prec_full, spd_inversion_ls_hotelling, spd_inversion_dense_cholesky, almo_scf_skip, &
+        xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
                                               keyword_type
@@ -40,6 +41,7 @@ MODULE input_cp2k_almo
    INTEGER, PARAMETER, PRIVATE :: optimizer_block_diagonal_diis = 1
    INTEGER, PARAMETER, PRIVATE :: optimizer_block_diagonal_pcg = 2
    INTEGER, PARAMETER, PRIVATE :: optimizer_xalmo_pcg = 3
+   INTEGER, PARAMETER, PRIVATE :: optimizer_newton_pcg_solver = 5
 
    PUBLIC :: create_almo_scf_section
 
@@ -111,7 +113,7 @@ CONTAINS
       CALL keyword_create(keyword, name="XALMO_EXTRAPOLATION_ORDER", &
                           description="Number of previous states used for the ASPC extrapolation of the initial guess "// &
                           "for the delocalization correction.", &
-                          usage="XALMO_EXTRAPOLATION_ORDER 1", default_i_val=3)
+                          usage="XALMO_EXTRAPOLATION_ORDER 1", default_i_val=0)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
@@ -595,6 +597,7 @@ CONTAINS
 
       INTEGER                                            :: optimizer_type
       TYPE(keyword_type), POINTER                        :: keyword
+      TYPE(section_type), POINTER                        :: subsection
 
       CPASSERT(.NOT. ASSOCIATED(section))
       NULLIFY (section)
@@ -699,11 +702,13 @@ CONTAINS
 
          CALL keyword_create(keyword, name="PRECONDITIONER", &
                              description="Select a preconditioner for the conjugate gradient optimization", &
-                             usage="PRECONDITIONER NONE", &
-                             default_i_val=-1, &
-                             enum_c_vals=s2a("DEFAULT", "NONE"), &
-                             enum_desc=s2a("Default preconditioner", "Do not use preconditioner"), &
-                             enum_i_vals=(/prec_default, prec_zero/))
+                             usage="PRECONDITIONER DOMAIN", &
+                             default_i_val=1, &
+                             enum_c_vals=s2a("NONE", "DOMAIN", "FULL"), &
+                             enum_desc=s2a("Do not use preconditioner","Invert preconditioner domain-by-domain."// & 
+                             " The main component of the linear scaling algorithm", &
+                             "Solve linear equations step=-H.grad on the entire space"), &
+                             enum_i_vals=(/xalmo_prec_zero, xalmo_prec_domain, xalmo_prec_full/))
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
 

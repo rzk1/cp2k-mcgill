@@ -18,8 +18,7 @@ MODULE almo_scf_env_methods
         almo_constraint_distance, almo_deloc_xalmo_1diag, almo_domain_layout_atomic, &
         almo_domain_layout_molecular, almo_frz_crystal, almo_mat_distr_molecular, almo_scf_diag, &
         almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, tensor_orthogonal, &
-        virt_full, virt_minimal, virt_number, almo_scf_skip, &
-        xalmo_trial_simplex,
+        virt_full, virt_minimal, virt_number, almo_scf_skip, xalmo_trial_r0_out, almo_deloc_none
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
@@ -106,7 +105,8 @@ CONTAINS
 
       INTEGER                                            :: handle
       TYPE(section_vals_type), POINTER :: almo_analysis_section, almo_opt_diis_section, &
-         almo_opt_pcg_section, almo_scf_section, xalmo_opt_pcg_section
+         almo_opt_pcg_section, almo_scf_section, xalmo_opt_pcg_section, &
+         xalmo_opt_newton_pcg_section
 
       CALL timeset(routineN, handle)
 
@@ -118,7 +118,9 @@ CONTAINS
       xalmo_opt_pcg_section => section_vals_get_subs_vals(almo_scf_section, &
                                                           "XALMO_OPTIMIZER_PCG")
       almo_analysis_section => section_vals_get_subs_vals(almo_scf_section, "ANALYSIS")
-
+      xalmo_opt_newton_pcg_section => section_vals_get_subs_vals(xalmo_opt_pcg_section,&
+                             "XALMO_NEWTON_PCG_SOLVER")
+    
       ! RZK-warning the values of these keywords are hardcoded
       ! but ideally they should also be read from the input file
       almo_scf_env%order_lanczos = 3

@@ -18,8 +18,8 @@ MODULE almo_scf_types
                                               domain_submatrix_type
    USE input_constants,                 ONLY: &
         cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, &
-        cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, prec_default, &
-        prec_zero
+        cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, &
+        xalmo_prec_domain, xalmo_prec_zero, xalmo_prec_full
    USE kinds,                           ONLY: dp
 #include "./base/base_uses.f90"
 
@@ -437,10 +437,12 @@ CONTAINS
                optimizer%max_iter_outer_loop
 
             SELECT CASE (optimizer%preconditioner)
-            CASE (prec_zero)
+            CASE (xalmo_prec_zero)
                prec_string = "NONE"
-            CASE (prec_default)
-               prec_string = "0.5 H + 0.5 S"
+            CASE (xalmo_prec_domain)
+               prec_string = "0.5 KS + 0.5 S, DOMAINS"
+            CASE (xalmo_prec_full)
+               prec_string = "0.5 KS + 0.5 S, FULL"
             END SELECT
             WRITE (unit_nr, '(T4,A,T48,A33)') "preconditioner:", TRIM(prec_string)
 
