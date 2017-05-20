@@ -1405,7 +1405,8 @@ CONTAINS
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE almo_scf_t_to_p(t, p, eps_filter, orthog_orbs, nocc_of_domain, s, sigma, sigma_inv, &
-                              use_guess, algorithm, para_env, blacs_env)
+                              use_guess, algorithm, para_env, blacs_env, eps_lanczos, &
+                              max_iter_lanczos, inverse_accelerator)
 
       TYPE(dbcsr_type), INTENT(IN)                       :: t
       TYPE(dbcsr_type), INTENT(INOUT)                    :: p
@@ -1415,14 +1416,19 @@ CONTAINS
       TYPE(dbcsr_type), INTENT(IN), OPTIONAL             :: s
       TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL          :: sigma, sigma_inv
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_guess
-      INTEGER, INTENT(IN), OPTIONAL                      :: algorithm
+      INTEGER, INTENT(IN), OPTIONAL                      :: algorithm, &
+                                                            max_iter_lanczos, &
+                                                            inverse_accelerator
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_lanczos
       TYPE(cp_para_env_type), POINTER, OPTIONAL          :: para_env
       TYPE(cp_blacs_env_type), POINTER, OPTIONAL         :: blacs_env
 
       CHARACTER(LEN=*), PARAMETER :: routineN = 'almo_scf_t_to_p', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, my_algorithm
+      INTEGER                                            :: handle, &
+                                                            my_algorithm, &
+                                                            my_accelerator
       LOGICAL                                            :: use_sigma_inv_guess
       TYPE(dbcsr_type)                                   :: t_tmp
 
@@ -1447,6 +1453,9 @@ CONTAINS
          use_sigma_inv_guess = use_guess
       ENDIF
 
+      my_accelerator = 1
+      IF (PRESENT(inverse_accelerator)) my_accelerator = inverse_accelerator
+      
       IF (orthog_orbs) THEN
 
          CALL dbcsr_multiply("N", "T", 1.0_dp, t, t, &
@@ -1471,10 +1480,11 @@ CONTAINS
                matrix_inverse=sigma_inv, & 
                matrix=sigma, & 
                use_inv_as_guess=use_sigma_inv_guess, & 
-               !use_inv_as_guess=.FALSE., & 
                threshold=eps_filter*10.0_dp, &
                filter_eps=eps_filter, &
-               !accelerator=0, &
+               accelerator_order=my_accelerator, &
+               eps_lanczos=eps_lanczos, &
+               max_iter_lanczos=max_iter_lanczos, &
                silent=.FALSE.) 
          ELSE IF (my_algorithm==spd_inversion_dense_cholesky) THEN
             ! invert using cholesky 

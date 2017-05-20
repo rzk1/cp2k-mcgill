@@ -626,6 +626,8 @@ CONTAINS
                               sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                               use_guess=.FALSE., &
                               algorithm=almo_scf_env%sigma_inv_algorithm, &
+                              eps_lanczos=almo_scf_env%eps_lanczos,&
+                              max_iter_lanczos=almo_scf_env%max_iter_lanczos,&
                               para_env=almo_scf_env%para_env, &
                               blacs_env=almo_scf_env%blacs_env)
 
@@ -1135,7 +1137,8 @@ CONTAINS
       ELSE IF (almo_scf_env%almo_update_algorithm .EQ. almo_scf_dm_sign) THEN
          CALL invert_Hotelling(almo_scf_env%matrix_s_blk_inv(1), &
                                almo_scf_env%matrix_s_blk(1), &
-                               threshold=almo_scf_env%eps_filter)
+                               threshold=almo_scf_env%eps_filter, &
+                               filter_eps=almo_scf_env%eps_filter)
       ENDIF
 
       CALL timestop(handle)

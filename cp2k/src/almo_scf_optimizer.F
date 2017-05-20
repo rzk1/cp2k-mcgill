@@ -320,6 +320,9 @@ CONTAINS
                                     sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                                     use_guess=use_prev_as_guess, &
                                     algorithm=almo_scf_env%sigma_inv_algorithm, &
+                                    inverse_accelerator=almo_scf_env%order_lanczos, &
+                                    eps_lanczos=almo_scf_env%eps_lanczos, &
+                                    max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                     para_env=almo_scf_env%para_env, &
                                     blacs_env=almo_scf_env%blacs_env)
 
@@ -587,6 +590,9 @@ CONTAINS
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   use_guess=.TRUE., &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
+                  inverse_accelerator=almo_scf_env%order_lanczos, &
+                  eps_lanczos=almo_scf_env%eps_lanczos, &
+                  max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                   para_env=almo_scf_env%para_env, &
                   blacs_env=almo_scf_env%blacs_env)
                CALL dbcsr_scale(almo_scf_env%matrix_p(ispin), spin_factor)
@@ -1129,6 +1135,9 @@ CONTAINS
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   use_guess=use_guess, &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
+                  inverse_accelerator=almo_scf_env%order_lanczos, &
+                  eps_lanczos=almo_scf_env%eps_lanczos, &
+                  max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                   para_env=almo_scf_env%para_env, &
                   blacs_env=almo_scf_env%blacs_env)
                CALL dbcsr_scale(almo_scf_env%matrix_p(ispin), &
@@ -3707,6 +3716,9 @@ CONTAINS
                                  sigma_inv=almo_scf_env%matrix_sigma_inv(ispin),&
                                  !use_guess=use_guess, &
                                  algorithm=almo_scf_env%sigma_inv_algorithm, &
+                                 inverse_accelerator=almo_scf_env%order_lanczos, &
+                                 eps_lanczos=almo_scf_env%eps_lanczos, &
+                                 max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                  para_env=almo_scf_env%para_env, &
                                  blacs_env=almo_scf_env%blacs_env)
 

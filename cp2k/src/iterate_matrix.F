@@ -64,13 +64,17 @@ CONTAINS
 !> \author Joost VandeVondele
 ! **************************************************************************************************
    SUBROUTINE invert_Hotelling(matrix_inverse, matrix, threshold, use_inv_as_guess, &
-                               norm_convergence, filter_eps, accelerator, silent)
+                               norm_convergence, filter_eps, accelerator_order, &
+                               max_iter_lanczos, eps_lanczos, silent)
 
       TYPE(dbcsr_type), INTENT(INOUT), TARGET            :: matrix_inverse, matrix
       REAL(KIND=dp), INTENT(IN)                          :: threshold
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_inv_as_guess
-      INTEGER, INTENT(IN), OPTIONAL                      :: accelerator
-      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: norm_convergence, filter_eps
+      INTEGER, INTENT(IN), OPTIONAL                      :: accelerator_order, &
+                                                            max_iter_lanczos
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: norm_convergence, &
+                                                            filter_eps, &
+                                                            eps_lanczos
       LOGICAL, INTENT(IN), OPTIONAL                      :: silent
 
       CHARACTER(LEN=*), PARAMETER :: routineN = 'invert_Hotelling', &
@@ -78,14 +82,15 @@ CONTAINS
 
       INTEGER                                            :: handle, i, nrow, unit_nr, &
                                                             accelerator_type, &
-                                                            max_iter_lanczos
+                                                            my_max_iter_lanczos
       INTEGER(KIND=int_8)                                :: flop1, flop2
       LOGICAL                                            :: use_inv_guess, converged, &
                                                             arnoldi_converged
       REAL(KIND=dp)                                      :: convergence, frob_matrix, &
                                                             gershgorin_norm, max_ev, &
                                                             maxnorm_matrix, min_ev, occ_matrix, &
-                                                            t1, t2, eps_lanczos, scalingf
+                                                            t1, t2, scalingf, &
+                                                            my_eps_lanczos
       TYPE(cp_logger_type), POINTER                      :: logger
       TYPE(dbcsr_type), TARGET                           :: tmp1, tmp2
       !TYPE(arnoldi_data_type)                            :: my_arnoldi
@@ -107,10 +112,16 @@ CONTAINS
       IF (PRESENT(norm_convergence)) convergence = norm_convergence
 
       accelerator_type = 1
-      IF (PRESENT(accelerator)) accelerator_type = accelerator
+      IF (PRESENT(accelerator_order)) accelerator_type = accelerator_order
+      IF (accelerator_type.gt.1) accelerator_type = 1
 
       use_inv_guess = .FALSE.
       IF (PRESENT(use_inv_as_guess)) use_inv_guess = use_inv_as_guess
+
+      my_max_iter_lanczos = 64
+      my_eps_lanczos = 1.0E-3_dp
+      IF (PRESENT(max_iter_lanczos)) my_max_iter_lanczos = max_iter_lanczos
+      IF (PRESENT(eps_lanczos)) my_eps_lanczos = eps_lanczos
 
       ! generate the initial guess 
       IF (.NOT. use_inv_guess) THEN
@@ -126,7 +137,7 @@ CONTAINS
             CALL dbcsr_set(matrix_inverse, 0.0_dp)
             CALL dbcsr_add_on_diag(matrix_inverse, 1.0_dp)
          CASE DEFAULT
-            CPABORT("Illegal accelerator type")
+            CPABORT("Illegal accelerator order")
          END SELECT
 
          ! everything commutes, therefore our all products will be symmetric
@@ -153,10 +164,8 @@ CONTAINS
       IF (accelerator_type == 1) THEN
 
          ! scale the matrix to get into the convergence range
-         eps_lanczos = 1.0E-3_dp
-         max_iter_lanczos = 64
-         CALL arnoldi_extremal(tmp1, max_eV, min_eV, threshold=eps_lanczos, &
-                               max_iter=max_iter_lanczos, converged=arnoldi_converged)
+         CALL arnoldi_extremal(tmp1, max_eV, min_eV, threshold=my_eps_lanczos, &
+                               max_iter=my_max_iter_lanczos, converged=arnoldi_converged)
          !mymat(1)%matrix => tmp1
          !CALL setup_arnoldi_data(my_arnoldi, mymat, max_iter=30, threshold=1.0E-3_dp, selection_crit=1, &
          !                        nval_request=2, nrestarts=2, generalized_ev=.FALSE., iram=.TRUE.)
@@ -167,7 +176,7 @@ CONTAINS
 
          IF (unit_nr > 0) THEN
             WRITE (unit_nr, *)
-            WRITE (unit_nr, '(T6,A,1X,L1,A,E12.3)') "Lanczos converged: ", arnoldi_converged, " threshold:", eps_lanczos
+            WRITE (unit_nr, '(T6,A,1X,L1,A,E12.3)') "Lanczos converged: ", arnoldi_converged, " threshold:", my_eps_lanczos
             WRITE (unit_nr, '(T6,A,1X,E12.3,E12.3)') "Est. extremal eigenvalues:", max_eV, min_eV
             WRITE (unit_nr, '(T6,A,1X,E12.3)') "Est. condition number :", max_eV/MAX(min_eV, EPSILON(min_eV))
          ENDIF

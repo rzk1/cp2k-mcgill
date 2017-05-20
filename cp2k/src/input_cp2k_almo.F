@@ -563,6 +563,11 @@ CONTAINS
       CALL section_release(subsection)
 
       NULLIFY (subsection)
+      CALL create_matrix_iterate_section(subsection)
+      CALL section_add_subsection(section, subsection)
+      CALL section_release(subsection)
+
+      NULLIFY (subsection)
       CALL create_almo_analysis_section(subsection)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
@@ -691,6 +696,56 @@ CONTAINS
       END SELECT
 
    END SUBROUTINE create_optimizer_section
+
+! **************************************************************************************************
+!> \brief The section controls iterative matrix operations like SQRT or inverse
+!> \param section ...
+!> \par History
+!>       2017.05 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE create_matrix_iterate_section(section)
+
+      TYPE(section_type), POINTER                        :: section
+
+      TYPE(keyword_type), POINTER                        :: keyword
+      TYPE(section_type), POINTER                        :: subsection
+
+      CPASSERT(.NOT. ASSOCIATED(section))
+      NULLIFY (section)
+
+      CALL section_create(section, "MATRIX_ITERATE", &
+                          description="Controls linear scaling iterative procedure on matrices: inversion, sqrti, etc. " // &
+                          "High-order Lanczos accelerates convergence provided it can estimate the eigenspectrum correctly.", &
+                          n_keywords=3, n_subsections=0, repeats=.FALSE.)
+
+      NULLIFY (keyword)
+
+      !CALL keyword_create(keyword, name="EPS_TARGET", &
+      !                    description="Acceptable error in the iterative procedure.", &
+      !                    usage="EPS_TARGET 1.0E-9", default_r_val=1.0E-9_dp)
+      !CALL section_add_keyword(section, keyword)
+      !CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="EPS_LANCZOS", &
+                          description="Threshold for Lanczos eigenvalue estimation.", &
+                          usage="EPS_LANCZOS 1.0E-4", default_r_val=1.0E-3_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="ORDER_LANCZOS", &
+                          description="Order of the Lanczos estimator.", &
+                          usage="ORDER LANCZOS 5", default_i_val=3)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="MAX_ITER_LANCZOS", &
+                          description="Maximum number of Lanczos iterations.", &
+                          usage="MAX_ITER_LANCZOS 64", default_i_val=128)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+   END SUBROUTINE create_matrix_iterate_section
 
 ! **************************************************************************************************
 !> \brief The section controls electronic structure analysis based on ALMOs
