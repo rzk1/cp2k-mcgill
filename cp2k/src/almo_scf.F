@@ -626,8 +626,9 @@ CONTAINS
                               sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                               use_guess=.FALSE., &
                               algorithm=almo_scf_env%sigma_inv_algorithm, &
-                              eps_lanczos=almo_scf_env%eps_lanczos,&
-                              max_iter_lanczos=almo_scf_env%max_iter_lanczos,&
+                              eps_lanczos=almo_scf_env%eps_lanczos, &
+                              max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
+                              inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
                               para_env=almo_scf_env%para_env, &
                               blacs_env=almo_scf_env%blacs_env)
 

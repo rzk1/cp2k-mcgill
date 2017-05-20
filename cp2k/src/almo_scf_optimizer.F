@@ -321,6 +321,7 @@ CONTAINS
                                     use_guess=use_prev_as_guess, &
                                     algorithm=almo_scf_env%sigma_inv_algorithm, &
                                     inverse_accelerator=almo_scf_env%order_lanczos, &
+                                    inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
                                     eps_lanczos=almo_scf_env%eps_lanczos, &
                                     max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                     para_env=almo_scf_env%para_env, &
@@ -591,6 +592,7 @@ CONTAINS
                   use_guess=.TRUE., &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
                   inverse_accelerator=almo_scf_env%order_lanczos, &
+                  inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
                   eps_lanczos=almo_scf_env%eps_lanczos, &
                   max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                   para_env=almo_scf_env%para_env, &
@@ -1135,6 +1137,7 @@ CONTAINS
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   use_guess=use_guess, &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
+                  inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
                   inverse_accelerator=almo_scf_env%order_lanczos, &
                   eps_lanczos=almo_scf_env%eps_lanczos, &
                   max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
@@ -3717,6 +3720,7 @@ CONTAINS
                                  !use_guess=use_guess, &
                                  algorithm=almo_scf_env%sigma_inv_algorithm, &
                                  inverse_accelerator=almo_scf_env%order_lanczos, &
+                                 inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
                                  eps_lanczos=almo_scf_env%eps_lanczos, &
                                  max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                  para_env=almo_scf_env%para_env, &

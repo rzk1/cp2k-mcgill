@@ -150,6 +150,8 @@ CONTAINS
                                 i_val=almo_scf_env%order_lanczos)
       CALL section_vals_val_get(matrix_iterate_section, "MAX_ITER_LANCZOS", &
                                 i_val=almo_scf_env%max_iter_lanczos)
+      CALL section_vals_val_get(matrix_iterate_section, "EPS_TARGET_FACTOR", &
+                                r_val=almo_scf_env%matrix_iter_eps_error_factor)
 
       ! optimizers
       CALL section_vals_val_get(almo_opt_diis_section, "EPS_ERROR", &

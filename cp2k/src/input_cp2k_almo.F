@@ -717,15 +717,16 @@ CONTAINS
       CALL section_create(section, "MATRIX_ITERATE", &
                           description="Controls linear scaling iterative procedure on matrices: inversion, sqrti, etc. " // &
                           "High-order Lanczos accelerates convergence provided it can estimate the eigenspectrum correctly.", &
-                          n_keywords=3, n_subsections=0, repeats=.FALSE.)
+                          n_keywords=4, n_subsections=0, repeats=.FALSE.)
 
       NULLIFY (keyword)
 
-      !CALL keyword_create(keyword, name="EPS_TARGET", &
-      !                    description="Acceptable error in the iterative procedure.", &
-      !                    usage="EPS_TARGET 1.0E-9", default_r_val=1.0E-9_dp)
-      !CALL section_add_keyword(section, keyword)
-      !CALL keyword_release(keyword)
+      CALL keyword_create(keyword, name="EPS_TARGET_FACTOR", &
+                          description="Multiplication factor that determines acceptable error in the iterative procedure. " // &
+                          "Acceptable error = EPS_TARGET_FACTOR * EPS_FILTER", &
+                          usage="EPS_TARGET 100.0", default_r_val=10.0_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="EPS_LANCZOS", &
                           description="Threshold for Lanczos eigenvalue estimation.", &
@@ -734,8 +735,8 @@ CONTAINS
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="ORDER_LANCZOS", &
-                          description="Order of the Lanczos estimator.", &
-                          usage="ORDER LANCZOS 5", default_i_val=3)
+                          description="Order of the Lanczos estimator. Use 0 to turn off. Do not use 1.", &
+                          usage="ORDER_LANCZOS 5", default_i_val=3)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 

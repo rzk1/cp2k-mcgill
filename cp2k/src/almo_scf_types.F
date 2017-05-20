@@ -207,6 +207,7 @@ MODULE almo_scf_types
       INTEGER               :: almo_scf_guess
       REAL(KIND=dp)         :: eps_prev_guess
       INTEGER               :: order_lanczos
+      REAL(KIND=dp)         :: matrix_iter_eps_error_factor
       REAL(KIND=dp)         :: eps_lanczos
       INTEGER               :: max_iter_lanczos
       REAL(KIND=dp)         :: mixing_fraction

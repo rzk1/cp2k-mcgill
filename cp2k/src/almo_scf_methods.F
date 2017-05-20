@@ -1406,7 +1406,7 @@ CONTAINS
 ! **************************************************************************************************
    SUBROUTINE almo_scf_t_to_p(t, p, eps_filter, orthog_orbs, nocc_of_domain, s, sigma, sigma_inv, &
                               use_guess, algorithm, para_env, blacs_env, eps_lanczos, &
-                              max_iter_lanczos, inverse_accelerator)
+                              max_iter_lanczos, inverse_accelerator, inv_eps_factor)
 
       TYPE(dbcsr_type), INTENT(IN)                       :: t
       TYPE(dbcsr_type), INTENT(INOUT)                    :: p
@@ -1419,7 +1419,8 @@ CONTAINS
       INTEGER, INTENT(IN), OPTIONAL                      :: algorithm, &
                                                             max_iter_lanczos, &
                                                             inverse_accelerator
-      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_lanczos
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_lanczos, &
+                                                            inv_eps_factor
       TYPE(cp_para_env_type), POINTER, OPTIONAL          :: para_env
       TYPE(cp_blacs_env_type), POINTER, OPTIONAL         :: blacs_env
 
@@ -1429,6 +1430,7 @@ CONTAINS
       INTEGER                                            :: handle, &
                                                             my_algorithm, &
                                                             my_accelerator
+      REAL(KIND=dp)                                      :: my_inv_eps_factor
       LOGICAL                                            :: use_sigma_inv_guess
       TYPE(dbcsr_type)                                   :: t_tmp
 
@@ -1455,7 +1457,10 @@ CONTAINS
 
       my_accelerator = 1
       IF (PRESENT(inverse_accelerator)) my_accelerator = inverse_accelerator
-      
+     
+      my_inv_eps_factor = 10.0_dp
+      IF (PRESENT(inv_eps_factor)) my_inv_eps_factor = inv_eps_factor
+ 
       IF (orthog_orbs) THEN
 
          CALL dbcsr_multiply("N", "T", 1.0_dp, t, t, &
@@ -1480,7 +1485,7 @@ CONTAINS
                matrix_inverse=sigma_inv, & 
                matrix=sigma, & 
                use_inv_as_guess=use_sigma_inv_guess, & 
-               threshold=eps_filter*10.0_dp, &
+               threshold=eps_filter*my_inv_eps_factor, &
                filter_eps=eps_filter, &
                accelerator_order=my_accelerator, &
                eps_lanczos=eps_lanczos, &
