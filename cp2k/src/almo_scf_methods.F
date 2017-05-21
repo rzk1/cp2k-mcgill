@@ -3674,9 +3674,11 @@ CONTAINS
                CALL dbcsr_copy(m_extrapolated, m_quench_t(ispin))
 
                ! project t0 onto the previous DMs
-               ! note that t0 is projected instead of anything else
-               ! this is done to keep orbitals phase (i.e. sign) the same
-               ! if this is not done the extrapolation will fail
+               ! note that t0 is projected instead of any other matrix (e.g.
+               ! t_SCF from the prev step or random t)
+               ! this is done to keep orbitals phase (i.e. sign) the same as in
+               ! t0. if this is not done then subtracting t0 on the next step
+               ! will produce a terrible guess and extrapolation will fail
                CALL dbcsr_multiply("N", "N", 1.0_dp, &
                                    xalmo_history%matrix_p_up_down(ispin, istore), &
                                    m_t0(ispin), &
