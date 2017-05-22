@@ -1240,7 +1240,8 @@ CONTAINS
                ENDIF ! skip_grad
 
                ! check convergence and other exit criteria
-               grad_norm_frob = dbcsr_frobenius_norm(grad)
+               grad_norm_frob = dbcsr_frobenius_norm(grad) / &
+                                dbcsr_frobenius_norm(quench_t(ispin))
                CALL dbcsr_norm(grad, dbcsr_norm_maxabsnorm, &
                                norm_scalar=grad_norm)
                converged = (grad_norm .LT. optimizer%eps_error)
@@ -1250,6 +1251,8 @@ CONTAINS
                IF (grad_norm .LT. almo_scf_env%eps_prev_guess) THEN
                   use_guess = .TRUE.
                ENDIF
+
+               IF (unit_nr > 0 ) WRITE(*,*) "Gradient RMS norm: ", grad_norm_frob
 
                IF (md_in_theta_space) THEN
 

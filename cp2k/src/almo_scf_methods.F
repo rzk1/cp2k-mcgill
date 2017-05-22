@@ -3654,6 +3654,8 @@ CONTAINS
 
             CALL dbcsr_create(m_extrapolated, &
                               template=m_quench_t(ispin), matrix_type=dbcsr_type_no_symmetry)
+            CALL dbcsr_create(m_sigma_tmp, &
+                              template=m_sigma_tmpl(ispin), matrix_type=dbcsr_type_no_symmetry)
 
             ! set to zero before accumulation
             CALL dbcsr_set(m_guess(ispin), 0.0_dp)
@@ -3684,6 +3686,17 @@ CONTAINS
                                    m_t0(ispin), &
                                    0.0_dp, m_extrapolated, &
                                    retain_sparsity=.TRUE.)
+               ! normalize MOs
+               CALL orthogonalize_mos(ket=m_extrapolated, &
+                                      overlap=m_sigma_tmp, &
+                                      metric=m_overlap, &
+                                      retain_locality=.TRUE., &
+                                      only_normalize=.FALSE., &
+                                      nocc_of_domain=nocc_of_domain(:,ispin), &
+                                      eps_filter=eps_filter, &
+                                      order_lanczos=order_lanczos, &
+                                      eps_lanczos=eps_lanczos, &
+                                      max_iter_lanczos=max_iter_lanczos)
 
                ! now accumulate. correct sparsity is ensured
                CALL dbcsr_add(m_guess(ispin), m_extrapolated, &
@@ -3694,9 +3707,6 @@ CONTAINS
             CALL dbcsr_release(m_extrapolated)
 
             ! normalize MOs
-            CALL dbcsr_create(m_sigma_tmp, &
-                              template=m_sigma_tmpl(ispin), matrix_type=dbcsr_type_no_symmetry)
-
             CALL orthogonalize_mos(ket=m_guess(ispin), &
                                    overlap=m_sigma_tmp, &
                                    metric=m_overlap, &
