@@ -67,6 +67,7 @@ MODULE almo_scf_types
       !INTEGER               :: ndiis_q -> ndiis
 
       REAL(KIND=dp)  :: eps_error, &
+                        eps_error_early, &
                         lin_search_eps_error, &
                         lin_search_step_size_guess
 
@@ -75,6 +76,7 @@ MODULE almo_scf_types
       INTEGER        :: preconditioner, & ! preconditioner type
                         conjugator, & ! conjugator type
                         max_iter, &
+                        max_iter_early, &
                         max_iter_outer_loop, &
                         ndiis ! diis history length
 
@@ -201,6 +203,7 @@ MODULE almo_scf_types
       REAL(KIND=dp)        :: almo_scf_energy
       LOGICAL              :: orthogonal_basis, fixed_mu
       LOGICAL              :: return_orthogonalized_mos
+      LOGICAL              :: stop_scf_early
 
       ! Controls for the SCF procedure
       REAL(KIND=dp)         :: eps_filter
