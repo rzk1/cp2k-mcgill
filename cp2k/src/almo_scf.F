@@ -374,12 +374,48 @@ CONTAINS
       !ENDIF
 
       almo_scf_env%calc_forces = calc_forces
-      !IF (calc_forces) THEN
-      !    IF (almo_scf_env%deloc_method==almo_deloc_x .OR. &
-      !        almo_scf_env%deloc_method==almo_deloc_xalmo_x .OR. &
-      !        almo_scf_env%deloc_method==almo_deloc_xalmo_1diag ) &
-      !   CPABORT(" Forces are not implemented for this method yet ")
-      !ENDIF
+      IF (calc_forces) THEN
+         ! switch to ASPC after a certain number of exact steps is done
+         IF (almo_scf_env%almo_history%istore.gt.(almo_scf_env%almo_history%nstore+1)) THEN
+            IF ( almo_scf_env%opt_block_diag_pcg%eps_error_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_block_diag_pcg%eps_error=almo_scf_env%opt_block_diag_pcg%eps_error_early
+               almo_scf_env%opt_block_diag_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_block_diag_diis%eps_error_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_block_diag_diis%eps_error=almo_scf_env%opt_block_diag_diis%eps_error_early
+               almo_scf_env%opt_block_diag_diis%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_DIIS: EPS_ERROR_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_block_diag_pcg%max_iter_early .gt. 0 ) THEN
+               almo_scf_env%opt_block_diag_pcg%max_iter=almo_scf_env%opt_block_diag_pcg%max_iter_early
+               almo_scf_env%opt_block_diag_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_block_diag_diis%max_iter_early .gt. 0 ) THEN
+               almo_scf_env%opt_block_diag_diis%max_iter=almo_scf_env%opt_block_diag_diis%max_iter_early
+               almo_scf_env%opt_block_diag_diis%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_DIIS: MAX_ITER_EARLY is on"
+            ENDIF
+         ELSE
+            almo_scf_env%opt_block_diag_diis%early_stopping_on=.FALSE.
+            almo_scf_env%opt_block_diag_pcg%early_stopping_on=.FALSE.
+         ENDIF
+         IF (almo_scf_env%xalmo_history%istore.gt.(almo_scf_env%xalmo_history%nstore+1)) THEN
+            IF ( almo_scf_env%opt_xalmo_pcg%eps_error_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_xalmo_pcg%eps_error=almo_scf_env%opt_xalmo_pcg%eps_error_early
+               almo_scf_env%opt_xalmo_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "XALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_xalmo_pcg%max_iter_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_xalmo_pcg%max_iter=almo_scf_env%opt_xalmo_pcg%max_iter_early
+               almo_scf_env%opt_xalmo_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "XALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
+            ENDIF
+         ELSE
+            almo_scf_env%opt_xalmo_pcg%early_stopping_on=.FALSE.
+         ENDIF
+      ENDIF
 
       ! create all matrices
       CALL almo_scf_env_create_matrices(almo_scf_env, matrix_s(1)%matrix)

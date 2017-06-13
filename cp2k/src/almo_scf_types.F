@@ -80,6 +80,8 @@ MODULE almo_scf_types
                         max_iter_outer_loop, &
                         ndiis ! diis history length
 
+      LOGICAL        :: early_stopping_on = .FALSE.
+
    END TYPE optimizer_options_type
 
    TYPE almo_scf_history_type
@@ -203,7 +205,6 @@ MODULE almo_scf_types
       REAL(KIND=dp)        :: almo_scf_energy
       LOGICAL              :: orthogonal_basis, fixed_mu
       LOGICAL              :: return_orthogonalized_mos
-      LOGICAL              :: stop_scf_early
 
       ! Controls for the SCF procedure
       REAL(KIND=dp)         :: eps_filter

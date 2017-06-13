@@ -101,12 +101,12 @@ CONTAINS
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
-      CALL keyword_create(keyword, name="STOP_SCF_EARLY",&
-           description="Stops SCF using EPS_ERROR_EARLY or MAX_ITER_EARLY", &
-           usage="STOP_SCF_EARLY .TRUE.", default_l_val=.FALSE.,&
-           lone_keyword_l_val=.TRUE.)
-      CALL section_add_keyword(section,keyword)
-      CALL keyword_release(keyword)
+      !CALL keyword_create(keyword, name="STOP_SCF_EARLY",&
+      !     description="Stops SCF using EPS_ERROR_EARLY or MAX_ITER_EARLY", &
+      !     usage="STOP_SCF_EARLY .TRUE.", default_l_val=.FALSE.,&
+      !     lone_keyword_l_val=.TRUE.)
+      !CALL section_add_keyword(section,keyword)
+      !CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="ALMO_EXTRAPOLATION_ORDER", &
                           description="Number of previous states used for the ASPC extrapolation of the ALMO "// &
@@ -643,14 +643,16 @@ CONTAINS
 
       ! add common keywords
       CALL keyword_create(keyword, name="MAX_ITER_EARLY", &
-                          description="Maximum number of iterations for truncated SCF (e.g. Langevin-corrected MD)", &
-                          usage="MAX_ITER_EARLY 5", default_i_val=2)
+                          description="Maximum number of iterations for truncated SCF "//&
+                          "(e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.", &
+                          usage="MAX_ITER_EARLY 5", default_i_val=-1)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="EPS_ERROR_EARLY", &
-                          description="Target value of the MAX norm of the error for truncated SCF (e.g. Langevin-corrected MD)", &
-                          usage="EPS_ERROR_EARLY 1.E-2", default_r_val=1.0E-2_dp)
+                          description="Target value of the MAX norm of the error for truncated SCF "//&
+                          "(e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.", &
+                          usage="EPS_ERROR_EARLY 1.E-2", default_r_val=-1.0_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
