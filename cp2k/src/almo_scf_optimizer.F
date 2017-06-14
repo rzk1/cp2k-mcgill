@@ -168,9 +168,6 @@ CONTAINS
       iscf = 0
       prepare_to_exit = .FALSE.
       true_mixing_fraction = 0.0_dp
-      ! set variables that control diag/pcg switching
-      nstrikes = 0
-      ntolerate = 3
       error_norm = 1.0E+10_dp ! arbitrary big step
 
       IF (unit_nr > 0) THEN
@@ -221,6 +218,7 @@ CONTAINS
          ! check convergence
          converged = .TRUE.
          IF (error_norm .GT. optimizer%eps_error) converged = .FALSE.
+
          ! check other exit criteria: max SCF steps and timing
          CALL external_control(should_stop, "SCF", &
                                start_time=qs_env%start_time, &
@@ -229,6 +227,10 @@ CONTAINS
             prepare_to_exit = .TRUE.
             IF ( iscf == 1 ) energy_new = energy_old
          ENDIF
+
+         ! if early stopping is on do at least one iteration
+         IF ( optimizer%early_stopping_on .AND. iscf .eq. 1 ) &
+            prepare_to_exit=.FALSE.
 
          IF (.NOT. prepare_to_exit) THEN ! update the ALMOs and density matrix
 
@@ -359,7 +361,7 @@ CONTAINS
 
       ENDDO ! end scf cycle
 
-      IF (.NOT. converged) THEN
+      IF (.NOT. converged .AND. (.NOT.optimizer%early_stopping_on) ) THEN
          IF (unit_nr > 0) THEN
             CPABORT("SCF for block-diagonal ALMOs not converged!")
          ENDIF
@@ -536,6 +538,10 @@ CONTAINS
          IF (should_stop .OR. iscf >= optimizer%max_iter .OR. converged) THEN
             prepare_to_exit = .TRUE.
          ENDIF
+
+         ! if early stopping is on do at least one iteration
+         IF ( optimizer%early_stopping_on .AND. iscf .eq. 1 ) &
+            prepare_to_exit=.FALSE.
 
          IF (.NOT. prepare_to_exit) THEN ! update the ALMOs and density matrix
 
@@ -732,7 +738,7 @@ CONTAINS
 
       ENDDO ! end scf cycle
 
-      IF (.NOT. converged) THEN
+      IF (.NOT.converged .AND. .NOT.optimizer%early_stopping_on ) THEN
          CPABORT("SCF for ALMOs on overlapping domains not converged! ")
       ENDIF
 
@@ -1248,6 +1254,11 @@ CONTAINS
                IF (converged .OR. (iteration .GE. max_iter)) THEN
                   prepare_to_exit = .TRUE.
                ENDIF
+
+               ! if early stopping is on do at least one iteration
+               IF ( optimizer%early_stopping_on .AND. just_started ) &
+                  prepare_to_exit=.FALSE.
+
                IF (grad_norm .LT. almo_scf_env%eps_prev_guess) THEN
                   use_guess = .TRUE.
                ENDIF
@@ -2085,7 +2096,7 @@ CONTAINS
          CALL dbcsr_release(step)
          CALL dbcsr_release(prev_minus_prec_grad)
 
-         IF (.NOT. converged) THEN
+         IF (.NOT.converged .AND. .NOT.optimizer%early_stopping_on ) THEN
             CPABORT("Optimization not converged! ")
          ENDIF
 

@@ -67,6 +67,7 @@ MODULE almo_scf_types
       !INTEGER               :: ndiis_q -> ndiis
 
       REAL(KIND=dp)  :: eps_error, &
+                        eps_error_early, &
                         lin_search_eps_error, &
                         lin_search_step_size_guess
 
@@ -75,8 +76,11 @@ MODULE almo_scf_types
       INTEGER        :: preconditioner, & ! preconditioner type
                         conjugator, & ! conjugator type
                         max_iter, &
+                        max_iter_early, &
                         max_iter_outer_loop, &
                         ndiis ! diis history length
+
+      LOGICAL        :: early_stopping_on = .FALSE.
 
    END TYPE optimizer_options_type
 

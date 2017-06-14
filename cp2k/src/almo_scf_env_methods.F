@@ -158,6 +158,10 @@ CONTAINS
                                 r_val=almo_scf_env%opt_block_diag_diis%eps_error)
       CALL section_vals_val_get(almo_opt_diis_section, "MAX_ITER", &
                                 i_val=almo_scf_env%opt_block_diag_diis%max_iter)
+      CALL section_vals_val_get(almo_opt_diis_section, "EPS_ERROR_EARLY", &
+                                r_val=almo_scf_env%opt_block_diag_diis%eps_error_early)
+      CALL section_vals_val_get(almo_opt_diis_section, "MAX_ITER_EARLY", &
+                                i_val=almo_scf_env%opt_block_diag_diis%max_iter_early)
       CALL section_vals_val_get(almo_opt_diis_section, "N_DIIS", &
                                 i_val=almo_scf_env%opt_block_diag_diis%ndiis)
 
@@ -165,6 +169,10 @@ CONTAINS
                                 r_val=almo_scf_env%opt_block_diag_pcg%eps_error)
       CALL section_vals_val_get(almo_opt_pcg_section, "MAX_ITER", &
                                 i_val=almo_scf_env%opt_block_diag_pcg%max_iter)
+      CALL section_vals_val_get(almo_opt_pcg_section, "EPS_ERROR_EARLY", &
+                                r_val=almo_scf_env%opt_block_diag_pcg%eps_error_early)
+      CALL section_vals_val_get(almo_opt_pcg_section, "MAX_ITER_EARLY", &
+                                i_val=almo_scf_env%opt_block_diag_pcg%max_iter_early)
       CALL section_vals_val_get(almo_opt_pcg_section, "MAX_ITER_OUTER_LOOP", &
                                 i_val=almo_scf_env%opt_block_diag_pcg%max_iter_outer_loop)
       CALL section_vals_val_get(almo_opt_pcg_section, "LIN_SEARCH_EPS_ERROR", &
@@ -180,6 +188,10 @@ CONTAINS
                                 r_val=almo_scf_env%opt_xalmo_pcg%eps_error)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "MAX_ITER", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%max_iter)
+      CALL section_vals_val_get(xalmo_opt_pcg_section, "EPS_ERROR_EARLY", &
+                                r_val=almo_scf_env%opt_xalmo_pcg%eps_error_early)
+      CALL section_vals_val_get(xalmo_opt_pcg_section, "MAX_ITER_EARLY", &
+                                i_val=almo_scf_env%opt_xalmo_pcg%max_iter_early)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "MAX_ITER_OUTER_LOOP", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%max_iter_outer_loop)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "LIN_SEARCH_EPS_ERROR", &
