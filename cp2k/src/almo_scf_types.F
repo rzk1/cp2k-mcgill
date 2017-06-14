@@ -35,7 +35,7 @@ MODULE almo_scf_types
                                    almo_mat_dim_virt_full = 4, &
                                    almo_mat_dim_domains = 5, &
                                    almo_mat_dim_virt_disc = 6
-   REAL(KIND=dp), PARAMETER, PUBLIC :: almo_max_cutoff_multiplier = 2.2_dp
+   REAL(KIND=dp), PARAMETER, PUBLIC :: almo_max_cutoff_multiplier = 10.0_dp
    
    PUBLIC :: almo_scf_env_type, optimizer_options_type, &
              print_optimizer_options, almo_scf_env_release, &
