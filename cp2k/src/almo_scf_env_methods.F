@@ -106,7 +106,7 @@ CONTAINS
       INTEGER                                            :: handle
       TYPE(section_vals_type), POINTER :: almo_analysis_section, almo_opt_diis_section, &
          almo_opt_pcg_section, almo_scf_section, xalmo_opt_pcg_section, &
-         xalmo_opt_newton_pcg_section
+         xalmo_opt_newton_pcg_section, matrix_iterate_section
 
       CALL timeset(routineN, handle)
 
@@ -120,12 +120,8 @@ CONTAINS
       almo_analysis_section => section_vals_get_subs_vals(almo_scf_section, "ANALYSIS")
       xalmo_opt_newton_pcg_section => section_vals_get_subs_vals(xalmo_opt_pcg_section,&
                              "XALMO_NEWTON_PCG_SOLVER")
-    
-      ! RZK-warning the values of these keywords are hardcoded
-      ! but ideally they should also be read from the input file
-      almo_scf_env%order_lanczos = 3
-      almo_scf_env%eps_lanczos = 1.0E-4_dp
-      almo_scf_env%max_iter_lanczos = 40
+      matrix_iterate_section => section_vals_get_subs_vals(almo_scf_section, &
+                                                          "MATRIX_ITERATE")
 
       ! read user input
       ! common ALMO options
@@ -149,12 +145,27 @@ CONTAINS
       CALL section_vals_val_get(almo_scf_section, "XALMO_EXTRAPOLATION_ORDER", &
                                 i_val=almo_scf_env%xalmo_extrapolation_order)
       almo_scf_env%xalmo_extrapolation_order = MAX(0, almo_scf_env%xalmo_extrapolation_order)
+      CALL section_vals_val_get(almo_scf_section, "RETURN_ORTHOGONALIZED_MOS", &
+                                l_val=almo_scf_env%return_orthogonalized_mos)
+
+      CALL section_vals_val_get(matrix_iterate_section, "EPS_LANCZOS", &
+                                r_val=almo_scf_env%eps_lanczos)
+      CALL section_vals_val_get(matrix_iterate_section, "ORDER_LANCZOS", &
+                                i_val=almo_scf_env%order_lanczos)
+      CALL section_vals_val_get(matrix_iterate_section, "MAX_ITER_LANCZOS", &
+                                i_val=almo_scf_env%max_iter_lanczos)
+      CALL section_vals_val_get(matrix_iterate_section, "EPS_TARGET_FACTOR", &
+                                r_val=almo_scf_env%matrix_iter_eps_error_factor)
 
       ! optimizers
       CALL section_vals_val_get(almo_opt_diis_section, "EPS_ERROR", &
                                 r_val=almo_scf_env%opt_block_diag_diis%eps_error)
       CALL section_vals_val_get(almo_opt_diis_section, "MAX_ITER", &
                                 i_val=almo_scf_env%opt_block_diag_diis%max_iter)
+      CALL section_vals_val_get(almo_opt_diis_section, "EPS_ERROR_EARLY", &
+                                r_val=almo_scf_env%opt_block_diag_diis%eps_error_early)
+      CALL section_vals_val_get(almo_opt_diis_section, "MAX_ITER_EARLY", &
+                                i_val=almo_scf_env%opt_block_diag_diis%max_iter_early)
       CALL section_vals_val_get(almo_opt_diis_section, "N_DIIS", &
                                 i_val=almo_scf_env%opt_block_diag_diis%ndiis)
 
@@ -162,6 +173,10 @@ CONTAINS
                                 r_val=almo_scf_env%opt_block_diag_pcg%eps_error)
       CALL section_vals_val_get(almo_opt_pcg_section, "MAX_ITER", &
                                 i_val=almo_scf_env%opt_block_diag_pcg%max_iter)
+      CALL section_vals_val_get(almo_opt_pcg_section, "EPS_ERROR_EARLY", &
+                                r_val=almo_scf_env%opt_block_diag_pcg%eps_error_early)
+      CALL section_vals_val_get(almo_opt_pcg_section, "MAX_ITER_EARLY", &
+                                i_val=almo_scf_env%opt_block_diag_pcg%max_iter_early)
       CALL section_vals_val_get(almo_opt_pcg_section, "MAX_ITER_OUTER_LOOP", &
                                 i_val=almo_scf_env%opt_block_diag_pcg%max_iter_outer_loop)
       CALL section_vals_val_get(almo_opt_pcg_section, "LIN_SEARCH_EPS_ERROR", &
@@ -177,6 +192,10 @@ CONTAINS
                                 r_val=almo_scf_env%opt_xalmo_pcg%eps_error)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "MAX_ITER", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%max_iter)
+      CALL section_vals_val_get(xalmo_opt_pcg_section, "EPS_ERROR_EARLY", &
+                                r_val=almo_scf_env%opt_xalmo_pcg%eps_error_early)
+      CALL section_vals_val_get(xalmo_opt_pcg_section, "MAX_ITER_EARLY", &
+                                i_val=almo_scf_env%opt_xalmo_pcg%max_iter_early)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "MAX_ITER_OUTER_LOOP", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%max_iter_outer_loop)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "LIN_SEARCH_EPS_ERROR", &
@@ -312,8 +331,8 @@ CONTAINS
       almo_scf_env%constraint_type = almo_constraint_distance
       almo_scf_env%mu = -0.1_dp
       almo_scf_env%fixed_mu = .FALSE.
-      almo_scf_env%eps_prev_guess = almo_scf_env%eps_filter/100.0_dp
       almo_scf_env%mixing_fraction = 0.45_dp
+      almo_scf_env%eps_prev_guess = almo_scf_env%eps_filter/1000.0_dp
 
       almo_scf_env%deloc_cayley_tensor_type = tensor_orthogonal
       almo_scf_env%deloc_cayley_conjugator = cg_hager_zhang

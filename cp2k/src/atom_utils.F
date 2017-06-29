@@ -1878,10 +1878,34 @@ CONTAINS
       INTEGER                                            :: i, l, n
       INTEGER, DIMENSION(4, 7)                           :: ne
       REAL(KIND=dp)                                      :: a, pf
+      INTEGER                                            :: mc, mm(0:3), mo, counter
+
+      ! fill out a table with the total number of electrons 
+      ! core + valence. format ne(l,n)
+      ne = 0
+      mm = get_maxn_occ(state%core)
+      DO l = 0, 3
+         mo = state%maxn_occ(l)
+         IF (SUM(state%core(l, :)) == 0) THEN
+            DO counter = 1, mo
+              ne(l+1,l+counter) = NINT(state%occ(l, counter))
+            ENDDO
+         ELSE
+            mc = mm(l) ! number of levels in the core
+            CPASSERT(SUM(state%occ(l, 1:mc)) == 0)
+            DO counter = 1, mc
+              ne(l+1,l+counter) = NINT(state%core(l, counter))
+            ENDDO
+            DO counter=mc+1, mc+mo
+              ne(l+1,l+counter) = NINT(state%occ(l, counter))
+            ENDDO
+         END IF
+      END DO
+      ! old buggy version
+      !ne(1:4, 1:7) = NINT(state%core(0:3, 1:7)+state%occ(0:3, 1:7))
 
       density1 = 0._dp
       density2 = 0._dp
-      ne(1:4, 1:7) = NINT(state%core(0:3, 1:7)+state%occ(0:3, 1:7))
       DO l = 0, state%maxl_occ
          DO i = 1, SIZE(state%occ, 2)
             IF (state%occ(l, i) > 0._dp) THEN

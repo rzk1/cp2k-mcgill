@@ -98,6 +98,7 @@ MODULE almo_scf_optimizer
 
    LOGICAL, PARAMETER :: debug_mode = .FALSE.
    LOGICAL, PARAMETER :: safe_mode = .FALSE.
+   LOGICAL, PARAMETER :: almo_mathematica = .FALSE.
    INTEGER, PARAMETER :: hessian_path_reuse = 1, &
                          hessian_path_assemble = 2
 
@@ -174,9 +175,6 @@ CONTAINS
       iscf = 0
       prepare_to_exit = .FALSE.
       true_mixing_fraction = 0.0_dp
-      ! set variables that control diag/pcg switching
-      nstrikes = 0
-      ntolerate = 3
       error_norm = 1.0E+10_dp ! arbitrary big step
 
       IF (unit_nr > 0) THEN
@@ -227,6 +225,7 @@ CONTAINS
          ! check convergence
          converged = .TRUE.
          IF (error_norm .GT. optimizer%eps_error) converged = .FALSE.
+
          ! check other exit criteria: max SCF steps and timing
          CALL external_control(should_stop, "SCF", &
                                start_time=qs_env%start_time, &
@@ -235,6 +234,10 @@ CONTAINS
             prepare_to_exit = .TRUE.
             IF ( iscf == 1 ) energy_new = energy_old
          ENDIF
+
+         ! if early stopping is on do at least one iteration
+         IF ( optimizer%early_stopping_on .AND. iscf .eq. 1 ) &
+            prepare_to_exit=.FALSE.
 
          IF (.NOT. prepare_to_exit) THEN ! update the ALMOs and density matrix
 
@@ -326,6 +329,10 @@ CONTAINS
                                     sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                                     use_guess=use_prev_as_guess, &
                                     algorithm=almo_scf_env%sigma_inv_algorithm, &
+                                    inverse_accelerator=almo_scf_env%order_lanczos, &
+                                    inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                                    eps_lanczos=almo_scf_env%eps_lanczos, &
+                                    max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                     para_env=almo_scf_env%para_env, &
                                     blacs_env=almo_scf_env%blacs_env)
 
@@ -361,7 +368,7 @@ CONTAINS
 
       ENDDO ! end scf cycle
 
-      IF (.NOT. converged) THEN
+      IF (.NOT. converged .AND. (.NOT.optimizer%early_stopping_on) ) THEN
          IF (unit_nr > 0) THEN
             CPABORT("SCF for block-diagonal ALMOs not converged!")
          ENDIF
@@ -539,6 +546,10 @@ CONTAINS
             prepare_to_exit = .TRUE.
          ENDIF
 
+         ! if early stopping is on do at least one iteration
+         IF ( optimizer%early_stopping_on .AND. iscf .eq. 1 ) &
+            prepare_to_exit=.FALSE.
+
          IF (.NOT. prepare_to_exit) THEN ! update the ALMOs and density matrix
 
             ! perform mixing of KS matrices
@@ -593,6 +604,10 @@ CONTAINS
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   use_guess=.TRUE., &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
+                  inverse_accelerator=almo_scf_env%order_lanczos, &
+                  inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                  eps_lanczos=almo_scf_env%eps_lanczos, &
+                  max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                   para_env=almo_scf_env%para_env, &
                   blacs_env=almo_scf_env%blacs_env)
                CALL dbcsr_scale(almo_scf_env%matrix_p(ispin), spin_factor)
@@ -730,7 +745,7 @@ CONTAINS
 
       ENDDO ! end scf cycle
 
-      IF (.NOT. converged) THEN
+      IF (.NOT.converged .AND. .NOT.optimizer%early_stopping_on ) THEN
          CPABORT("SCF for ALMOs on overlapping domains not converged! ")
       ENDIF
 
@@ -787,8 +802,7 @@ CONTAINS
          zero_neg_eivi, penalty_order
       LOGICAL :: converged, just_started, line_search, normalize_orbitals, &
          optimize_theta, outer_prepare_to_exit, prepare_to_exit, &
-         reset_conjugator, skip_grad, use_guess, almo_mathematica, &
-         penalty_occ_vol
+         reset_conjugator, skip_grad, use_guess, penalty_occ_vol
       REAL(kind=dp) :: appr_sec_der, beta, denom, e0, e1, energy_diff, energy_new, energy_old, &
          eps_skip_gradients, g0, g1, grad_norm, grad_norm_frob, kappa, kin_energy, &
          line_search_error, next_step_size_guess, numer, spin_factor, step_size, &
@@ -846,11 +860,6 @@ CONTAINS
       ! RZK-warning: change to normal keywords later
       optimize_theta = almo_scf_env%logical05
       eps_skip_gradients = almo_scf_env%real01
-      IF (nspins == 1) THEN
-         almo_mathematica = .TRUE.
-      ELSE
-         almo_mathematica = .FALSE.
-      ENDIF
 
       ! penalty amplitude adjusts the strenght of volume conservation
       ! the following guidelines are useful
@@ -1102,6 +1111,10 @@ CONTAINS
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   use_guess=use_guess, &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
+                  inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                  inverse_accelerator=almo_scf_env%order_lanczos, &
+                  eps_lanczos=almo_scf_env%eps_lanczos, &
+                  max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                   para_env=almo_scf_env%para_env, &
                   blacs_env=almo_scf_env%blacs_env)
 
@@ -1209,6 +1222,7 @@ CONTAINS
             DO ispin = 1, nspins
 
                IF (just_started.AND.almo_mathematica) THEN
+                  IF (ispin.GT.1) CPWARN("Mathematica files will be overwritten")
                   CALL print_mathematica_matrix(almo_scf_env%matrix_s(1),"matrixS.dat")
                   CALL print_mathematica_matrix(almo_scf_env%matrix_ks(ispin),"matrixF.dat")
                   CALL print_mathematica_matrix(matrix_t_out(ispin),"matrixT.dat")
@@ -1268,15 +1282,24 @@ CONTAINS
             DO ispin = 1, nspins
                CALL dbcsr_norm(grad(ispin), dbcsr_norm_maxabsnorm, &
                                norm_scalar=grad_norm_spin(ispin))
+               !grad_norm_frob = dbcsr_frobenius_norm(grad(ispin)) / &
+               !                 dbcsr_frobenius_norm(quench_t(ispin))
+               !IF (unit_nr > 0 ) WRITE(*,*) "Gradient RMS norm: ", grad_norm_frob
             ENDDO ! ispin
             grad_norm = MAXVAL(grad_norm_spin)
+
             converged = (grad_norm .LE. optimizer%eps_error)
             IF (converged .OR. (iteration .GE. max_iter)) THEN
                prepare_to_exit = .TRUE.
             ENDIF
+            ! if early stopping is on do at least one iteration
+            IF ( optimizer%early_stopping_on .AND. just_started ) &
+               prepare_to_exit=.FALSE.
+
             IF (grad_norm .LT. almo_scf_env%eps_prev_guess) &
                use_guess = .TRUE.
 
+            ! it is not time to exit just yet
             IF (.NOT. prepare_to_exit) THEN
 
                ! check the gradient along the step direction
@@ -1652,8 +1675,10 @@ CONTAINS
       ENDDO ! outer SCF loop
 
       DO ispin = 1, nspins
-         IF (converged.AND.almo_mathematica) &
+         IF (converged.AND.almo_mathematica) THEN
+            IF (ispin.GT.1) CPWARN("Mathematica files will be overwritten")
             CALL print_mathematica_matrix(matrix_t_out(ispin),"matrixTf.dat")
+         ENDIF
       ENDDO ! ispin
 
       ! post SCF-loop calculations
@@ -1777,7 +1802,7 @@ CONTAINS
 
       DEALLOCATE (m_theta, m_t_in_local)
 
-      IF (.NOT. converged) THEN
+      IF (.NOT.converged .AND. .NOT.optimizer%early_stopping_on ) THEN
          CPABORT("Optimization not converged! ")
       ENDIF
 
@@ -3548,6 +3573,10 @@ CONTAINS
                                  sigma_inv=almo_scf_env%matrix_sigma_inv(ispin),&
                                  !use_guess=use_guess, &
                                  algorithm=almo_scf_env%sigma_inv_algorithm, &
+                                 inverse_accelerator=almo_scf_env%order_lanczos, &
+                                 inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                                 eps_lanczos=almo_scf_env%eps_lanczos, &
+                                 max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                  para_env=almo_scf_env%para_env, &
                                  blacs_env=almo_scf_env%blacs_env)
 
