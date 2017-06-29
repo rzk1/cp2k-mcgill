@@ -1307,7 +1307,7 @@ CONTAINS
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE orthogonalize_mos(ket, overlap, metric, retain_locality, only_normalize, &
-      nocc_of_domain, eps_filter, order_lanczos, eps_lanczos, max_iter_lanczos)
+      nocc_of_domain, eps_filter, order_lanczos, eps_lanczos, max_iter_lanczos, overlap_sqrti)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: ket, overlap
       TYPE(dbcsr_type), INTENT(IN)                       :: metric
@@ -1317,6 +1317,7 @@ CONTAINS
       INTEGER, INTENT(IN)                                :: order_lanczos
       REAL(KIND=dp), INTENT(IN)                          :: eps_lanczos
       INTEGER, INTENT(IN)                                :: max_iter_lanczos
+      TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL          :: overlap_sqrti 
 
       CHARACTER(LEN=*), PARAMETER :: routineN = 'orthogonalize_mos', &
          routineP = moduleN//':'//routineN
@@ -1379,6 +1380,12 @@ CONTAINS
 
       ! update the orbitals with the orthonormalized MOs
       CALL dbcsr_copy(ket, matrix_t_blk_tmp)
+
+      ! return overlap SQRT_INV if necessary
+      IF (PRESENT(overlap_sqrti)) THEN
+         CALL dbcsr_copy(overlap_sqrti,&
+                 matrix_sigma_blk_sqrt_inv)
+      ENDIF
 
       CALL dbcsr_release(matrix_t_blk_tmp)
       CALL dbcsr_release(matrix_sigma_blk_sqrt)
@@ -1950,7 +1957,7 @@ CONTAINS
 ! **************************************************************************************************
    SUBROUTINE construct_domain_preconditioner(matrix_main, subm_s_inv, &
                                               subm_r_down, matrix_trimmer, dpattern, map, node_of_domain, preconditioner, &
-                                              use_trimmer, my_action)
+                                              use_trimmer, eps_zero_eigenvalues, my_action)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: matrix_main
       TYPE(domain_submatrix_type), DIMENSION(:), &
@@ -1962,6 +1969,7 @@ CONTAINS
       TYPE(domain_submatrix_type), DIMENSION(:), &
          INTENT(INOUT)                                   :: preconditioner
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_trimmer
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_zero_eigenvalues
       INTEGER, INTENT(IN)                                :: my_action
 
       CHARACTER(len=*), PARAMETER :: routineN = 'construct_domain_preconditioner', &
@@ -2099,8 +2107,13 @@ CONTAINS
             !!!TRIM    subm_out=MATMUL(tmp,sigma)
             !!!TRIM    deallocate(tmp)
             !!!TRIM ELSE
-            CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
-                                      range1=nmos(idomain), range2=n_domain_mos)
+            IF (PRESENT(eps_zero_eigenvalues)) THEN
+                CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
+                        range1_thr=eps_zero_eigenvalues, range2_thr=eps_zero_eigenvalues)
+            ELSE
+                CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
+                        range1=nmos(idomain), range2=n_domain_mos)
+            ENDIF ! eps_zero_eigenvalues
             !!!TRIM ENDIF
 
             CALL copy_submatrices(subm_main(idomain), preconditioner(idomain), .FALSE.)

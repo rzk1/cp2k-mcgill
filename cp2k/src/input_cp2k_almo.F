@@ -704,11 +704,14 @@ CONTAINS
                              description="Select a preconditioner for the conjugate gradient optimization", &
                              usage="PRECONDITIONER DOMAIN", &
                              default_i_val=1, &
-                             enum_c_vals=s2a("NONE", "DOMAIN", "FULL"), &
-                             enum_desc=s2a("Do not use preconditioner","Invert preconditioner domain-by-domain."// & 
+                             enum_c_vals=s2a("NONE", "DEFAULT", "DOMAIN", "FULL"), &
+                             enum_desc=s2a("Do not use preconditioner", &
+                             "Same as DOMAIN preconditioner", &
+                             "Invert preconditioner domain-by-domain."// & 
                              " The main component of the linear scaling algorithm", &
                              "Solve linear equations step=-H.grad on the entire space"), &
-                             enum_i_vals=(/xalmo_prec_zero, xalmo_prec_domain, xalmo_prec_full/))
+                             enum_i_vals=(/xalmo_prec_zero, xalmo_prec_domain, &
+                             xalmo_prec_domain, xalmo_prec_full/))
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
 

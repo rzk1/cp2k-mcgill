@@ -75,7 +75,7 @@ MODULE almo_scf
         almo_scf_diag, almo_scf_dm_sign, almo_scf_pcg, atomic_guess, molecular_guess, &
         optimizer_diis, optimizer_pcg, restart_guess, virt_full, virt_number, virt_occ_size, &
         xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
-        almo_scf_skip, xalmo_trial_simplex
+        almo_scf_skip, xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
@@ -1182,7 +1182,7 @@ CONTAINS
          ENDDO
          !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
     
-      ENDIF
+      END SELECT
 
       ! we might need a copy of the converged KS and sigma_inv
       DO ispin = 1, almo_scf_env%nspins

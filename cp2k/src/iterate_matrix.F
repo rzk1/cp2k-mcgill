@@ -23,7 +23,7 @@ MODULE iterate_matrix
         dbcsr_frobenius_norm, dbcsr_gershgorin_norm, dbcsr_get_info, dbcsr_get_matrix_type, &
         dbcsr_get_occupation, dbcsr_multiply, dbcsr_norm, dbcsr_norm_maxabsnorm, dbcsr_p_type, &
         dbcsr_release, dbcsr_scale, dbcsr_set, dbcsr_trace, dbcsr_transposed, dbcsr_type, &
-        dbcsr_type_no_symmetry
+        dbcsr_type_no_symmetry, dbcsr_set_diag, dbcsr_get_diag
    USE kinds,                           ONLY: dp,&
                                               int_8
    USE machine,                         ONLY: m_flush,&
@@ -43,9 +43,205 @@ MODULE iterate_matrix
    END INTERFACE
 
    PUBLIC :: invert_Hotelling, matrix_sign_Newton_Schulz, matrix_sqrt_Newton_Schulz, &
-             purify_mcweeny
+             purify_mcweeny, determinant
 
 CONTAINS
+
+! *****************************************************************************
+!> \brief Computes the determinant of a symmetric positive definite matrix
+!>        using the trace of the matrix logarithm via Mercator series:
+!>         det(A) = det(S)det(I+X)det(S), where S=diag(sqrt(Aii),..,sqrt(Ann))
+!>         det(I+X) = Exp(Trace(Ln(I+X)))
+!>         Ln(I+X) = X - X^2/2 + X^3/3 - X^4/4 + ..
+!>        The series converges only if the Frobenius norm of X is less than 1.
+!>        If it is more than one we compute (recursevily) the determinant of
+!>        the square root of (I+X).
+!> \param matrix ...
+!> \param det - determinant
+!> \param threshold ...
+!> \par History
+!>       2015.04 created [Rustam Z Khaliullin]
+!> \author Rustam Z. Khaliullin
+! *****************************************************************************
+  RECURSIVE SUBROUTINE determinant(matrix,det,threshold)
+
+    TYPE(dbcsr_type), INTENT(INOUT)          :: matrix
+    REAL(KIND=dp), INTENT(IN)                :: threshold
+    REAL(KIND=dp), INTENT(INOUT)             :: det
+
+    CHARACTER(LEN=*), PARAMETER :: routineN = 'determinant', &
+      routineP = moduleN//':'//routineN
+
+    INTEGER                                  :: handle, i, unit_nr, nsize,&
+                                                sign_iter, order_lanczos, &
+                                                max_iter_lanczos
+    INTEGER, SAVE                            :: recursion_depth = 0
+    INTEGER(KIND=int_8)                      :: flop1, flop2
+    REAL(KIND=dp), DIMENSION(:), ALLOCATABLE :: diagonal 
+    REAL(KIND=dp)                            :: occ_matrix, maxnorm, &
+                                                frobnorm, t1, t2, trace, &
+                                                eps_lanczos, det0
+    TYPE(dbcsr_type)                         :: tmp1, tmp2, tmp3
+    TYPE(cp_logger_type), POINTER            :: logger
+
+    CALL timeset(routineN,handle)
+
+    ! get a useful output_unit
+    logger => cp_get_default_logger()
+    IF (logger%para_env%mepos == logger%para_env%source) THEN
+       unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+    ELSE
+       unit_nr = -1
+    ENDIF
+
+    ! Note: tmp1 and tmp2 have the same matrix type as the
+    ! initial matrix (tmp3 does not have symmetry constraints)
+    ! this might lead to uninteded results with anti-symmetric
+    ! matrices
+    CALL dbcsr_create(tmp1,template=matrix)
+    CALL dbcsr_create(tmp2,template=matrix)
+    CALL dbcsr_create(tmp3,template=matrix, &
+            matrix_type=dbcsr_type_no_symmetry)
+
+    ! compute the product of the diagonal elements
+    CALL dbcsr_get_info(matrix, nfullrows_total=nsize )
+    ALLOCATE(diagonal(nsize))
+    CALL dbcsr_get_diag(matrix,diagonal)
+    det = PRODUCT(diagonal)
+
+    ! create diagonal SQRTI matrix
+    diagonal(:) = 1.0_dp/(SQRT(diagonal(:)))
+    CALL dbcsr_copy(tmp1,matrix)
+    CALL dbcsr_set(tmp1,0.0_dp)
+    CALL dbcsr_set_diag(tmp1,diagonal)
+    CALL dbcsr_filter(tmp1,threshold)
+    DEALLOCATE(diagonal)
+
+    ! normalize the main diagonal, off-diagonal elements are scaled to
+    ! make the norm of the matrix less than 1
+    CALL dbcsr_multiply("N", "N", 1.0_dp,&
+            matrix,&
+            tmp1,&
+            0.0_dp, tmp3,&
+            filter_eps=threshold)
+    CALL dbcsr_multiply("N", "N", 1.0_dp,&
+            tmp1,&
+            tmp3,&
+            0.0_dp, tmp2,&
+            filter_eps=threshold)
+    
+    ! subtract the main diagonal to create matrix X
+    CALL dbcsr_add_on_diag(tmp2,-1.0_dp)
+    frobnorm=dbcsr_frobenius_norm(tmp2)
+    IF (unit_nr>0) THEN
+       IF (recursion_depth.EQ.0) THEN
+          WRITE(unit_nr,'()')
+       ELSE
+          WRITE(unit_nr,'(T6,A28,1X,I15)') &
+             "Recursive iteration:", recursion_depth 
+       ENDIF
+       WRITE(unit_nr,'(T6,A28,1X,F15.10)') &
+          "Frobenius norm:", frobnorm
+       CALL m_flush(unit_nr)
+    ENDIF
+
+    IF (frobnorm.GE.1.0_dp) THEN
+
+       CALL dbcsr_add_on_diag(tmp2,1.0_dp)
+       ! these controls should be provided as input
+       order_lanczos=3
+       eps_lanczos=1.0E-4_dp
+       max_iter_lanczos=40
+       CALL matrix_sqrt_Newton_Schulz(&
+               tmp3,& ! output sqrt
+               tmp1,& ! output sqrti
+               tmp2,& ! input original
+               threshold=threshold,&
+               order=order_lanczos,&
+               eps_lanczos=eps_lanczos,&
+               max_iter_lanczos=max_iter_lanczos)
+       recursion_depth=recursion_depth+1
+       CALL determinant(tmp3,det0,threshold)
+       recursion_depth=recursion_depth-1
+       det=det*det0*det0
+
+    ELSE
+    
+       ! create accumulator
+       CALL dbcsr_copy(tmp1,tmp2)
+       ! re-create to make use of symmetry
+       CALL dbcsr_create(tmp3,template=matrix)
+
+       IF (unit_nr>0) WRITE(unit_nr,*)
+
+       ! initialize the sign of the term
+       sign_iter=-1
+       DO i=1,100
+
+          t1 = m_walltime()
+          
+          ! multiply X^i by X
+          ! note that the first iteration evaluates X^2
+          ! because the trace of X^1 is zero by construction
+          CALL dbcsr_multiply("N", "N", 1.0_dp, tmp1, tmp2,&
+                                 0.0_dp, tmp3, &
+                                 filter_eps=threshold, &
+                                 flop=flop1)
+          CALL dbcsr_copy(tmp1,tmp3)
+
+          ! get trace
+          CALL dbcsr_trace(tmp1,trace)
+          trace=trace*sign_iter/(1.0_dp*(i+1))
+          sign_iter=-sign_iter
+
+          ! update the determinant
+          det = det * EXP(trace)
+
+          occ_matrix=dbcsr_get_occupation(tmp1)
+          CALL dbcsr_norm(tmp1,&
+                  dbcsr_norm_maxabsnorm, norm_scalar=maxnorm)
+
+          t2 = m_walltime()
+
+          IF (unit_nr>0) THEN
+             WRITE(unit_nr,'(T6,A,1X,I3,1X,F7.5,F16.10,F10.3,F11.3)') &
+                "Determinant iter",i,occ_matrix, &
+                det,t2-t1,&
+                (flop1+flop2)/(1.0E6_dp*MAX(0.001_dp,t2-t1))
+             CALL m_flush(unit_nr)
+          ENDIF
+
+          ! exit if the trace is close to zero 
+          IF (maxnorm<threshold) EXIT 
+
+       ENDDO ! end iterations
+
+       IF (unit_nr>0) THEN
+          WRITE(unit_nr,'()')
+          CALL m_flush(unit_nr)
+       ENDIF
+
+    ENDIF ! decide to do sqrt or not
+
+    IF (unit_nr>0) THEN
+       IF (recursion_depth.EQ.0) THEN
+          WRITE(unit_nr,'(T6,A28,1X,F15.10)') &
+             "Final determinant:", det
+          WRITE(unit_nr,'()')
+       ELSE
+          WRITE(unit_nr,'(T6,A28,1X,F15.10)') &
+             "Recursive determinant:", det
+       ENDIF
+       CALL m_flush(unit_nr)
+    ENDIF
+
+    CALL dbcsr_release(tmp1)
+    CALL dbcsr_release(tmp2)
+    CALL dbcsr_release(tmp3)
+
+    CALL timestop(handle)
+
+  END SUBROUTINE determinant
 
 ! **************************************************************************************************
 !> \brief invert a symmetric positive definite matrix by Hotelling's method
