@@ -68,7 +68,7 @@ CONTAINS
                           description="Settings for a class of efficient linear scaling methods based "// &
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
-                          n_keywords=9, n_subsections=3, repeats=.FALSE., &
+                          n_keywords=9, n_subsections=5, repeats=.FALSE., &
                           citations=(/Khaliullin2013/))
 
       NULLIFY (keyword)
@@ -627,17 +627,17 @@ CONTAINS
       CASE (optimizer_block_diagonal_diis)
          CALL section_create(section, "ALMO_OPTIMIZER_DIIS", &
                              description="Controls the iterative DIIS-accelerated optimization of block-diagonal ALMOs.", &
-                             n_keywords=3, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=5, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_diis
       CASE (optimizer_block_diagonal_pcg)
          CALL section_create(section, "ALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of block-diagonal ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=9, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_pcg
       CASE (optimizer_xalmo_pcg)
          CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of extended ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=9, n_subsections=1, repeats=.FALSE.)
          NULLIFY(subsection)
          CALL create_optimizer_section(subsection,optimizer_newton_pcg_solver)
          CALL section_add_subsection(section, subsection)
@@ -827,7 +827,7 @@ CONTAINS
 
       CALL section_create(section, "ANALYSIS", &
                           description="Controls electronic structure analysis based on ALMOs and XALMOs.", &
-                          n_keywords=2, n_subsections=0, repeats=.FALSE., &
+                          n_keywords=2, n_subsections=1, repeats=.FALSE., &
                           citations=(/Khaliullin2007, Khaliullin2008/))
 
       NULLIFY (keyword)
