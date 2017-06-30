@@ -813,11 +813,11 @@ CONTAINS
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: nocc
       TYPE(cp_logger_type), POINTER                      :: logger
       TYPE(dbcsr_distribution_type)                      :: dist
-      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:) :: FTsiginv, fvo_0, inv_eiv, &
-         prev_grad, prev_minus_prec_grad, &
-         prev_step, ST, step, m_sig_sqrti_ii
-      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:)        :: m_t_in_local, m_theta, prec_vv, &
-         siginvTFTsiginv, STsiginv_0, grad 
+      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:) :: FTsiginv, &
+                                                     prev_grad, prev_minus_prec_grad, &
+                                                     prev_step, ST, step, m_sig_sqrti_ii, &
+                                                     m_t_in_local, m_theta, prec_vv, &
+                                                     siginvTFTsiginv, STsiginv_0, grad 
       TYPE(domain_submatrix_type), ALLOCATABLE, &
          DIMENSION(:,:)                                    :: domain_r_down
       TYPE(section_vals_type), POINTER                   :: almo_print_section, input
@@ -1418,10 +1418,6 @@ CONTAINS
                         ! computing preconditioner
                         DO ispin = 1, nspins
 
-                          CALL dbcsr_create(prec_vv(ispin),&
-                                  template=almo_scf_env%matrix_ks(ispin),&
-                                  matrix_type=dbcsr_type_no_symmetry) 
-                          
                           CALL compute_preconditioner(&
                                   domain_prec_out=almo_scf_env%domain_preconditioner(:,ispin),&
                                   m_prec_out=prec_vv(ispin),&
@@ -1780,6 +1776,7 @@ CONTAINS
          CALL dbcsr_release(prev_minus_prec_grad(ispin))
          CALL dbcsr_release(m_theta(ispin))
          CALL dbcsr_release(m_t_in_local(ispin))
+         CALL dbcsr_release(m_sig_sqrti_ii(ispin))
       ENDDO ! ispin
 
       DEALLOCATE(prec_vv)
