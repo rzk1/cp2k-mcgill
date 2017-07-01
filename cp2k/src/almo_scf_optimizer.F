@@ -797,7 +797,7 @@ CONTAINS
 
       CHARACTER(LEN=20)                                  :: iter_type
       INTEGER :: cg_iteration, dim0, eda_unit, fixed_line_search_niter, handle, ispin, iteration, &
-         jj, line_search_iteration, max_iter, my_special_case, ncores, ndomains, nspins, occ1, &
+         jj, line_search_iteration, max_iter, my_special_case, ndomains, nspins, occ1, &
          outer_iteration, outer_max_iter, prec_type, precond_domain_projector, unit_nr, &
          zero_neg_eivi, penalty_order
       LOGICAL :: converged, just_started, line_search, normalize_orbitals, &
@@ -882,20 +882,10 @@ CONTAINS
       ! control of the line search
       fixed_line_search_niter = 0 ! init to zero, change when eps is small enough
 
-      CALL dbcsr_get_info(almo_scf_env%matrix_s(1), distribution=dist)
-      CALL dbcsr_distribution_get(dist, numnodes=ncores)
-
       IF (nspins == 1) THEN
          spin_factor = 2.0_dp
       ELSE
          spin_factor = 1.0_dp
-      ENDIF
-
-      !!!!!! RZK-warning THIS PROCEDURE WILL WORK ONLY FOR CLOSED SHELL SYSTEMS
-      !!!!!! TO ADAPT IT FOR UNRESTRICTED ORBITALS - UPDATE KS MATRIX WITH PARTIALLY
-      !!!!!! OPTIMIZED ORBITALS - BOTH ALPNA AND BETA
-      IF (nspins .GT. 1) THEN
-         CPABORT("UNRESTRICTED ALMO SCF IS NYI(!)")
       ENDIF
 
       ALLOCATE(grad_norm_spin(nspins))
@@ -913,7 +903,8 @@ CONTAINS
          CALL dbcsr_copy(m_t_in_local(ispin), matrix_t_in(ispin))
       ENDDO
 
-      ! init matrices for the initial guess
+      ! m_theta contains a set of variational parameters
+      ! that define one-electron orbitals (simple, projected, etc.)
       ALLOCATE (m_theta(nspins))
       DO ispin = 1, nspins
          CALL dbcsr_create(m_theta(ispin), &
@@ -1303,39 +1294,53 @@ CONTAINS
             IF (.NOT. prepare_to_exit) THEN
 
                ! check the gradient along the step direction
+               ! and decide whether to switch to the line-search mode
+               ! do not do this in the first iteration
                IF (iteration .NE. 0) THEN
 
                   IF (fixed_line_search_niter .EQ. 0) THEN
 
-                     line_search_error = 0.0_dp
-                     denom = 0.0_dp
-                     denom2 = 0.0_dp
+                     ! enforce at least one line search 
+                     ! without even checking the error
+                     IF (.NOT. line_search) THEN
 
-                     DO ispin = 1, nspins
-
-                        CALL dbcsr_trace(grad(ispin), step(ispin), tempreal)
-                        line_search_error = line_search_error + tempreal
-                        CALL dbcsr_trace(grad(ispin), grad(ispin), tempreal)
-                        denom = denom + tempreal
-                        CALL dbcsr_trace(step(ispin), step(ispin), tempreal)
-                        denom2 = denom2 + tempreal
- 
-                     ENDDO ! ispin
-
-                     ! cosine of the angle between the step and grad
-                     ! (must be close to zero at convergence)
-                     ! normalize the result
-                     line_search_error = line_search_error/SQRT(denom)/SQRT(denom2)
-
-                     IF (ABS(line_search_error) .GT. optimizer%lin_search_eps_error) THEN
                         line_search = .TRUE.
                         line_search_iteration = line_search_iteration+1
+
                      ELSE
-                        line_search = .FALSE.
-                        line_search_iteration = 0
-                        IF (grad_norm .LT. eps_skip_gradients) THEN
-                           fixed_line_search_niter = ABS(almo_scf_env%integer04)
+
+                        ! check the line-search error and decide whether to
+                        ! change the direction
+                        line_search_error = 0.0_dp
+                        denom = 0.0_dp
+                        denom2 = 0.0_dp
+   
+                        DO ispin = 1, nspins
+   
+                           CALL dbcsr_trace(grad(ispin), step(ispin), tempreal)
+                           line_search_error = line_search_error + tempreal
+                           CALL dbcsr_trace(grad(ispin), grad(ispin), tempreal)
+                           denom = denom + tempreal
+                           CALL dbcsr_trace(step(ispin), step(ispin), tempreal)
+                           denom2 = denom2 + tempreal
+    
+                        ENDDO ! ispin
+   
+                        ! cosine of the angle between the step and grad
+                        ! (must be close to zero at convergence)
+                        line_search_error = line_search_error/SQRT(denom)/SQRT(denom2)
+   
+                        IF (ABS(line_search_error) .GT. optimizer%lin_search_eps_error) THEN
+                           line_search = .TRUE.
+                           line_search_iteration = line_search_iteration+1
+                        ELSE
+                           line_search = .FALSE.
+                           line_search_iteration = 0
+                           IF (grad_norm .LT. eps_skip_gradients) THEN
+                              fixed_line_search_niter = ABS(almo_scf_env%integer04)
+                           ENDIF
                         ENDIF
+
                      ENDIF
 
                   ELSE ! decision for fixed_line_search_niter
@@ -1352,7 +1357,8 @@ CONTAINS
                      ENDIF
 
                   ENDIF ! fixed_line_search_niter fork
-               ENDIF
+
+               ENDIF ! iteration.ne.0
 
                IF (line_search) THEN
                   energy_diff = 0.0_dp
@@ -1561,15 +1567,15 @@ CONTAINS
 
                ! estimate the step size
                IF (.NOT. line_search) THEN
+                  ! we just changed the direction and
+                  ! we have only E and grad from the current step
+                  ! it is not enouhg to compute step_size - just guess it
                   e0 = energy_new
                   g0 = 0.0_dp
                   DO ispin = 1, nspins
                      CALL dbcsr_trace(grad(ispin), step(ispin), tempreal)
                      g0 = g0 + tempreal
                   ENDDO ! ispin
-                  ! we just changed the direction and
-                  ! we have only E and grad from the current step
-                  ! it is not enouhg to compute step_size - just guess it
                   IF (iteration .EQ. 0) THEN
                      step_size = optimizer%lin_search_step_size_guess
                   ELSE
@@ -1580,6 +1586,10 @@ CONTAINS
                         step_size = next_step_size_guess*1.05_dp
                      ENDIF
                   ENDIF
+                  !IF (unit_nr > 0) THEN
+                  !   WRITE (unit_nr, '(A2,3F12.5)') &
+                  !      "EG", e0, g0, step_size
+                  !ENDIF
                   next_step_size_guess = step_size
                ELSE
                   IF (fixed_line_search_niter .EQ. 0) THEN
@@ -1592,9 +1602,9 @@ CONTAINS
                      ! we have accumulated some points along this direction
                      ! use only the most recent g0 (quadratic approximation)
                      appr_sec_der = (g1-g0)/step_size
-                     !IF (unit_nr>0) THEN
-                     !   WRITE(unit_nr,'(A2,7F12.5)') &
-                     !           "EG",e0,e1,g0,g1,appr_sec_der,step_size,-g1/appr_sec_der
+                     !IF (unit_nr > 0) THEN
+                     !   WRITE (unit_nr, '(A2,7F12.5)') &
+                     !      "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
                      !ENDIF
                      step_size = -g1/appr_sec_der
                      e0 = e1
@@ -1606,10 +1616,10 @@ CONTAINS
                      e1 = energy_new
                      appr_sec_der = 2.0*((e1-e0)/step_size-g0)/step_size
                      g1 = appr_sec_der*step_size+g0
-                     IF (unit_nr > 0) THEN
-                        WRITE (unit_nr, '(A2,7F12.5)') &
-                           "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
-                     ENDIF
+                     !IF (unit_nr > 0) THEN
+                     !   WRITE (unit_nr, '(A2,7F12.5)') &
+                     !      "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
+                     !ENDIF
                      !appr_sec_der=(g1-g0)/step_size
                      step_size = -g1/appr_sec_der
                      e0 = e1
@@ -5518,8 +5528,8 @@ CONTAINS
           node_of_domain=cpu_of_domain,&
           preconditioner=domain_prec_out(:),&
           use_trimmer=.FALSE.,&
-          my_action=precond_domain_projector,&
-          eps_zero_eigenvalues=eps_filter&
+          !eps_zero_eigenvalues=eps_filter,&
+          my_action=precond_domain_projector&
           )
 
     ENDIF
