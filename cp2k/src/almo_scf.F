@@ -23,7 +23,7 @@ MODULE almo_scf
                                               molecular_scf_guess_env_type
    USE cp_para_types,                   ONLY: cp_para_env_type
    USE almo_scf_methods,                ONLY: almo_scf_p_blk_to_t_blk,&
-                                              almo_scf_t_to_p,&
+                                              almo_scf_t_to_proj,&
                                               distribute_domains,&
                                               orthogonalize_mos
    USE almo_scf_optimizer,              ONLY: almo_scf_block_diagonal,&
@@ -74,7 +74,8 @@ MODULE almo_scf
         almo_domain_layout_molecular, almo_mat_distr_atomic, almo_mat_distr_molecular, &
         almo_scf_diag, almo_scf_dm_sign, almo_scf_pcg, atomic_guess, molecular_guess, &
         optimizer_diis, optimizer_pcg, restart_guess, virt_full, virt_number, virt_occ_size, &
-        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal
+        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
+        almo_scf_skip, xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
@@ -208,6 +209,7 @@ CONTAINS
       almo_scf_env%opt_block_diag_pcg%optimizer_type = optimizer_pcg
       almo_scf_env%opt_xalmo_diis%optimizer_type = optimizer_diis
       almo_scf_env%opt_xalmo_pcg%optimizer_type = optimizer_pcg
+      almo_scf_env%opt_xalmo_newton_pcg_solver%optimizer_type=optimizer_lin_eq_pcg
 
       ! get info from the qs_env
       CALL get_qs_env(qs_env, &
@@ -374,12 +376,48 @@ CONTAINS
       !ENDIF
 
       almo_scf_env%calc_forces = calc_forces
-      !IF (calc_forces) THEN
-      !    IF (almo_scf_env%deloc_method==almo_deloc_x .OR. &
-      !        almo_scf_env%deloc_method==almo_deloc_xalmo_x .OR. &
-      !        almo_scf_env%deloc_method==almo_deloc_xalmo_1diag ) &
-      !   CPABORT(" Forces are not implemented for this method yet ")
-      !ENDIF
+      IF (calc_forces) THEN
+         ! switch to ASPC after a certain number of exact steps is done
+         IF (almo_scf_env%almo_history%istore.gt.(almo_scf_env%almo_history%nstore+1)) THEN
+            IF ( almo_scf_env%opt_block_diag_pcg%eps_error_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_block_diag_pcg%eps_error=almo_scf_env%opt_block_diag_pcg%eps_error_early
+               almo_scf_env%opt_block_diag_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_block_diag_diis%eps_error_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_block_diag_diis%eps_error=almo_scf_env%opt_block_diag_diis%eps_error_early
+               almo_scf_env%opt_block_diag_diis%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_DIIS: EPS_ERROR_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_block_diag_pcg%max_iter_early .gt. 0 ) THEN
+               almo_scf_env%opt_block_diag_pcg%max_iter=almo_scf_env%opt_block_diag_pcg%max_iter_early
+               almo_scf_env%opt_block_diag_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_block_diag_diis%max_iter_early .gt. 0 ) THEN
+               almo_scf_env%opt_block_diag_diis%max_iter=almo_scf_env%opt_block_diag_diis%max_iter_early
+               almo_scf_env%opt_block_diag_diis%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_DIIS: MAX_ITER_EARLY is on"
+            ENDIF
+         ELSE
+            almo_scf_env%opt_block_diag_diis%early_stopping_on=.FALSE.
+            almo_scf_env%opt_block_diag_pcg%early_stopping_on=.FALSE.
+         ENDIF
+         IF (almo_scf_env%xalmo_history%istore.gt.(almo_scf_env%xalmo_history%nstore+1)) THEN
+            IF ( almo_scf_env%opt_xalmo_pcg%eps_error_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_xalmo_pcg%eps_error=almo_scf_env%opt_xalmo_pcg%eps_error_early
+               almo_scf_env%opt_xalmo_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "XALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
+            ENDIF
+            IF ( almo_scf_env%opt_xalmo_pcg%max_iter_early .gt. 0.0_dp ) THEN
+               almo_scf_env%opt_xalmo_pcg%max_iter=almo_scf_env%opt_xalmo_pcg%max_iter_early
+               almo_scf_env%opt_xalmo_pcg%early_stopping_on=.TRUE.
+               IF (unit_nr > 0) WRITE(*,*) "XALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
+            ENDIF
+         ELSE
+            almo_scf_env%opt_xalmo_pcg%early_stopping_on=.FALSE.
+         ENDIF
+      ENDIF
 
       ! create all matrices
       CALL almo_scf_env_create_matrices(almo_scf_env, matrix_s(1)%matrix)
@@ -616,7 +654,7 @@ CONTAINS
                                 eps_lanczos=almo_scf_env%eps_lanczos, &
                                 max_iter_lanczos=almo_scf_env%max_iter_lanczos)
 
-         CALL almo_scf_t_to_p(t=almo_scf_env%matrix_t_blk(ispin), &
+         CALL almo_scf_t_to_proj(t=almo_scf_env%matrix_t_blk(ispin), &
                               p=almo_scf_env%matrix_p(ispin), &
                               eps_filter=almo_scf_env%eps_filter, &
                               orthog_orbs=.FALSE., &
@@ -626,6 +664,9 @@ CONTAINS
                               sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                               use_guess=.FALSE., &
                               algorithm=almo_scf_env%sigma_inv_algorithm, &
+                              eps_lanczos=almo_scf_env%eps_lanczos, &
+                              max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
+                              inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
                               para_env=almo_scf_env%para_env, &
                               blacs_env=almo_scf_env%blacs_env)
 
@@ -820,7 +861,9 @@ CONTAINS
 
       CHARACTER(len=13)                                  :: neig_string
       CHARACTER(len=33)                                  :: deloc_method_string
-      INTEGER                                            :: handle, idomain, index1_prev
+      INTEGER                                            :: handle, idomain, &
+                                                            sum_temp, index1_prev
+      INTEGER, DIMENSION(:), ALLOCATABLE                 :: nneighbors
 
       CALL timeset(routineN, handle)
 
@@ -830,15 +873,19 @@ CONTAINS
 
          WRITE (unit_nr, '(T2,A,T48,E33.3)') "eps_filter:", almo_scf_env%eps_filter
 
-         WRITE (unit_nr, '(T2,A)') "optimization of block-diagonal ALMOs:"
-         SELECT CASE (almo_scf_env%almo_update_algorithm)
-         CASE (almo_scf_diag)
-            ! the DIIS algorith is the only choice for the diagonlaization-based algorithm
-            CALL print_optimizer_options(almo_scf_env%opt_block_diag_diis, unit_nr)
-         CASE (almo_scf_pcg)
-            ! print out PCG options
-            CALL print_optimizer_options(almo_scf_env%opt_block_diag_pcg, unit_nr)
-         END SELECT
+         IF (almo_scf_env%almo_update_algorithm.EQ.almo_scf_skip) THEN
+            WRITE(unit_nr,'(T2,A)') "skip optimization of block-diagonal ALMOs"
+         ELSE
+            WRITE (unit_nr, '(T2,A)') "optimization of block-diagonal ALMOs:"
+            SELECT CASE (almo_scf_env%almo_update_algorithm)
+            CASE (almo_scf_diag)
+               ! the DIIS algorith is the only choice for the diagonlaization-based algorithm
+               CALL print_optimizer_options(almo_scf_env%opt_block_diag_diis, unit_nr)
+            CASE (almo_scf_pcg)
+               ! print out PCG options
+               CALL print_optimizer_options(almo_scf_env%opt_block_diag_pcg, unit_nr)
+            END SELECT
+         ENDIF
 
          SELECT CASE (almo_scf_env%deloc_method)
          CASE (almo_deloc_none)
@@ -914,21 +961,105 @@ CONTAINS
          !    WRITE(unit_nr,'(T2,A,T48,A33)') "Parallel distribution for MOs","MOLECULAR"
          !END SELECT
 
+         ! print fragment's statistics
          WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
+         WRITE (unit_nr, '(T2,A,T48,I33)') "Total fragments:", &
+               almo_scf_env%ndomains
 
-         IF (almo_scf_env%ndomains .LE. 200) THEN
+         sum_temp = SUM(almo_scf_env%nbasis_of_domain(:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Basis set size per fragment (min, av, max, total):", &
+            MINVAL(almo_scf_env%nbasis_of_domain(:)), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL(almo_scf_env%nbasis_of_domain(:)), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL(almo_scf_env%nbasis_of_domain(:)), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL(almo_scf_env%nbasis_of_domain(:)), &
+         !         sum_temp
+
+         sum_temp = SUM(almo_scf_env%nocc_of_domain(:,:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Occupied MOs per fragment (min, av, max, total):", &
+            MINVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+         !         sum_temp
+
+         sum_temp = SUM(almo_scf_env%nvirt_of_domain(:,:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Virtual MOs per fragment (min, av, max, total):", &
+            MINVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+         !         sum_temp
+
+         sum_temp = SUM(almo_scf_env%charge_of_domain(:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Charges per fragment (min, av, max, total):", &
+            MINVAL(almo_scf_env%charge_of_domain(:)), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL(almo_scf_env%charge_of_domain(:)), &
+            sum_temp
+         !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
+         !         MINVAL(almo_scf_env%charge_of_domain(:)), &
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         MAXVAL(almo_scf_env%charge_of_domain(:)), &
+         !         sum_temp
+
+         ! compute the number of neighbors of each fragment
+         ALLOCATE(nneighbors(almo_scf_env%ndomains))
+
+         DO idomain = 1, almo_scf_env%ndomains
+
+            IF (idomain .EQ. 1) THEN
+               index1_prev = 1
+            ELSE
+               index1_prev = almo_scf_env%domain_map(1)%index1(idomain-1)
+            ENDIF
+
+            SELECT CASE (almo_scf_env%deloc_method)
+            CASE (almo_deloc_none)
+               nneighbors(idomain) = 0
+            CASE (almo_deloc_x, almo_deloc_scf, almo_deloc_x_then_scf)
+               nneighbors(idomain) = almo_scf_env%ndomains - 1 ! minus self
+            CASE (almo_deloc_xalmo_1diag, almo_deloc_xalmo_x, almo_deloc_xalmo_scf)
+               nneighbors(idomain) = almo_scf_env%domain_map(1)%index1(idomain)-index1_prev-1 ! minus self
+            CASE DEFAULT
+               nneighbors(idomain) = -1
+            END SELECT
+
+         ENDDO ! cycle over domains
+
+         sum_temp = SUM(nneighbors(:))
+         WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
+            "Deloc. neighbors of fragment (min, av, max, total):", &
+            MINVAL( nneighbors(:) ), &
+            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            MAXVAL( nneighbors(:) ), &
+            sum_temp
+
+         WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
+         WRITE (unit_nr, '()')
+
+         IF (almo_scf_env%ndomains .LE. 64) THEN
 
             ! print fragment info
-            WRITE (unit_nr, '(T2,A13,A13,A13,A13,A13,A13)') &
+            WRITE (unit_nr, '(T2,A10,A13,A13,A13,A13,A13)') &
                "Fragment", "Basis Set", "Occupied", "Virtual", "Charge", "Deloc Neig" !,"Discarded Virt"
             WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
             DO idomain = 1, almo_scf_env%ndomains
-
-               IF (idomain .EQ. 1) THEN
-                  index1_prev = 1
-               ELSE
-                  index1_prev = almo_scf_env%domain_map(1)%index1(idomain-1)
-               ENDIF
 
                SELECT CASE (almo_scf_env%deloc_method)
                CASE (almo_deloc_none)
@@ -936,13 +1067,12 @@ CONTAINS
                CASE (almo_deloc_x, almo_deloc_scf, almo_deloc_x_then_scf)
                   neig_string = "ALL"
                CASE (almo_deloc_xalmo_1diag, almo_deloc_xalmo_x, almo_deloc_xalmo_scf)
-                  WRITE (neig_string, '(I13)') &
-                     almo_scf_env%domain_map(1)%index1(idomain)-index1_prev-1 ! minus self
+                  WRITE (neig_string, '(I13)') nneighbors(idomain) 
                CASE DEFAULT
                   neig_string = "N/A"
                END SELECT
 
-               WRITE (unit_nr, '(T2,I13,I13,I13,I13,I13,A13)') &
+               WRITE (unit_nr, '(T2,I10,I13,I13,I13,I13,A13)') &
                   idomain, almo_scf_env%nbasis_of_domain(idomain), &
                   SUM(almo_scf_env%nocc_of_domain(idomain, :)), &
                   SUM(almo_scf_env%nvirt_of_domain(idomain, :)), &
@@ -969,8 +1099,8 @@ CONTAINS
                      index1_prev = almo_scf_env%domain_map(1)%index1(idomain-1)
                   ENDIF
 
-                  WRITE (unit_nr, '(T2,I13,":")') idomain
-                  WRITE (unit_nr, '(T15,5I13)') &
+                  WRITE (unit_nr, '(T2,I10,":")') idomain
+                  WRITE (unit_nr, '(T12,11I6)') &
                      almo_scf_env%domain_map(1)%pairs &
                      (index1_prev:almo_scf_env%domain_map(1)%index1(idomain)-1, 1) ! includes self
 
@@ -978,13 +1108,19 @@ CONTAINS
 
             END SELECT
 
-            WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
+         ELSE ! too big to print details for each fragment
 
-         ENDIF
+            WRITE (unit_nr, '(T2,A)') "The system is too big to print details for each fragment."
+
+         ENDIF ! how many fragments?
+
+         WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
 
          WRITE (unit_nr, '()')
 
-      ENDIF
+         DEALLOCATE(nneighbors)
+
+      ENDIF ! unit_nr > 0
 
       CALL timestop(handle)
 
@@ -1042,12 +1178,14 @@ CONTAINS
                                         almo_scf_env%matrix_s_blk(1), &
                                         threshold=almo_scf_env%eps_filter, &
                                         order=almo_scf_env%order_lanczos, &
+                                        !order=0, &
                                         eps_lanczos=almo_scf_env%eps_lanczos, &
                                         max_iter_lanczos=almo_scf_env%max_iter_lanczos)
       ELSE IF (almo_scf_env%almo_update_algorithm .EQ. almo_scf_dm_sign) THEN
          CALL invert_Hotelling(almo_scf_env%matrix_s_blk_inv(1), &
                                almo_scf_env%matrix_s_blk(1), &
-                               threshold=almo_scf_env%eps_filter)
+                               threshold=almo_scf_env%eps_filter, &
+                               filter_eps=almo_scf_env%eps_filter)
       ENDIF
 
       CALL timestop(handle)
@@ -1082,8 +1220,9 @@ CONTAINS
          unit_nr = -1
       ENDIF
 
-      IF (almo_scf_env%almo_update_algorithm .EQ. almo_scf_pcg) THEN
-
+      SELECT CASE (almo_scf_env%almo_update_algorithm)
+      CASE (almo_scf_pcg)
+       
          ! ALMO PCG optimizer as a special case of XALMO PCG
          CALL almo_scf_xalmo_pcg(qs_env=qs_env, &
                                  almo_scf_env=almo_scf_env, &
@@ -1109,13 +1248,29 @@ CONTAINS
          ENDDO
          !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
 
-      ELSE
-
+      CASE (almo_scf_diag)
+       
          ! mixing/DIIS optimizer
          CALL almo_scf_block_diagonal(qs_env, almo_scf_env, &
                                       almo_scf_env%opt_block_diag_diis)
 
-      ENDIF
+      CASE (almo_scf_skip)
+    
+         DO ispin = 1, almo_scf_env%nspins
+            CALL orthogonalize_mos(ket=almo_scf_env%matrix_t_blk(ispin), &
+                                   overlap=almo_scf_env%matrix_sigma_blk(ispin), &
+                                   metric=almo_scf_env%matrix_s_blk(1), &
+                                   retain_locality=.TRUE., &
+                                   only_normalize=.FALSE., &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   eps_filter=almo_scf_env%eps_filter, &
+                                   order_lanczos=almo_scf_env%order_lanczos, &
+                                   eps_lanczos=almo_scf_env%eps_lanczos, &
+                                   max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         ENDDO
+         !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
+    
+      END SELECT
 
       ! we might need a copy of the converged KS and sigma_inv
       DO ispin = 1, almo_scf_env%nspins
@@ -1263,7 +1418,8 @@ CONTAINS
                                  quench_t=no_quench, &
                                  matrix_t_in=almo_scf_env%matrix_t_blk, &
                                  matrix_t_out=almo_scf_env%matrix_t, &
-                                 assume_t0_q0x=.TRUE., &
+                                 !assume_t0_q0x=.TRUE., &
+                                 assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
                                  perturbation_only=.TRUE., &
                                  special_case=xalmo_case_fully_deloc)
 
@@ -1295,7 +1451,8 @@ CONTAINS
                                     quench_t=almo_scf_env%quench_t, &
                                     matrix_t_in=almo_scf_env%matrix_t_blk, &
                                     matrix_t_out=almo_scf_env%matrix_t, &
-                                    assume_t0_q0x=.TRUE., &
+                                    !assume_t0_q0x=.TRUE., &
+                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
                                     perturbation_only=.TRUE., &
                                     special_case=xalmo_case_normal)
 
@@ -1327,7 +1484,8 @@ CONTAINS
                                     quench_t=almo_scf_env%quench_t, &
                                     matrix_t_in=almo_scf_env%matrix_t_blk, &
                                     matrix_t_out=almo_scf_env%matrix_t, &
-                                    assume_t0_q0x=.TRUE., &
+                                    !assume_t0_q0x=.TRUE., &
+                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
                                     perturbation_only=.FALSE., &
                                     special_case=xalmo_case_normal)
 
@@ -1401,7 +1559,7 @@ CONTAINS
       INTEGER                                            :: handle, ispin
       TYPE(cp_fm_type), POINTER                          :: mo_coeff
       TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_w
-      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:)        :: matrix_t_orthogonal
+      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:)        :: matrix_t_processed
       TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos
       TYPE(qs_scf_env_type), POINTER                     :: scf_env
 
@@ -1411,30 +1569,34 @@ CONTAINS
       CALL almo_scf_store_extrapolation_data(almo_scf_env)
 
       ! orthogonalize orbitals before returning them to QS
-      ALLOCATE (matrix_t_orthogonal(almo_scf_env%nspins))
+      ALLOCATE (matrix_t_processed(almo_scf_env%nspins))
 
       DO ispin = 1, almo_scf_env%nspins
 
-         CALL dbcsr_create(matrix_t_orthogonal(ispin), &
+         CALL dbcsr_create(matrix_t_processed(ispin), &
                            template=almo_scf_env%matrix_t(ispin), &
                            matrix_type=dbcsr_type_no_symmetry)
 
-         CALL dbcsr_copy(matrix_t_orthogonal(ispin), &
+         CALL dbcsr_copy(matrix_t_processed(ispin), &
                          almo_scf_env%matrix_t(ispin))
 
-         CALL orthogonalize_mos(ket=matrix_t_orthogonal(ispin), &
-                                overlap=almo_scf_env%matrix_sigma(ispin), &
-                                metric=almo_scf_env%matrix_s(1), &
-                                retain_locality=.FALSE., &
-                                only_normalize=.FALSE., &
-                                nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
-                                eps_filter=almo_scf_env%eps_filter, &
-                                order_lanczos=almo_scf_env%order_lanczos, &
-                                eps_lanczos=almo_scf_env%eps_lanczos, &
-                                max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         IF (almo_scf_env%return_orthogonalized_mos) THEN
+
+            CALL orthogonalize_mos(ket=matrix_t_processed(ispin), &
+                                   overlap=almo_scf_env%matrix_sigma(ispin), &
+                                   metric=almo_scf_env%matrix_s(1), &
+                                   retain_locality=.FALSE., &
+                                   only_normalize=.FALSE., &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   eps_filter=almo_scf_env%eps_filter, &
+                                   order_lanczos=almo_scf_env%order_lanczos, &
+                                   eps_lanczos=almo_scf_env%eps_lanczos, &
+                                   max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         ENDIF
+
       ENDDO
 
-      ! return orthogonalized orbitals to QS
+      ! return orbitals to QS
       NULLIFY (mos, mo_coeff, scf_env)
 
       CALL get_qs_env(qs_env, mos=mos, scf_env=scf_env)
@@ -1443,10 +1605,10 @@ CONTAINS
          ! Currently only fm version of mo_set is usable.
          ! First transform the matrix_t to fm version
          CALL get_mo_set(mos(ispin)%mo_set, mo_coeff=mo_coeff)
-         CALL copy_dbcsr_to_fm(matrix_t_orthogonal(ispin), mo_coeff)
-         CALL dbcsr_release(matrix_t_orthogonal(ispin))
+         CALL copy_dbcsr_to_fm(matrix_t_processed(ispin), mo_coeff)
+         CALL dbcsr_release(matrix_t_processed(ispin))
       ENDDO
-      DEALLOCATE (matrix_t_orthogonal)
+      DEALLOCATE (matrix_t_processed)
 
       ! calculate post scf properties
       ! CALL almo_post_scf_compute_properties(qs_env, almo_scf_env)

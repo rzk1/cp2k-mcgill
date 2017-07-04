@@ -18,8 +18,8 @@ MODULE almo_scf_types
                                               domain_submatrix_type
    USE input_constants,                 ONLY: &
         cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, &
-        cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, prec_default, &
-        prec_zero
+        cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, &
+        xalmo_prec_domain, xalmo_prec_zero, xalmo_prec_full
    USE kinds,                           ONLY: dp
 #include "./base/base_uses.f90"
 
@@ -67,6 +67,7 @@ MODULE almo_scf_types
       !INTEGER               :: ndiis_q -> ndiis
 
       REAL(KIND=dp)  :: eps_error, &
+                        eps_error_early, &
                         lin_search_eps_error, &
                         lin_search_step_size_guess
 
@@ -75,8 +76,11 @@ MODULE almo_scf_types
       INTEGER        :: preconditioner, & ! preconditioner type
                         conjugator, & ! conjugator type
                         max_iter, &
+                        max_iter_early, &
                         max_iter_outer_loop, &
                         ndiis ! diis history length
+
+      LOGICAL        :: early_stopping_on = .FALSE.
 
    END TYPE optimizer_options_type
 
@@ -199,13 +203,16 @@ MODULE almo_scf_types
       LOGICAL              :: s_inv_done
       LOGICAL              :: s_sqrt_done
       REAL(KIND=dp)        :: almo_scf_energy
-      LOGICAL               :: orthogonal_basis, fixed_mu
+      LOGICAL              :: orthogonal_basis, fixed_mu
+      LOGICAL              :: return_orthogonalized_mos
 
       ! Controls for the SCF procedure
       REAL(KIND=dp)         :: eps_filter
+      INTEGER               :: xalmo_trial_wf
       INTEGER               :: almo_scf_guess
       REAL(KIND=dp)         :: eps_prev_guess
       INTEGER               :: order_lanczos
+      REAL(KIND=dp)         :: matrix_iter_eps_error_factor
       REAL(KIND=dp)         :: eps_lanczos
       INTEGER               :: max_iter_lanczos
       REAL(KIND=dp)         :: mixing_fraction
@@ -338,6 +345,7 @@ MODULE almo_scf_types
       TYPE(optimizer_options_type)                   :: opt_block_diag_pcg
       TYPE(optimizer_options_type)                   :: opt_xalmo_diis
       TYPE(optimizer_options_type)                   :: opt_xalmo_pcg
+      TYPE(optimizer_options_type)                   :: opt_xalmo_newton_pcg_solver
       TYPE(optimizer_options_type)                   :: opt_k_pcg
 
       ! keywords that control electron delocalization treatment
@@ -435,10 +443,12 @@ CONTAINS
                optimizer%max_iter_outer_loop
 
             SELECT CASE (optimizer%preconditioner)
-            CASE (prec_zero)
+            CASE (xalmo_prec_zero)
                prec_string = "NONE"
-            CASE (prec_default)
-               prec_string = "0.5 H + 0.5 S"
+            CASE (xalmo_prec_domain)
+               prec_string = "0.5 KS + 0.5 S, DOMAINS"
+            CASE (xalmo_prec_full)
+               prec_string = "0.5 KS + 0.5 S, FULL"
             END SELECT
             WRITE (unit_nr, '(T4,A,T48,A33)') "preconditioner:", TRIM(prec_string)
 
