@@ -801,7 +801,8 @@ CONTAINS
          outer_iteration, outer_max_iter, prec_type, precond_domain_projector, unit_nr, &
          zero_neg_eivi, penalty_order
       LOGICAL :: converged, just_started, line_search, normalize_orbitals, &
-         optimize_theta, outer_prepare_to_exit, prepare_to_exit, &
+         optimize_theta, outer_prepare_to_exit, prepare_to_exit,
+         blissful_neglect, &
          reset_conjugator, skip_grad, use_guess, penalty_occ_vol
       REAL(kind=dp) :: appr_sec_der, beta, denom, e0, e1, energy_diff, energy_new, energy_old, &
          eps_skip_gradients, g0, g1, grad_norm, grad_norm_frob, kappa, kin_energy, &
@@ -860,6 +861,13 @@ CONTAINS
       ! RZK-warning: change to normal keywords later
       optimize_theta = almo_scf_env%logical05
       eps_skip_gradients = almo_scf_env%real01
+
+      ! if unprojected XALMOs are optimized then compute both
+      ! then we must use the "blissful_neglect" procedure
+      blissful_neglect = .FALSE.
+      IF (my_special_case .EQ. xalmo_case_normal .AND. .NOT.assume_t0_q0x) THEN
+         blissful_neglect = .TRUE.
+      ENDIF
 
       ! penalty amplitude adjusts the strenght of volume conservation
       ! the following guidelines are useful
@@ -933,6 +941,10 @@ CONTAINS
       ndomains = almo_scf_env%ndomains
       ALLOCATE (domain_r_down(ndomains,nspins))
       CALL init_submatrices(domain_r_down)
+      IF (blissful_neglect) THEN
+         ALLOCATE (bad_modes_projector_upup(ndomains,nspins))
+         CALL init_submatrices(domain_r_down)
+      ENDIF
 
       ALLOCATE(prec_vv(nspins))
       ALLOCATE(siginvTFTsiginv(nspins))
@@ -1269,6 +1281,53 @@ CONTAINS
 
             ENDIF ! skip_grad
 
+            ! if unprojected XALMOs are optimized then compute both
+            ! HessianInv/preconditioner and the "bad-mode" projector
+            ! This is done on every step
+            IF (blissful_neglect) THEN
+
+               DO ispin = 1, nspins
+
+                  CALL compute_preconditioner(&
+                          domain_prec_out=almo_scf_env%domain_preconditioner(:,ispin),&
+                          bad_modes_projector_upup=bad_modes_projector_upup(:,ispin),&
+                          m_prec_out=prec_vv(ispin),&
+                          m_ks=almo_scf_env%matrix_ks(ispin),&
+                          m_s=almo_scf_env%matrix_s(1),&
+                          m_siginv=almo_scf_env%matrix_sigma_inv(ispin),&
+                          m_quench_t=quench_t(ispin),&
+                          m_FTsiginv=FTsiginv(ispin),&
+                          m_siginvTFTsiginv=siginvTFTsiginv(ispin),&
+                          m_ST=ST(ispin),&
+                          para_env=almo_scf_env%para_env,&
+                          blacs_env=almo_scf_env%blacs_env,&
+                          nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin),&
+                          domain_s_inv=almo_scf_env%domain_s_inv(:,ispin),&
+                          domain_r_down=domain_r_down(:,ispin),&
+                          cpu_of_domain=almo_scf_env%cpu_of_domain,&
+                          domain_map=almo_scf_env%domain_map(ispin),&
+                          assume_t0_q0x=assume_t0_q0x,&
+                          penalty_occ_vol=penalty_occ_vol,&
+                          penalty_occ_vol_prefactor=penalty_occ_vol_g_prefactor(ispin),&
+                          eps_filter=almo_scf_env%eps_filter,&
+                          spin_factor=spin_factor,&
+                          special_case=my_special_case)
+
+                  ! remove bad modes from the gradient
+                  ?CALL apply_domain_operators(&
+                          matrix_in=grad(ispin),&
+                          matrix_out=step(ispin),&
+                          operator1=almo_scf_env%domain_preconditioner(:,ispin),&
+                          dpattern=quench_t(ispin),&
+                          map=almo_scf_env%domain_map(ispin),&
+                          node_of_domain=almo_scf_env%cpu_of_domain,&
+                          my_action=0,&
+                          filter_eps=almo_scf_env%eps_filter)
+
+               ENDDO ! ispin
+                     
+            ENDIF ! compute_prec
+
             ! check convergence and other exit criteria
             DO ispin = 1, nspins
                CALL dbcsr_norm(grad(ispin), dbcsr_norm_maxabsnorm, &
@@ -1416,7 +1475,7 @@ CONTAINS
                              )
 
                   CASE (xalmo_prec_domain)
-            
+Only if not computed before            
                      ! compute and invert preconditioner?
                      IF ( (just_started .AND. perturbation_only) .OR. &
                           (iteration.eq.0 .AND. (.NOT.perturbation_only)) ) THEN
@@ -1802,6 +1861,11 @@ CONTAINS
       DEALLOCATE(m_sig_sqrti_ii)
 
       DEALLOCATE(domain_r_down)
+      IF (blissful_neglect) THEN
+         CALL init_submatrices(domain_r_down)
+         DEALLOCATE (bad_modes_projector_upup(ndomains,nspins))
+      ENDIF
+
       DEALLOCATE(penalty_occ_vol_g_prefactor)
       DEALLOCATE(penalty_occ_vol_h_prefactor)
       DEALLOCATE(grad_norm_spin)
@@ -5348,21 +5412,23 @@ CONTAINS
      m_STsiginv_out, m_s_vv_out, m_f_vv_out, para_env, &
      blacs_env, nocc_of_domain, domain_s_inv, domain_r_down, cpu_of_domain, &
      domain_map, assume_t0_q0x, penalty_occ_vol, penalty_occ_vol_prefactor, &
-     eps_filter, spin_factor, special_case)
+     eps_filter, spin_factor, special_case, bad_modes_projector_upup)
 
     TYPE(domain_submatrix_type), DIMENSION(:),&
        INTENT(INOUT)                            :: domain_prec_out
-    TYPE(dbcsr_type), INTENT(INOUT)          :: m_prec_out
-    TYPE(dbcsr_type), INTENT(INOUT)          :: m_ks
-    TYPE(dbcsr_type), INTENT(INOUT)          :: m_s
-    TYPE(dbcsr_type), INTENT(IN)             :: m_siginv
-    TYPE(dbcsr_type), INTENT(INOUT)          :: m_quench_t
-    TYPE(dbcsr_type), INTENT(IN)             :: m_FTsiginv
-    TYPE(dbcsr_type), INTENT(IN)             :: m_siginvTFTsiginv
-    TYPE(dbcsr_type), INTENT(IN)             :: m_ST
+    TYPE(dbcsr_type), INTENT(INOUT)             :: m_prec_out
+    TYPE(dbcsr_type), INTENT(INOUT)             :: m_ks
+    TYPE(dbcsr_type), INTENT(INOUT)             :: m_s
+    TYPE(dbcsr_type), INTENT(IN)                :: m_siginv
+    TYPE(dbcsr_type), INTENT(INOUT)             :: m_quench_t
+    TYPE(dbcsr_type), INTENT(IN)                :: m_FTsiginv
+    TYPE(dbcsr_type), INTENT(IN)                :: m_siginvTFTsiginv
+    TYPE(dbcsr_type), INTENT(IN)                :: m_ST
     TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_STsiginv_out
     TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_s_vv_out
     TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_f_vv_out
+    TYPE(domain_submatrix_type), DIMENSION(:), &
+       INTENT(INOUT), OPTIONAL                  :: bad_modes_projector_upup
     TYPE(cp_para_env_type),  POINTER            :: para_env
     TYPE(cp_blacs_env_type), POINTER            :: blacs_env
 
@@ -5528,6 +5594,7 @@ CONTAINS
           node_of_domain=cpu_of_domain,&
           preconditioner=domain_prec_out(:),&
           use_trimmer=.FALSE.,&
+          bad_modes_projector_upup=bad_modes_projector_upup(:),&
           !eps_zero_eigenvalues=eps_filter,&
           my_action=precond_domain_projector&
           )

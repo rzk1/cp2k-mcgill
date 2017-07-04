@@ -1975,8 +1975,8 @@ CONTAINS
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
    SUBROUTINE construct_domain_preconditioner(matrix_main, subm_s_inv, &
-                                              subm_r_down, matrix_trimmer, dpattern, map, node_of_domain, preconditioner, &
-                                              use_trimmer, eps_zero_eigenvalues, my_action)
+                 subm_r_down, matrix_trimmer, dpattern, map, node_of_domain, preconditioner, &
+                 bad_modes_projector_upup, use_trimmer, eps_zero_eigenvalues, my_action)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: matrix_main
       TYPE(domain_submatrix_type), DIMENSION(:), &
@@ -1986,7 +1986,8 @@ CONTAINS
       TYPE(domain_map_type), INTENT(IN)                  :: map
       INTEGER, DIMENSION(:), INTENT(IN)                  :: node_of_domain
       TYPE(domain_submatrix_type), DIMENSION(:), &
-         INTENT(INOUT)                                   :: preconditioner
+         INTENT(INOUT)                                   :: preconditioner, &
+                                                            bad_modes_projector_upup
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_trimmer
       REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_zero_eigenvalues
       INTEGER, INTENT(IN)                                :: my_action
