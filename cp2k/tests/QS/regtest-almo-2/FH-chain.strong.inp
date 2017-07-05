@@ -18,6 +18,7 @@
       ALMO_ALGORITHM             DIAG
       ALMO_SCF_GUESS             ATOMIC
       RETURN_ORTHOGONALIZED_MOS  F
+      XALMO_TRIAL_WF             SIMPLE
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 50
@@ -29,7 +30,7 @@
       XALMO_R_CUTOFF_FACTOR      1.2
       
       &XALMO_OPTIMIZER_PCG
-        MAX_ITER                 100
+        MAX_ITER                 30
         EPS_ERROR                1.0E-7
         CONJUGATOR               FLETCHER
         LIN_SEARCH_EPS_ERROR     0.05
