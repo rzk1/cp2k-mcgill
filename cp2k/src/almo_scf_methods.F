@@ -2140,7 +2140,7 @@ CONTAINS
                         metric_inv=subm_s_inv(idomain)%mdata)
             ELSE
                 CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                        range1=nmos(idomain), range2=n_domain_mosi, &
+                        range1=nmos(idomain), range2=n_domain_mos, &
                         bad_modes_projector_down=proj_array, &
                         metric_inv=subm_s_inv(idomain)%mdata)
             ENDIF ! eps_zero_eigenvalues
@@ -2524,7 +2524,7 @@ CONTAINS
       REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT), OPTIONAL &
                                                          :: bad_modes_projector_down
       REAL(KIND=dp), DIMENSION(:, :), INTENT(IN), OPTIONAL &
-                                                            metric_inv
+                                                         :: metric_inv
       INTEGER, INTENT(IN)                                :: N, method
       INTEGER, INTENT(IN), OPTIONAL                      :: range1, range2
       REAL(KIND=dp), INTENT(IN), OPTIONAL                :: range1_thr, range2_thr, shift

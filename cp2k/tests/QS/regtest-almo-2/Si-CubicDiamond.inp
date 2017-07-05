@@ -25,6 +25,7 @@
       DELOCALIZE_METHOD          XALMO_SCF
       XALMO_R_CUTOFF_FACTOR      0.6
       ALMO_SCF_GUESS             ATOMIC
+      !XALMO_TRIAL_WF             SIMPLE
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 100

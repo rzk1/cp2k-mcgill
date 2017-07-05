@@ -801,7 +801,7 @@ CONTAINS
          outer_iteration, outer_max_iter, prec_type, precond_domain_projector, unit_nr, &
          zero_neg_eivi, penalty_order
       LOGICAL :: converged, just_started, line_search, normalize_orbitals, &
-         optimize_theta, outer_prepare_to_exit, prepare_to_exit,
+         optimize_theta, outer_prepare_to_exit, prepare_to_exit, &
          blissful_neglect, &
          reset_conjugator, skip_grad, use_guess, penalty_occ_vol
       REAL(kind=dp) :: appr_sec_der, beta, denom, e0, e1, energy_diff, energy_new, energy_old, &
@@ -867,6 +867,7 @@ CONTAINS
       ! then we must use the "blissful_neglect" procedure
       blissful_neglect = .FALSE.
       IF (my_special_case .EQ. xalmo_case_normal .AND. .NOT.assume_t0_q0x) THEN
+WRITE(*,*) "NEGLECT IS ON"
          blissful_neglect = .TRUE.
       ENDIF
 
