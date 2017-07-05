@@ -188,7 +188,7 @@ CONTAINS
       CALL keyword_create(keyword, name="RETURN_ORTHOGONALIZED_MOS",&
            description="Orthogonalize final ALMOs before they are returned"// &
            "to Quickstep (i.e. for calculation of properties)", &
-           usage="RETURN_ORTHOGONALIZED_MOS .TRUE.", default_l_val=.FALSE.,&
+           usage="RETURN_ORTHOGONALIZED_MOS .TRUE.", default_l_val=.TRUE.,&
            lone_keyword_l_val=.TRUE.)
       CALL section_add_keyword(section,keyword)
       CALL keyword_release(keyword)
