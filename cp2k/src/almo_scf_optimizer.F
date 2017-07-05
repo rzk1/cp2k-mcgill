@@ -820,7 +820,8 @@ CONTAINS
                                                      m_t_in_local, m_theta, prec_vv, &
                                                      siginvTFTsiginv, STsiginv_0, grad 
       TYPE(domain_submatrix_type), ALLOCATABLE, &
-         DIMENSION(:,:)                                    :: domain_r_down
+         DIMENSION(:,:)                                    :: domain_r_down, &
+                                                           bad_modes_projector_down
       TYPE(section_vals_type), POINTER                   :: almo_print_section, input
 
       CALL timeset(routineN, handle)
@@ -941,10 +942,8 @@ CONTAINS
       ndomains = almo_scf_env%ndomains
       ALLOCATE (domain_r_down(ndomains,nspins))
       CALL init_submatrices(domain_r_down)
-      IF (blissful_neglect) THEN
-         ALLOCATE (bad_modes_projector_upup(ndomains,nspins))
-         CALL init_submatrices(domain_r_down)
-      ENDIF
+      ALLOCATE (bad_modes_projector_down(ndomains,nspins))
+      CALL init_submatrices(bad_modes_projector_down)
 
       ALLOCATE(prec_vv(nspins))
       ALLOCATE(siginvTFTsiginv(nspins))
@@ -1290,7 +1289,7 @@ CONTAINS
 
                   CALL compute_preconditioner(&
                           domain_prec_out=almo_scf_env%domain_preconditioner(:,ispin),&
-                          bad_modes_projector_upup=bad_modes_projector_upup(:,ispin),&
+                          bad_modes_projector_down_out=bad_modes_projector_down(:,ispin),&
                           m_prec_out=prec_vv(ispin),&
                           m_ks=almo_scf_env%matrix_ks(ispin),&
                           m_s=almo_scf_env%matrix_s(1),&
@@ -1314,19 +1313,20 @@ CONTAINS
                           special_case=my_special_case)
 
                   ! remove bad modes from the gradient
-                  ?CALL apply_domain_operators(&
+                  CALL apply_domain_operators(&
                           matrix_in=grad(ispin),&
-                          matrix_out=step(ispin),&
-                          operator1=almo_scf_env%domain_preconditioner(:,ispin),&
+                          matrix_out=grad(ispin),&
+                          operator1=almo_scf_env%domain_s_inv(:,ispin),&
+                          operator2=bad_modes_projector_down(:,ispin),&
                           dpattern=quench_t(ispin),&
                           map=almo_scf_env%domain_map(ispin),&
                           node_of_domain=almo_scf_env%cpu_of_domain,&
-                          my_action=0,&
+                          my_action=1,&
                           filter_eps=almo_scf_env%eps_filter)
 
                ENDDO ! ispin
                      
-            ENDIF ! compute_prec
+            ENDIF ! blissful neglect
 
             ! check convergence and other exit criteria
             DO ispin = 1, nspins
@@ -1475,10 +1475,12 @@ CONTAINS
                              )
 
                   CASE (xalmo_prec_domain)
-Only if not computed before            
+
                      ! compute and invert preconditioner?
-                     IF ( (just_started .AND. perturbation_only) .OR. &
-                          (iteration.eq.0 .AND. (.NOT.perturbation_only)) ) THEN
+                     IF ( .NOT.blissful_neglect .AND. &
+                          ( (just_started .AND. perturbation_only) .OR. &
+                            (iteration.eq.0 .AND. (.NOT.perturbation_only)) ) &
+                        ) THEN
                   
                         ! computing preconditioner
                         DO ispin = 1, nspins
@@ -1846,6 +1848,8 @@ Only if not computed before
          CALL dbcsr_release(m_theta(ispin))
          CALL dbcsr_release(m_t_in_local(ispin))
          CALL dbcsr_release(m_sig_sqrti_ii(ispin))
+         CALL release_submatrices(domain_r_down(:,ispin))
+         CALL release_submatrices(bad_modes_projector_down(:,ispin))
       ENDDO ! ispin
 
       DEALLOCATE(prec_vv)
@@ -1861,10 +1865,7 @@ Only if not computed before
       DEALLOCATE(m_sig_sqrti_ii)
 
       DEALLOCATE(domain_r_down)
-      IF (blissful_neglect) THEN
-         CALL init_submatrices(domain_r_down)
-         DEALLOCATE (bad_modes_projector_upup(ndomains,nspins))
-      ENDIF
+      DEALLOCATE (bad_modes_projector_down)
 
       DEALLOCATE(penalty_occ_vol_g_prefactor)
       DEALLOCATE(penalty_occ_vol_h_prefactor)
@@ -5412,7 +5413,7 @@ Only if not computed before
      m_STsiginv_out, m_s_vv_out, m_f_vv_out, para_env, &
      blacs_env, nocc_of_domain, domain_s_inv, domain_r_down, cpu_of_domain, &
      domain_map, assume_t0_q0x, penalty_occ_vol, penalty_occ_vol_prefactor, &
-     eps_filter, spin_factor, special_case, bad_modes_projector_upup)
+     eps_filter, spin_factor, special_case, bad_modes_projector_down_out)
 
     TYPE(domain_submatrix_type), DIMENSION(:),&
        INTENT(INOUT)                            :: domain_prec_out
@@ -5428,7 +5429,7 @@ Only if not computed before
     TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_s_vv_out
     TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL   :: m_f_vv_out
     TYPE(domain_submatrix_type), DIMENSION(:), &
-       INTENT(INOUT), OPTIONAL                  :: bad_modes_projector_upup
+       INTENT(INOUT), OPTIONAL                  :: bad_modes_projector_down_out
     TYPE(cp_para_env_type),  POINTER            :: para_env
     TYPE(cp_blacs_env_type), POINTER            :: blacs_env
 
@@ -5580,10 +5581,10 @@ Only if not computed before
           precond_domain_projector=0
        ENDIF
 
-!CALL copy_submatrices(domain_s_inv(:),&
-!        domain_prec_out(:),&
-!        copy_data=.TRUE.,&
-!        )
+       !CALL copy_submatrices(domain_s_inv(:),&
+       !        domain_prec_out(:),&
+       !        copy_data=.TRUE.,&
+       !        )
        CALL construct_domain_preconditioner(&
           matrix_main=m_tmp_nn_1,&
           subm_s_inv=domain_s_inv(:),&
@@ -5594,7 +5595,7 @@ Only if not computed before
           node_of_domain=cpu_of_domain,&
           preconditioner=domain_prec_out(:),&
           use_trimmer=.FALSE.,&
-          bad_modes_projector_upup=bad_modes_projector_upup(:),&
+          bad_modes_projector_down=bad_modes_projector_down_out(:),&
           !eps_zero_eigenvalues=eps_filter,&
           my_action=precond_domain_projector&
           )

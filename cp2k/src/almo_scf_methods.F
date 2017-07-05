@@ -1976,7 +1976,7 @@ CONTAINS
 ! **************************************************************************************************
    SUBROUTINE construct_domain_preconditioner(matrix_main, subm_s_inv, &
                  subm_r_down, matrix_trimmer, dpattern, map, node_of_domain, preconditioner, &
-                 bad_modes_projector_upup, use_trimmer, eps_zero_eigenvalues, my_action)
+                 bad_modes_projector_down, use_trimmer, eps_zero_eigenvalues, my_action)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: matrix_main
       TYPE(domain_submatrix_type), DIMENSION(:), &
@@ -1986,8 +1986,9 @@ CONTAINS
       TYPE(domain_map_type), INTENT(IN)                  :: map
       INTEGER, DIMENSION(:), INTENT(IN)                  :: node_of_domain
       TYPE(domain_submatrix_type), DIMENSION(:), &
-         INTENT(INOUT)                                   :: preconditioner, &
-                                                            bad_modes_projector_upup
+         INTENT(INOUT)                                   :: preconditioner
+      TYPE(domain_submatrix_type), DIMENSION(:), &
+         INTENT(INOUT), OPTIONAL                         :: bad_modes_projector_down
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_trimmer
       REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_zero_eigenvalues
       INTEGER, INTENT(IN)                                :: my_action
@@ -2002,7 +2003,7 @@ CONTAINS
       LOGICAL                                            :: matrix_r_required, &
                                                             matrix_s_inv_required, &
                                                             matrix_trimmer_required, my_use_trimmer
-      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: Minv
+      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: Minv, proj_array
       TYPE(domain_submatrix_type), ALLOCATABLE, &
          DIMENSION(:)                                    :: subm_main, subm_tmp, subm_tmp2
 
@@ -2127,19 +2128,36 @@ CONTAINS
             !!!TRIM    subm_out=MATMUL(tmp,sigma)
             !!!TRIM    deallocate(tmp)
             !!!TRIM ELSE
+
+            IF (PRESENT(bad_modes_projector_down)) THEN
+               ALLOCATE (proj_array(naos, naos))
+            ENDIF
+
             IF (PRESENT(eps_zero_eigenvalues)) THEN
                 CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                        range1_thr=eps_zero_eigenvalues, range2_thr=eps_zero_eigenvalues)
+                        range1_thr=eps_zero_eigenvalues, range2_thr=eps_zero_eigenvalues, &
+                        bad_modes_projector_down=proj_array, &
+                        metric_inv=subm_s_inv(idomain)%mdata)
             ELSE
                 CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                        range1=nmos(idomain), range2=n_domain_mos)
+                        range1=nmos(idomain), range2=n_domain_mosi, &
+                        bad_modes_projector_down=proj_array, &
+                        metric_inv=subm_s_inv(idomain)%mdata)
             ENDIF ! eps_zero_eigenvalues
             !!!TRIM ENDIF
 
             CALL copy_submatrices(subm_main(idomain), preconditioner(idomain), .FALSE.)
             CALL copy_submatrix_data(Minv, preconditioner(idomain))
 
+            IF (PRESENT(bad_modes_projector_down)) THEN
+               CALL copy_submatrices(subm_main(idomain), bad_modes_projector_down(idomain), .FALSE.)
+               CALL copy_submatrix_data(proj_array, bad_modes_projector_down(idomain))
+            ENDIF
+
             DEALLOCATE (Minv)
+            IF (PRESENT(bad_modes_projector_down)) THEN 
+               DEALLOCATE (proj_array)
+            ENDIF
 
          ENDIF ! submatrix for the domain exists
 
@@ -2499,10 +2517,14 @@ CONTAINS
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
    SUBROUTINE pseudo_invert_matrix(A, Ainv, N, method, range1, range2, range1_thr, range2_thr, &
-                                   shift)
+                                   shift, bad_modes_projector_down, metric_inv)
 
       REAL(KIND=dp), DIMENSION(:, :), INTENT(IN)         :: A
       REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT)      :: Ainv
+      REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT), OPTIONAL &
+                                                         :: bad_modes_projector_down
+      REAL(KIND=dp), DIMENSION(:, :), INTENT(IN), OPTIONAL &
+                                                            metric_inv
       INTEGER, INTENT(IN)                                :: N, method
       INTEGER, INTENT(IN), OPTIONAL                      :: range1, range2
       REAL(KIND=dp), INTENT(IN), OPTIONAL                :: range1_thr, range2_thr, shift
@@ -2515,7 +2537,7 @@ CONTAINS
       LOGICAL                                            :: use_ranges
       REAL(KIND=dp)                                      :: my_shift
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
-      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: test, testN
+      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: temp1, temp2, temp3
       TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
@@ -2573,62 +2595,84 @@ CONTAINS
 
          ! diagonalize first
          ALLOCATE (eigenvalues(N))
+         ALLOCATE (temp1(N, N))
+         temp1 = metric_inv
          ! Query the optimal workspace for dsyev
          LWORK = -1
          ALLOCATE (WORK(MAX(1, LWORK)))
-         CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
+         IF (PRESENT(metric_inv)) THEN
+            CALL DSYGV(2, 'V', 'L', N, Ainv, N, temp1, N, eigenvalues, WORK, LWORK, INFO)
+         ELSE
+            CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
+         ENDIF
          LWORK = INT(WORK(1))
          DEALLOCATE (WORK)
          ! Allocate the workspace and solve the eigenproblem
          ALLOCATE (WORK(MAX(1, LWORK)))
-         CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
+         IF (PRESENT(metric_inv)) THEN
+            CALL DSYGV(2, 'V', 'L', N, Ainv, N, temp1, N, eigenvalues, WORK, LWORK, INFO)
+         ELSE
+            CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
+         ENDIF
          IF (INFO .NE. 0) THEN
-            IF (unit_nr > 0) WRITE (unit_nr, *) 'DSYEV ERROR MESSAGE: ', INFO
-            CPABORT("DSYEV failed")
+            IF (unit_nr > 0) WRITE (unit_nr, *) 'EIGENSYSTEM ERROR MESSAGE: ', INFO
+            CPABORT("Eigenproblem routine failed")
          END IF
          DEALLOCATE (WORK)
 
          !WRITE(*,*) "EIGENVALS: "
          !WRITE(*,'(4F13.9)') eigenvalues(:)
 
-         ! invert eigenvalues and use eigenvectors to compute the Hessian inverse
-         ! project out zero-eigenvalue directions
-         ALLOCATE (test(N, N))
+         ! invert eigenvalues and use eigenvectors to compute pseudo Ainv
+         ! project out near-zero eigenvalue modes
+         ALLOCATE (temp2(N, N))
+         IF (PRESENT(bad_modes_projector_down)) ALLOCATE(temp3(N, N))
+         IF (PRESENT(metric_inv)) THEN
+            temp2=MATMUL(metric_inv,Ainv)
+         ELSE
+            temp2 = Ainv
+         ENDIF
          range1_eiv = 0
          range2_eiv = 0
          range3_eiv = 0
          IF (use_ranges) THEN
             DO jj = 1, N
                IF (jj .LE. range1) THEN
-                  test(jj, :) = Ainv(:, jj)*0.0_dp
+                  temp1(jj, :) = temp2(:, jj)*0.0_dp
+                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
                   range1_eiv = range1_eiv+1
                ELSE IF (jj .LE. range2) THEN
-                  test(jj, :) = Ainv(:, jj)*1.0_dp
+                  temp1(jj, :) = temp2(:, jj)*1.0_dp
+                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
                   range2_eiv = range2_eiv+1
                ELSE
-                  test(jj, :) = Ainv(:, jj)/(eigenvalues(jj)+my_shift)
+                  temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
+                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
                   range3_eiv = range3_eiv+1
                ENDIF
             ENDDO
          ELSE
             DO jj = 1, N
                IF (eigenvalues(jj) .LT. range1_thr) THEN
-                  test(jj, :) = Ainv(:, jj)*0.0_dp
+                  temp1(jj, :) = temp2(:, jj)*0.0_dp
+                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
                   range1_eiv = range1_eiv+1
                ELSE IF (eigenvalues(jj) .LT. range2_thr) THEN
-                  test(jj, :) = Ainv(:, jj)*1.0_dp
+                  temp1(jj, :) = temp2(:, jj)*1.0_dp
+                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
                   range2_eiv = range2_eiv+1
                ELSE
-                  test(jj, :) = Ainv(:, jj)/(eigenvalues(jj)+my_shift)
+                  temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
+                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
                   range3_eiv = range3_eiv+1
                ENDIF
             ENDDO
          ENDIF
          !WRITE(*,*) ' EIV RANGES: ', range1_eiv, range2_eiv, range3_eiv
-         ALLOCATE (testN(N, N))
-         testN(:, :) = MATMUL(Ainv, test)
-         Ainv = testN
-         DEALLOCATE (test, testN)
+         IF (PRESENT(bad_modes_projector_down)) bad_modes_projector_down = MATMUL(Ainv, temp3)
+         Ainv = MATMUL(temp2, temp1)
+         DEALLOCATE (temp1, temp2)
+         IF (PRESENT(bad_modes_projector_down)) DEALLOCATE(temp3)
          DEALLOCATE (eigenvalues)
 
       CASE DEFAULT
@@ -2638,19 +2682,19 @@ CONTAINS
       END SELECT
 
       !! compute the inversion error
-      !allocate(test(N,N))
-      !test=MATMUL(Ainv,A)
+      !allocate(temp1(N,N))
+      !temp1=MATMUL(Ainv,A)
       !DO ii=1,N
-      !   test(ii,ii)=test(ii,ii)-1.0_dp
+      !   temp1(ii,ii)=temp1(ii,ii)-1.0_dp
       !ENDDO
-      !test_error=0.0_dp
+      !temp1_error=0.0_dp
       !DO ii=1,N
       !   DO jj=1,N
-      !      test_error=test_error+test(jj,ii)*test(jj,ii)
+      !      temp1_error=temp1_error+temp1(jj,ii)*temp1(jj,ii)
       !   ENDDO
       !ENDDO
-      !WRITE(*,*) "Inversion error: ", SQRT(test_error)
-      !deallocate(test)
+      !WRITE(*,*) "Inversion error: ", SQRT(temp1_error)
+      !deallocate(temp1)
 
       CALL timestop(handle)
 
