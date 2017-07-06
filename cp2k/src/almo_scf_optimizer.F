@@ -867,7 +867,6 @@ CONTAINS
       ! then we must use the "blissful_neglect" procedure
       blissful_neglect = .FALSE.
       IF (my_special_case .EQ. xalmo_case_normal .AND. .NOT.assume_t0_q0x) THEN
-WRITE(*,*) "NEGLECT IS ON"
          blissful_neglect = .TRUE.
       ENDIF
 

@@ -1069,7 +1069,6 @@ CONTAINS
                                       range1=nocc(iblock_row), range2=nocc(iblock_row), &
                                       !range1_thr,range2_thr,&
                                       shift=1.0E-5_dp)
-
             !!! IT IS EXTREMELY IMPORTANT THAT THE BLOCKS OF THE "OUT"  !!!
             !!! MATRIX ARE DISTRIBUTED AS THE BLOCKS OF THE "IN" MATRIX !!!
 
@@ -2596,7 +2595,7 @@ CONTAINS
          ! diagonalize first
          ALLOCATE (eigenvalues(N))
          ALLOCATE (temp1(N, N))
-         temp1 = metric_inv
+         IF (PRESENT(metric_inv)) temp1 = metric_inv
          ! Query the optimal workspace for dsyev
          LWORK = -1
          ALLOCATE (WORK(MAX(1, LWORK)))
