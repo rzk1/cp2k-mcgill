@@ -1604,7 +1604,7 @@ CONTAINS
 
                      beta = 0.0_dp
                      IF (unit_nr > 0 .AND. (.NOT. just_started)) THEN
-                        WRITE (unit_nr, *) "Re-setting conjugator to zero"
+                        WRITE (unit_nr, '(T2,A35)') "Re-setting conjugator to zero"
                      ENDIF
                      reset_conjugator = .FALSE.
 
@@ -5581,24 +5581,39 @@ CONTAINS
           precond_domain_projector=0
        ENDIF
 
-       !CALL copy_submatrices(domain_s_inv(:),&
-       !        domain_prec_out(:),&
-       !        copy_data=.TRUE.,&
-       !        )
-       CALL construct_domain_preconditioner(&
-          matrix_main=m_tmp_nn_1,&
-          subm_s_inv=domain_s_inv(:),&
-          subm_r_down=domain_r_down(:),&
-          matrix_trimmer=m_quench_t,&
-          dpattern=m_quench_t,&
-          map=domain_map,&
-          node_of_domain=cpu_of_domain,&
-          preconditioner=domain_prec_out(:),&
-          use_trimmer=.FALSE.,&
-          bad_modes_projector_down=bad_modes_projector_down_out(:),&
-          !eps_zero_eigenvalues=eps_filter,&
-          my_action=precond_domain_projector&
-          )
+       !! RZK-warning: use PRESENT to make two nearly-identical calls
+       !! this is done because intel compiler does not seem to conform
+       !! to the FORTRAN standard for passing through optional arguments
+       IF (PRESENT(bad_modes_projector_down_out)) THEN
+          CALL construct_domain_preconditioner(&
+             matrix_main=m_tmp_nn_1,&
+             subm_s_inv=domain_s_inv(:),&
+             subm_r_down=domain_r_down(:),&
+             matrix_trimmer=m_quench_t,&
+             dpattern=m_quench_t,&
+             map=domain_map,&
+             node_of_domain=cpu_of_domain,&
+             preconditioner=domain_prec_out(:),&
+             use_trimmer=.FALSE.,&
+             bad_modes_projector_down=bad_modes_projector_down_out(:),&
+             !eps_zero_eigenvalues=eps_filter,&
+             my_action=precond_domain_projector&
+             )
+       ELSE
+          CALL construct_domain_preconditioner(&
+             matrix_main=m_tmp_nn_1,&
+             subm_s_inv=domain_s_inv(:),&
+             subm_r_down=domain_r_down(:),&
+             matrix_trimmer=m_quench_t,&
+             dpattern=m_quench_t,&
+             map=domain_map,&
+             node_of_domain=cpu_of_domain,&
+             preconditioner=domain_prec_out(:),&
+             use_trimmer=.FALSE.,&
+             !eps_zero_eigenvalues=eps_filter,&
+             my_action=precond_domain_projector&
+             )
+       ENDIF
 
     ENDIF
 
