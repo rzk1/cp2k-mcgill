@@ -43,8 +43,10 @@ MODULE almo_scf_methods
                                               almo_mat_distr_atomic,&
                                               almo_scf_diag, &
                                               spd_inversion_ls_hotelling, &
+                                              spd_inversion_ls_taylor, &
                                               spd_inversion_dense_cholesky
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
+                                              invert_Taylor, &
                                               matrix_sqrt_Newton_Schulz
    USE kinds,                           ONLY: dp
    USE mathlib,                         ONLY: binomial
@@ -1480,7 +1482,22 @@ CONTAINS
 
          ! invert MO overlap
          CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma,nocc_of_domain,1.0_dp)
-         IF (my_algorithm==spd_inversion_ls_hotelling) THEN 
+         SELECT CASE (my_algorithm)
+         CASE (spd_inversion_ls_taylor)
+
+            CALL invert_Taylor( & 
+               matrix_inverse=sigma_inv, & 
+               matrix=sigma, & 
+               use_inv_as_guess=use_sigma_inv_guess, & 
+               threshold=eps_filter*my_inv_eps_factor, &
+               filter_eps=eps_filter, &
+               !accelerator_order=my_accelerator, &
+               !eps_lanczos=eps_lanczos, &
+               !max_iter_lanczos=max_iter_lanczos, &
+               silent=.FALSE.) 
+
+         CASE (spd_inversion_ls_hotelling)
+
             CALL invert_Hotelling( & 
                matrix_inverse=sigma_inv, & 
                matrix=sigma, & 
@@ -1491,7 +1508,9 @@ CONTAINS
                eps_lanczos=eps_lanczos, &
                max_iter_lanczos=max_iter_lanczos, &
                silent=.FALSE.) 
-         ELSE IF (my_algorithm==spd_inversion_dense_cholesky) THEN
+
+         CASE (spd_inversion_dense_cholesky)
+
             ! invert using cholesky 
             CALL dbcsr_copy(sigma_inv, sigma)  
             CALL cp_dbcsr_cholesky_decompose(sigma_inv,& 
@@ -1503,9 +1522,9 @@ CONTAINS
                     upper_to_full=.TRUE.) 
             CALL dbcsr_filter(sigma_inv,& 
                     eps=eps_filter)
-         ELSE
+         CASE DEFAULT
             CPABORT("Illegal MO overalp inversion algorithm") 
-         ENDIF 
+         END SELECT
          CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma,nocc_of_domain,0.0_dp)
          CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma_inv,nocc_of_domain,0.0_dp)
 
