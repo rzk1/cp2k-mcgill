@@ -24,7 +24,8 @@ MODULE iterate_matrix
         dbcsr_get_occupation, dbcsr_multiply, dbcsr_norm, dbcsr_norm_maxabsnorm, dbcsr_p_type, &
         dbcsr_release, dbcsr_scale, dbcsr_set, dbcsr_trace, dbcsr_transposed, dbcsr_type, &
         dbcsr_type_no_symmetry, dbcsr_set_diag, dbcsr_get_diag, dbcsr_print, &
-        dbcsr_desymmetrize
+        dbcsr_desymmetrize, dbcsr_distribution_type, dbcsr_distribution_get, &
+        dbcsr_nblkrows_total, dbcsr_nblkcols_total, dbcsr_get_block_p 
    USE kinds,                           ONLY: dp,&
                                               int_8
    USE machine,                         ONLY: m_flush,&
@@ -124,11 +125,8 @@ CONTAINS
 
       CALL dbcsr_create(tmp1, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
       CALL dbcsr_create(tmp2, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
-      !CALL dbcsr_create(tmp3_sym, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
       CALL dbcsr_create(tmp3_sym, template=matrix_inverse)
 
-CALL dbcsr_print(matrix)
-CALL dbcsr_print(matrix_inverse)
       CALL dbcsr_get_info(matrix, nfullrows_total=nrows)
       ALLOCATE (p_diagonal(nrows))
 
@@ -141,7 +139,6 @@ CALL dbcsr_print(matrix_inverse)
             CALL dbcsr_desymmetrize(matrix, tmp1)
             p_diagonal(:) = 0.0_dp
             CALL dbcsr_set_diag(tmp1, p_diagonal)
-CALL dbcsr_print(tmp1)
             !CALL dbcsr_print(tmp1)
             ! invert the main diagonal
             CALL dbcsr_get_diag(matrix,p_diagonal)
@@ -149,7 +146,6 @@ CALL dbcsr_print(tmp1)
             CALL dbcsr_set(matrix_inverse, 0.0_dp)
             CALL dbcsr_add_on_diag(matrix_inverse, 1.0_dp)
             CALL dbcsr_set_diag(matrix_inverse, p_diagonal)
-            !CALL dbcsr_print(matrix_inverse)
          CASE DEFAULT
             CPABORT("Illegal accelerator order")
          END SELECT
@@ -162,35 +158,28 @@ CALL dbcsr_print(tmp1)
 
       CALL dbcsr_multiply("N", "N", 1.0_dp, tmp1, matrix_inverse, &
                           0.0_dp, tmp2, filter_eps=filter_eps)
-      !CALL dbcsr_print(tmp2)
 
       IF (unit_nr > 0) WRITE (unit_nr, *)
 
       ! scale the approximate inverse to be within the convergence radius
       t1 = m_walltime()
 
-
       ! done with the initial guess, start iterations
       converged = .FALSE.
       CALL dbcsr_desymmetrize(matrix_inverse,tmp1)
-CALL dbcsr_print(tmp1)
       coeff = 1.0_dp
       DO i = 1, 100
 
          ! coeff = +/- 1
          coeff = -1.0_dp * coeff
-         CALL dbcsr_multiply("N", "N", coeff, tmp1, tmp2, 0.0_dp, &
+         CALL dbcsr_multiply("N", "N", 1.0_dp, tmp1, tmp2, 0.0_dp, &
                              tmp3_sym, &
-                             !flop=flop2, filter_eps=filter_eps)
-                             flop=flop2)
-         CALL dbcsr_add(matrix_inverse,tmp3_sym,1.0_dp,1.0_dp)
-WRITE(*,*) "MATRIX_INV current"
-CALL dbcsr_print(matrix_inverse)
+                             flop=flop2, filter_eps=filter_eps)
+                             !flop=flop2)
+         CALL dbcsr_add(matrix_inverse,tmp3_sym,1.0_dp,coeff)
          CALL dbcsr_release(tmp1)
          CALL dbcsr_create(tmp1, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
          CALL dbcsr_desymmetrize(tmp3_sym,tmp1)
-WRITE(*,*) "Desymetrize into tmp1"
-CALL dbcsr_print(tmp1)
 
          ! for the convergence check
          CALL dbcsr_norm(tmp3_sym, &
@@ -220,24 +209,19 @@ CALL dbcsr_print(tmp1)
       !last convergence check
       CALL dbcsr_multiply("N","N",1.0_dp,matrix,matrix_inverse,0.0_dp,tmp1, &
                            filter_eps=filter_eps)
-CALL dbcsr_add_on_diag(tmp1,-1.0_dp)
-CALL dbcsr_print(tmp1)
+      CALL dbcsr_add_on_diag(tmp1,-1.0_dp)
       !frob_matrix =  dbcsr_frobenius_norm(tmp1)
       CALL dbcsr_norm(tmp1, dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix)
       IF (unit_nr > 0) THEN
-            WRITE(unit_nr,'(T6,A,E12.5)') "Final Taylor error", &
-               maxnorm_matrix
+         WRITE(unit_nr,'(T6,A,E12.5)') "Final Taylor error", maxnorm_matrix
          WRITE (unit_nr, '()')
          CALL m_flush(unit_nr)
       ENDIF
-      
-      !CALL dbscr_norm(tmp1, dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix)
-      IF (maxnorm_matrix < convergence) THEN
-         converged = .TRUE.
-         WRITE(*,*) 'Final convergence check passed'
-      ELSE
-        !converged = .FALSE.
-        WRITE(*,*) 'Final convergence check failed, max norm is: ', maxnorm_matrix
+      IF (maxnorm_matrix > convergence) THEN
+         converged = .FALSE.
+         IF (unit_nr > 0) THEN
+            WRITE(*,*) 'Final convergence check failed'
+         ENDIF
       ENDIF
 
       IF (.NOT.converged) THEN

@@ -20,8 +20,8 @@
       MO_OVERLAP_INV_ALG         LS_TAYLOR
 
       &MATRIX_ITERATE
-        EPS_TARGET_FACTOR 	 0.1
-      &END 
+         EPS_TARGET_FACTOR       1
+      &END
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 10
@@ -61,7 +61,7 @@
       MULTIPLE_UNIT_CELL 1 1 1
     &END
     &COORD
-@INCLUDE 'ice-2mol.xyz'
+@INCLUDE 'ice.xyz'
     &END COORD
     &KIND H
       BASIS_SET DZVP-GTH 
