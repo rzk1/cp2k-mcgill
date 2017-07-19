@@ -821,7 +821,9 @@ CONTAINS
                                                      siginvTFTsiginv, STsiginv_0, grad 
       TYPE(domain_submatrix_type), ALLOCATABLE, &
          DIMENSION(:,:)                                    :: domain_r_down, &
-                                                           bad_modes_projector_down
+                                                           bad_modes_projector_down, &
+                                                           domain_s_inv_half, &   !added by Yifei
+                                                           domain_s_half
       TYPE(section_vals_type), POINTER                   :: almo_print_section, input
 
       CALL timeset(routineN, handle)
@@ -944,7 +946,12 @@ CONTAINS
       CALL init_submatrices(domain_r_down)
       ALLOCATE (bad_modes_projector_down(ndomains,nspins))
       CALL init_submatrices(bad_modes_projector_down)
-
+      ! Yifei
+      ALLOCATE (domain_s_half(ndomains,nspins))
+      CALL init_submatrices(domain_s_half)
+      ALLOCATE (domain_s_inv_half(ndomains,nspins))
+      CALL init_submatrices(domain_s_inv_half)
+      
       ALLOCATE(prec_vv(nspins))
       ALLOCATE(siginvTFTsiginv(nspins))
       ALLOCATE(STsiginv_0(nspins))
@@ -1010,7 +1017,18 @@ CONTAINS
                dpattern=quench_t(ispin), &
                map=almo_scf_env%domain_map(ispin), &
                node_of_domain=almo_scf_env%cpu_of_domain)
+               
+            CALL construct_domain_s_sqrt( &
+               matrix_s=almo_scf_env%matrix_s(1), &
+               subm_s_sqrt=almo_scf_env%domain_s_sqrt(:, ispin), &
+               subm_s_sqrt_inv=almo_scf_env%domain_s_sqrt_inv(:, ispin), &
+               dpattern=almo_scf_env%quench_t(ispin), &
+               map=almo_scf_env%domain_map(ispin), &
+               node_of_domain=almo_scf_env%cpu_of_domain)
+
          ENDIF
+
+
 
          IF (assume_t0_q0x) THEN
 
@@ -1283,8 +1301,9 @@ CONTAINS
             ! if unprojected XALMOs are optimized then compute both
             ! HessianInv/preconditioner and the "bad-mode" projector
             ! This is done on every step
-            IF (blissful_neglect) THEN
-
+            ! IF (blissful_neglect) THEN
+			!changed by Yifei, only compute the prec on first inner iter
+			IF (blissful_neglect .AND. iteration .EQ. 0) THEN
                DO ispin = 1, nspins
 
                   CALL compute_preconditioner(&
@@ -1302,6 +1321,8 @@ CONTAINS
                           blacs_env=almo_scf_env%blacs_env,&
                           nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin),&
                           domain_s_inv=almo_scf_env%domain_s_inv(:,ispin),&
+                          !domain_s_inv_half=almo_scf_env%domain_s_sqrt_inv(:,ispin),&
+                          !domain_s_half=almo_scf_env%domain_s_sqrt(:,ispin),&
                           domain_r_down=domain_r_down(:,ispin),&
                           cpu_of_domain=almo_scf_env%cpu_of_domain,&
                           domain_map=almo_scf_env%domain_map(ispin),&
@@ -1871,6 +1892,8 @@ CONTAINS
       DEALLOCATE(penalty_occ_vol_h_prefactor)
       DEALLOCATE(grad_norm_spin)
       DEALLOCATE(nocc)
+      DEALLOCATE(domain_s_half)
+      DEALLOCATE(domain_s_inv_half)
 
       DEALLOCATE (m_theta, m_t_in_local)
 
@@ -5411,7 +5434,8 @@ CONTAINS
   SUBROUTINE compute_preconditioner(domain_prec_out, m_prec_out, m_ks, m_s, &
      m_siginv, m_quench_t,  m_FTsiginv, m_siginvTFTsiginv, m_ST, &
      m_STsiginv_out, m_s_vv_out, m_f_vv_out, para_env, &
-     blacs_env, nocc_of_domain, domain_s_inv, domain_r_down, cpu_of_domain, &
+     blacs_env, nocc_of_domain, domain_s_inv, domain_s_inv_half, domain_s_half, &
+     domain_r_down, cpu_of_domain, &
      domain_map, assume_t0_q0x, penalty_occ_vol, penalty_occ_vol_prefactor, &
      eps_filter, spin_factor, special_case, bad_modes_projector_down_out)
 
@@ -5436,6 +5460,8 @@ CONTAINS
     INTEGER, DIMENSION(:), INTENT(IN)           :: nocc_of_domain 
     TYPE(domain_submatrix_type), DIMENSION(:),&
        INTENT(IN)                               :: domain_s_inv
+    TYPE(domain_submatrix_type), DIMENSION(:),&
+       INTENT(IN), OPTIONAL                     :: domain_s_inv_half, domain_s_half     
     TYPE(domain_submatrix_type), DIMENSION(:),&
        INTENT(IN)                               :: domain_r_down
     INTEGER, DIMENSION(:), INTENT(IN)           :: cpu_of_domain
@@ -5588,6 +5614,8 @@ CONTAINS
           CALL construct_domain_preconditioner(&
              matrix_main=m_tmp_nn_1,&
              subm_s_inv=domain_s_inv(:),&
+             subm_s_inv_half=domain_s_inv_half(:),&
+             subm_s_half=domain_s_half(:),&
              subm_r_down=domain_r_down(:),&
              matrix_trimmer=m_quench_t,&
              dpattern=m_quench_t,&
@@ -5597,12 +5625,16 @@ CONTAINS
              use_trimmer=.FALSE.,&
              bad_modes_projector_down=bad_modes_projector_down_out(:),&
              !eps_zero_eigenvalues=eps_filter,&
+             ! added by Yifei, besure to change later
+             eps_zero_eigenvalues=0.005_dp,&
              my_action=precond_domain_projector&
              )
        ELSE
           CALL construct_domain_preconditioner(&
              matrix_main=m_tmp_nn_1,&
              subm_s_inv=domain_s_inv(:),&
+             subm_s_inv_half=domain_s_inv_half(:),&
+             subm_s_half=domain_s_half(:),&
              subm_r_down=domain_r_down(:),&
              matrix_trimmer=m_quench_t,&
              dpattern=m_quench_t,&

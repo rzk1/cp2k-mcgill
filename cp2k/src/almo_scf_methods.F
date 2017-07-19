@@ -1066,7 +1066,7 @@ CONTAINS
             methodID = 1
             CALL pseudo_invert_matrix(data_p, data_copy, iblock_size, &
                                       methodID, &
-                                      range1=nocc(iblock_row), range2=nocc(iblock_row), &
+                                      range1=nocc(iblock_row)+nocc(iblock_row), &   !Yifei, check this 
                                       !range1_thr,range2_thr,&
                                       shift=1.0E-5_dp)
             !!! IT IS EXTREMELY IMPORTANT THAT THE BLOCKS OF THE "OUT"  !!!
@@ -1973,13 +1973,14 @@ CONTAINS
 !>       2013.01 created [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE construct_domain_preconditioner(matrix_main, subm_s_inv, &
+   SUBROUTINE construct_domain_preconditioner(matrix_main, subm_s_inv, subm_s_inv_half, subm_s_half, &
                  subm_r_down, matrix_trimmer, dpattern, map, node_of_domain, preconditioner, &
                  bad_modes_projector_down, use_trimmer, eps_zero_eigenvalues, my_action)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: matrix_main
       TYPE(domain_submatrix_type), DIMENSION(:), &
-         INTENT(IN), OPTIONAL                            :: subm_s_inv, subm_r_down
+         INTENT(IN), OPTIONAL                            :: subm_s_inv, subm_s_inv_half, &
+                                                            subm_s_half, subm_r_down
       TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL          :: matrix_trimmer
       TYPE(dbcsr_type), INTENT(IN)                       :: dpattern
       TYPE(domain_map_type), INTENT(IN)                  :: map
@@ -2133,15 +2134,31 @@ CONTAINS
             ENDIF
 
             IF (PRESENT(eps_zero_eigenvalues)) THEN
-                CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                        range1_thr=eps_zero_eigenvalues, range2_thr=eps_zero_eigenvalues, &
+                IF(PRESENT(subm_s_inv_half)) THEN
+                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
+                		range1=nmos(idomain)+n_domain_mos, &  !added by Yifei
+                        range1_thr=eps_zero_eigenvalues, &
                         bad_modes_projector_down=proj_array, &
-                        metric_inv=subm_s_inv(idomain)%mdata)
+                        s_inv_half=subm_s_inv_half(idomain)%mdata, &
+                        s_half=subm_s_inv(idomain)%mdata)
+                ELSE
+                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
+                		range1=nmos(idomain)+n_domain_mos, &  !added by Yifei
+                        range1_thr=eps_zero_eigenvalues, &
+                        bad_modes_projector_down=proj_array)
+                ENDIF
             ELSE
-                CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                        range1=nmos(idomain), range2=n_domain_mos, &
-                        bad_modes_projector_down=proj_array, &
-                        metric_inv=subm_s_inv(idomain)%mdata)
+                IF(PRESENT(subm_s_inv_half)) THEN
+                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
+                           range1=nmos(idomain)+n_domain_mos, &
+                           bad_modes_projector_down=proj_array, &
+                           s_inv_half=subm_s_inv_half(idomain)%mdata, &
+                           s_half=subm_s_inv(idomain)%mdata)
+                ELSE
+                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
+                           range1=nmos(idomain)+n_domain_mos, &
+                           bad_modes_projector_down=proj_array)
+                ENDIF
             ENDIF ! eps_zero_eigenvalues
             !!!TRIM ENDIF
 
@@ -2267,7 +2284,6 @@ CONTAINS
 ! **************************************************************************************************
    SUBROUTINE construct_domain_s_inv(matrix_s, subm_s_inv, dpattern, map, &
                                      node_of_domain)
-
       TYPE(dbcsr_type), INTENT(IN)                       :: matrix_s
       TYPE(domain_submatrix_type), DIMENSION(:), &
          INTENT(INOUT)                                   :: subm_s_inv
@@ -2322,6 +2338,7 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE construct_domain_s_inv
+
 
 ! **************************************************************************************************
 !> \brief Constructs subblocks of the covariant-covariant projectors (i.e. DM without spin factor)
@@ -2515,25 +2532,25 @@ CONTAINS
 !>       2012.04 created [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE pseudo_invert_matrix(A, Ainv, N, method, range1, range2, range1_thr, range2_thr, &
-                                   shift, bad_modes_projector_down, metric_inv)
+   SUBROUTINE pseudo_invert_matrix(A, Ainv, N, method, range1, range1_thr, &
+                                   shift, bad_modes_projector_down, s_inv_half, s_half)
 
       REAL(KIND=dp), DIMENSION(:, :), INTENT(IN)         :: A
       REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT)      :: Ainv
       REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT), OPTIONAL &
                                                          :: bad_modes_projector_down
       REAL(KIND=dp), DIMENSION(:, :), INTENT(IN), OPTIONAL &
-                                                         :: metric_inv
+                                                         :: s_inv_half, s_half
       INTEGER, INTENT(IN)                                :: N, method
-      INTEGER, INTENT(IN), OPTIONAL                      :: range1, range2
-      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: range1_thr, range2_thr, shift
+      INTEGER, INTENT(IN), OPTIONAL                      :: range1
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: range1_thr, shift
 
       CHARACTER(len=*), PARAMETER :: routineN = 'pseudo_invert_matrix', &
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle, ii, INFO, jj, LWORK, range1_eiv, &
-                                                            range2_eiv, range3_eiv, unit_nr
-      LOGICAL                                            :: use_ranges
+                                                            range2_eiv, unit_nr
+      LOGICAL                                            :: use_both, use_ranges
       REAL(KIND=dp)                                      :: my_shift
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: temp1, temp2, temp3
@@ -2550,16 +2567,19 @@ CONTAINS
       END IF
 
       IF (method .EQ. 1) THEN
-         IF (PRESENT(range1)) THEN
-            use_ranges = .TRUE.
-            IF (.NOT. PRESENT(range2)) THEN
-               CPABORT("SPECIFY TWO RANGES")
-            ENDIF
+         IF (PRESENT(range1) .AND. PRESENT(range1_thr)) THEN
+            use_both = .TRUE.
          ELSE
-            use_ranges = .FALSE.
-            IF ((.NOT. PRESENT(range1_thr)) .OR. (.NOT. PRESENT(range2_thr))) THEN
-               CPABORT("SPECIFY TWO THRESHOLDS")
+            use_both = .FALSE.
+            IF (PRESENT(range1)) THEN
+               use_ranges = .TRUE.
+            ELSE
+               use_ranges = .FALSE.
             ENDIF
+         ENDIF
+         
+         IF ((PRESENT(s_half) .AND. (.NOT. PRESENT(s_inv_half))) .OR. (PRESENT(s_inv_half) .AND. (.NOT. PRESENT(s_half)))) THEN
+            CPABORT("Domain overlap matrix missing")
          ENDIF
       ENDIF
 
@@ -2595,24 +2615,21 @@ CONTAINS
          ! diagonalize first
          ALLOCATE (eigenvalues(N))
          ALLOCATE (temp1(N, N))
-         IF (PRESENT(metric_inv)) temp1 = metric_inv
+         IF (PRESENT(s_inv_half)) THEN
+            temp1 = MATMUL(s_inv_half, A)
+            Ainv = MATMUL(temp1,s_inv_half)
+         ENDIF
          ! Query the optimal workspace for dsyev
          LWORK = -1
-         ALLOCATE (WORK(MAX(1, LWORK)))
-         IF (PRESENT(metric_inv)) THEN
-            CALL DSYGV(2, 'V', 'L', N, Ainv, N, temp1, N, eigenvalues, WORK, LWORK, INFO)
-         ELSE
-            CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
-         ENDIF
+         ALLOCATE (WORK(MAX(1, LWORK)))        
+         CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
+
          LWORK = INT(WORK(1))
          DEALLOCATE (WORK)
          ! Allocate the workspace and solve the eigenproblem
          ALLOCATE (WORK(MAX(1, LWORK)))
-         IF (PRESENT(metric_inv)) THEN
-            CALL DSYGV(2, 'V', 'L', N, Ainv, N, temp1, N, eigenvalues, WORK, LWORK, INFO)
-         ELSE
-            CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
-         ENDIF
+         CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
+         
          IF (INFO .NE. 0) THEN
             IF (unit_nr > 0) WRITE (unit_nr, *) 'EIGENSYSTEM ERROR MESSAGE: ', INFO
             CPABORT("Eigenproblem routine failed")
@@ -2625,51 +2642,65 @@ CONTAINS
          ! invert eigenvalues and use eigenvectors to compute pseudo Ainv
          ! project out near-zero eigenvalue modes
          ALLOCATE (temp2(N, N))
-         IF (PRESENT(bad_modes_projector_down)) ALLOCATE(temp3(N, N))
-         IF (PRESENT(metric_inv)) THEN
-            temp2=MATMUL(metric_inv,Ainv)
-         ELSE
-            temp2 = Ainv
-         ENDIF
+         IF (PRESENT(bad_modes_projector_down)) ALLOCATE(temp3(N, N))         
+         temp2 = Ainv
+
          range1_eiv = 0
          range2_eiv = 0
-         range3_eiv = 0
-         IF (use_ranges) THEN
+         
+         IF (use_both) THEN
             DO jj = 1, N
-               IF (jj .LE. range1) THEN
+               IF ((jj .LE. range1) .AND. (eigenvalues(jj) .LT. range1_thr)) THEN
                   temp1(jj, :) = temp2(:, jj)*0.0_dp
                   IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
-                  range1_eiv = range1_eiv+1
-               ELSE IF (jj .LE. range2) THEN
-                  temp1(jj, :) = temp2(:, jj)*1.0_dp
-                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
-                  range2_eiv = range2_eiv+1
+                  range1_eiv = range1_eiv+1         
                ELSE
                   temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
                   IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
-                  range3_eiv = range3_eiv+1
+                  range2_eiv = range2_eiv+1
                ENDIF
-            ENDDO
+            ENDDO         
          ELSE
-            DO jj = 1, N
-               IF (eigenvalues(jj) .LT. range1_thr) THEN
-                  temp1(jj, :) = temp2(:, jj)*0.0_dp
-                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
-                  range1_eiv = range1_eiv+1
-               ELSE IF (eigenvalues(jj) .LT. range2_thr) THEN
-                  temp1(jj, :) = temp2(:, jj)*1.0_dp
-                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
-                  range2_eiv = range2_eiv+1
-               ELSE
-                  temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
-                  IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
-                  range3_eiv = range3_eiv+1
-               ENDIF
-            ENDDO
+            IF (use_ranges) THEN
+               DO jj = 1, N
+                  IF (jj .LE. range1) THEN
+                     temp1(jj, :) = temp2(:, jj)*0.0_dp
+                     IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
+                     range1_eiv = range1_eiv+1
+                  ELSE
+                     temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
+                     IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
+                     range2_eiv = range2_eiv+1
+                  ENDIF
+               ENDDO
+            ELSE
+               DO jj = 1, N
+                  IF (eigenvalues(jj) .LT. range1_thr) THEN
+                     temp1(jj, :) = temp2(:, jj)*0.0_dp
+                     IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
+                     range1_eiv = range1_eiv+1
+                  ELSE
+                     temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
+                     IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
+                     range2_eiv = range2_eiv+1
+                  ENDIF
+               ENDDO
+            ENDIF
          ENDIF
          !WRITE(*,*) ' EIV RANGES: ', range1_eiv, range2_eiv, range3_eiv
-         IF (PRESENT(bad_modes_projector_down)) bad_modes_projector_down = MATMUL(Ainv, temp3)
-         Ainv = MATMUL(temp2, temp1)
+         IF (PRESENT(bad_modes_projector_down)) THEN
+            IF(PRESENT(s_half)) THEN
+               bad_modes_projector_down = MATMUL(MATMUL(s_half, temp2),MATMUL(temp3,s_half))
+            ELSE
+               bad_modes_projector_down = MATMUL(temp2,temp3)
+            ENDIF
+         ENDIF
+         
+         IF (PRESENT(s_inv_half)) THEN
+            Ainv = MATMUL(MATMUL(s_inv_half,temp2), MATMUL(temp1,s_inv_half))
+         ELSE
+            Ainv = MATMUL(temp2, temp1)
+         ENDIF
          DEALLOCATE (temp1, temp2)
          IF (PRESENT(bad_modes_projector_down)) DEALLOCATE(temp3)
          DEALLOCATE (eigenvalues)
@@ -2698,6 +2729,157 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE pseudo_invert_matrix
+
+! **************************************************************************************************
+!> \brief Find matrix power using diagonalization
+!> \param A ...
+!> \param Apow ...
+!> \param power ...
+!> \param N ...
+!> \param range1 ...
+!> \param range1_thr ...
+!> \param shift ...
+!> \par History
+!>       2012.04 created [Rustam Z. Khaliullin]
+!> \author Rustam Z. Khaliullin
+! **************************************************************************************************
+
+   SUBROUTINE pseudo_matrix_power(A, Apow, power, N, range1, range1_thr, shift)
+
+      REAL(KIND=dp), DIMENSION(:, :), INTENT(IN)         :: A
+      REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT)      :: Apow
+      REAL(KIND=dp), INTENT(IN)                          :: power
+      INTEGER, INTENT(IN)                                :: N
+      INTEGER, INTENT(IN), OPTIONAL                      :: range1
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: range1_thr, shift
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'pseudo_matrix_power', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, ii, INFO, jj, LWORK, range1_eiv, &
+                                                            range2_eiv, unit_nr
+      LOGICAL                                            :: use_both, use_ranges, use_thr
+      REAL(KIND=dp)                                      :: my_shift
+      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
+      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: temp1, temp2
+      TYPE(cp_logger_type), POINTER                      :: logger
+
+      CALL timeset(routineN, handle)
+
+      ! get a useful unit_nr
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      END IF
+
+
+      IF (PRESENT(range1) .AND. PRESENT(range1_thr)) THEN
+         use_both = .TRUE.
+      ELSE
+         use_both = .FALSE.
+         IF (PRESENT(range1)) THEN
+            use_ranges = .TRUE.
+         ELSE
+            use_ranges = .FALSE.
+            IF(PRESENT(range1_thr)) THEN
+               use_thr = .TRUE.
+            ELSE 
+               use_thr = .FALSE.
+            ENDIF
+         ENDIF
+      ENDIF
+
+
+      my_shift = 0.0_dp
+      IF (PRESENT(shift)) THEN
+         my_shift = shift
+      ENDIF
+
+      Apow = A
+      INFO = 0
+
+      ! diagonalize first
+      ALLOCATE (eigenvalues(N))
+      ALLOCATE (temp1(N, N))
+
+      ! Query the optimal workspace for dsyev
+      LWORK = -1
+      ALLOCATE (WORK(MAX(1, LWORK)))
+      CALL DSYEV('V', 'L', N, Apow, N, eigenvalues, WORK, LWORK, INFO)
+
+      LWORK = INT(WORK(1))
+      DEALLOCATE (WORK)
+      ! Allocate the workspace and solve the eigenproblem
+      ALLOCATE (WORK(MAX(1, LWORK)))
+
+      CALL DSYEV('V', 'L', N, Apow, N, eigenvalues, WORK, LWORK, INFO)
+
+      IF (INFO .NE. 0) THEN
+         IF (unit_nr > 0) WRITE (unit_nr, *) 'EIGENSYSTEM ERROR MESSAGE: ', INFO
+         CPABORT("Eigenproblem routine failed")
+      END IF
+      DEALLOCATE (WORK)
+
+         !WRITE(*,*) "EIGENVALS: "
+         !WRITE(*,'(4F13.9)') eigenvalues(:)
+
+         ! invert eigenvalues and use eigenvectors to compute pseudo Ainv
+         ! project out near-zero eigenvalue modes
+      ALLOCATE (temp2(N, N))
+
+      temp2 = Apow
+
+      range1_eiv = 0
+      range2_eiv = 0
+         
+
+      IF (use_both) THEN
+         DO jj = 1, N
+            IF ((jj .LE. range1) .AND. (eigenvalues(jj) .LT. range1_thr)) THEN
+               temp1(jj, :) = temp2(:, jj)*0.0_dp
+               range1_eiv = range1_eiv+1
+            ELSE
+               temp1(jj, :) = temp2(:, jj)*((eigenvalues(jj)+my_shift)**power)
+            ENDIF
+         ENDDO         
+      ELSE
+         IF (use_ranges) THEN
+            DO jj = 1, N
+               IF (jj .LE. range1) THEN
+                  temp1(jj, :) = temp2(:, jj)*0.0_dp
+                  range1_eiv = range1_eiv+1
+               ELSE
+                  temp1(jj, :) = temp2(:, jj)*((eigenvalues(jj)+my_shift)**power)
+               ENDIF
+            ENDDO
+         ELSE
+            IF (use_thr) THEN
+               DO jj = 1, N
+                  IF (eigenvalues(jj) .LT. range1_thr) THEN
+                     temp1(jj, :) = temp2(:, jj)*0.0_dp
+
+                        range1_eiv = range1_eiv+1
+                  ELSE
+                     temp1(jj, :) = temp2(:, jj)*((eigenvalues(jj)+my_shift)**power)
+                  ENDIF
+               ENDDO               
+            ELSE
+               DO jj = 1, N
+                  temp1(jj, :) = temp2(:, jj)*((eigenvalues(jj)+my_shift)**power)
+               ENDDO
+            ENDIF
+         ENDIF
+      ENDIF
+      !WRITE(*,*) ' EIV RANGES: ', range1_eiv, range2_eiv, range3_eiv
+      Apow = MATMUL(temp2, temp1)
+      DEALLOCATE (temp1, temp2)
+      DEALLOCATE (eigenvalues)
+
+      CALL timestop(handle)
+
+   END SUBROUTINE pseudo_matrix_power
 
 ! **************************************************************************************************
 !> \brief Load balancing of the submatrix computations
