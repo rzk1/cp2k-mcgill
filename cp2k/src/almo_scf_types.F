@@ -69,7 +69,8 @@ MODULE almo_scf_types
       REAL(KIND=dp)  :: eps_error, &
                         eps_error_early, &
                         lin_search_eps_error, &
-                        lin_search_step_size_guess
+                        lin_search_step_size_guess, &
+                        neglect_threshold
 
       INTEGER        :: optimizer_type ! diis, pcg, etc.
 

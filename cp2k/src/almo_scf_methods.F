@@ -1066,7 +1066,7 @@ CONTAINS
             methodID = 1
             CALL pseudo_invert_matrix(data_p, data_copy, iblock_size, &
                                       methodID, &
-                                      range1=nocc(iblock_row)+nocc(iblock_row), &   !Yifei, check this 
+                                      range1=nocc(iblock_row), &   !Yifei, check this 
                                       !range1_thr,range2_thr,&
                                       shift=1.0E-5_dp)
             !!! IT IS EXTREMELY IMPORTANT THAT THE BLOCKS OF THE "OUT"  !!!
@@ -2136,27 +2136,30 @@ CONTAINS
             IF (PRESENT(eps_zero_eigenvalues)) THEN
                 IF(PRESENT(subm_s_inv_half)) THEN
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=nmos(idomain)+n_domain_mos, &  !added by Yifei
+                		range1=n_domain_mos, &  !added by Yifei
                         range1_thr=eps_zero_eigenvalues, &
                         bad_modes_projector_down=proj_array, &
                         s_inv_half=subm_s_inv_half(idomain)%mdata, &
-                        s_half=subm_s_inv(idomain)%mdata)
+                        s_half=subm_s_half(idomain)%mdata &
+                        !metric_inv=subm_s_inv(idomain)%mdata &
+                        )
                 ELSE
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=nmos(idomain)+n_domain_mos, &  !added by Yifei
+                		range1=n_domain_mos, &  !added by Yifei
                         range1_thr=eps_zero_eigenvalues, &
-                        bad_modes_projector_down=proj_array)
+                        bad_modes_projector_down=proj_array &
+                        )
                 ENDIF
             ELSE
                 IF(PRESENT(subm_s_inv_half)) THEN
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                           range1=nmos(idomain)+n_domain_mos, &
+                           range1=n_domain_mos, &
                            bad_modes_projector_down=proj_array, &
                            s_inv_half=subm_s_inv_half(idomain)%mdata, &
                            s_half=subm_s_inv(idomain)%mdata)
                 ELSE
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                           range1=nmos(idomain)+n_domain_mos, &
+                           range1=n_domain_mos, &
                            bad_modes_projector_down=proj_array)
                 ENDIF
             ENDIF ! eps_zero_eigenvalues
@@ -2553,7 +2556,7 @@ CONTAINS
       LOGICAL                                            :: use_both, use_ranges
       REAL(KIND=dp)                                      :: my_shift
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
-      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: temp1, temp2, temp3
+      REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: temp1, temp2, temp3, temp4
       TYPE(cp_logger_type), POINTER                      :: logger
 
       CALL timeset(routineN, handle)
@@ -2615,9 +2618,12 @@ CONTAINS
          ! diagonalize first
          ALLOCATE (eigenvalues(N))
          ALLOCATE (temp1(N, N))
+         ALLOCATE (temp4(N, N))
          IF (PRESENT(s_inv_half)) THEN
-            temp1 = MATMUL(s_inv_half, A)
-            Ainv = MATMUL(temp1,s_inv_half)
+            !temp1 = MATMUL(s_inv_half, A)
+            !Ainv = MATMUL(temp1,s_inv_half)
+            CALL DSYMM('L', 'U', N, N, 1.0_dp, s_inv_half, N, A, N, 0.0_dp, temp1, N)
+            CALL DSYMM('R', 'U', N, N, 1.0_dp, s_inv_half, N, temp1, N, 0.0_dp, Ainv, N)
          ENDIF
          ! Query the optimal workspace for dsyev
          LWORK = -1
@@ -2690,18 +2696,26 @@ CONTAINS
          !WRITE(*,*) ' EIV RANGES: ', range1_eiv, range2_eiv, range3_eiv
          IF (PRESENT(bad_modes_projector_down)) THEN
             IF(PRESENT(s_half)) THEN
-               bad_modes_projector_down = MATMUL(MATMUL(s_half, temp2),MATMUL(temp3,s_half))
+               !bad_modes_projector_down = MATMUL(MATMUL(s_half, temp2),MATMUL(temp3, s_half))
+               CALL DSYMM('L', 'U', N, N, 1.0_dp, s_half, N, temp2, N, 0.0_dp, Ainv, N)
+               CALL DSYMM('R', 'U', N, N, 1.0_dp, s_half, N, temp3, N, 0.0_dp, temp4, N)
+               !bad_modes_projector_down = MATMUL(Ainv, temp4)
+               CALL DGEMM('N', 'N', N, N, N, 1.0_dp, Ainv, N, temp4, N, 0.0_dp, bad_modes_projector_down, N)
             ELSE
-               bad_modes_projector_down = MATMUL(temp2,temp3)
+               !bad_modes_projector_down = MATMUL(temp2,temp3)
+               CALL DGEMM('N', 'N', N, N, N, 1.0_dp, temp2, N, temp3, N, 0.0_dp, bad_modes_projector_down, N)
             ENDIF
          ENDIF
          
          IF (PRESENT(s_inv_half)) THEN
-            Ainv = MATMUL(MATMUL(s_inv_half,temp2), MATMUL(temp1,s_inv_half))
+            !Ainv = MATMUL(MATMUL(s_inv_half,temp2), MATMUL(temp1,s_inv_half))
+            CALL DSYMM('L', 'U', N, N, 1.0_dp, s_inv_half, N, temp2, N, 0.0_dp, temp4, N)
+            CALL DSYMM('R', 'U', N, N, 1.0_dp, s_inv_half, N, temp1, N, 0.0_dp, temp2, N)
+            CALL DGEMM('N', 'N', N, N, N, 1.0_dp, temp4, N, temp2, N, 0.0_dp, Ainv, N)
          ELSE
-            Ainv = MATMUL(temp2, temp1)
+            CALL DGEMM('N', 'N', N, N, N, 1.0_dp, temp2, N, temp1, N, 0.0_dp, Ainv, N)
          ENDIF
-         DEALLOCATE (temp1, temp2)
+         DEALLOCATE (temp1, temp2, temp4)
          IF (PRESENT(bad_modes_projector_down)) DEALLOCATE(temp3)
          DEALLOCATE (eigenvalues)
 
@@ -2729,6 +2743,7 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE pseudo_invert_matrix
+
 
 ! **************************************************************************************************
 !> \brief Find matrix power using diagonalization

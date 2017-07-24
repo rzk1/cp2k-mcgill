@@ -637,7 +637,7 @@ CONTAINS
       CASE (optimizer_xalmo_pcg)
          CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of extended ALMOs.", &
-                             n_keywords=9, n_subsections=1, repeats=.FALSE.)
+                             n_keywords=10, n_subsections=1, repeats=.FALSE.)
          NULLIFY(subsection)
          CALL create_optimizer_section(subsection,optimizer_newton_pcg_solver)
          CALL section_add_subsection(section, subsection)
@@ -724,6 +724,12 @@ CONTAINS
                                               cg_dai_yuan, cg_hager_zhang/))
             CALL section_add_keyword(section, keyword)
             CALL keyword_release(keyword)
+            
+            CALL keyword_create(keyword, name="NEGLECT_THRESHOLD", &
+                                description="The threshold of eigenvalues for neglect method", &
+                                usage="NEGLECT_THRESHOLD 0.1", default_r_val=0.5_dp)
+            CALL section_add_keyword(section, keyword)
+            CALL keyword_release(keyword)
 
          ENDIF
 
@@ -749,6 +755,8 @@ CONTAINS
                              xalmo_prec_domain, xalmo_prec_full/))
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
+
+
 
       END SELECT
 

@@ -808,7 +808,7 @@ CONTAINS
          eps_skip_gradients, g0, g1, grad_norm, grad_norm_frob, kappa, kin_energy, &
          line_search_error, next_step_size_guess, numer, spin_factor, step_size, &
          t1, t2, t_norm, tau, time_step, penalty_amplitude, &
-         penalty_func_new, det1, energy_ispin, denom2, tempreal
+         penalty_func_new, det1, energy_ispin, denom2, tempreal, neg_thr
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: &
          penalty_occ_vol_g_prefactor, penalty_occ_vol_h_prefactor, grad_norm_spin
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: nocc
@@ -821,9 +821,7 @@ CONTAINS
                                                      siginvTFTsiginv, STsiginv_0, grad 
       TYPE(domain_submatrix_type), ALLOCATABLE, &
          DIMENSION(:,:)                                    :: domain_r_down, &
-                                                           bad_modes_projector_down, &
-                                                           domain_s_inv_half, &   !added by Yifei
-                                                           domain_s_half
+                                                           bad_modes_projector_down
       TYPE(section_vals_type), POINTER                   :: almo_print_section, input
 
       CALL timeset(routineN, handle)
@@ -946,11 +944,7 @@ CONTAINS
       CALL init_submatrices(domain_r_down)
       ALLOCATE (bad_modes_projector_down(ndomains,nspins))
       CALL init_submatrices(bad_modes_projector_down)
-      ! Yifei
-      ALLOCATE (domain_s_half(ndomains,nspins))
-      CALL init_submatrices(domain_s_half)
-      ALLOCATE (domain_s_inv_half(ndomains,nspins))
-      CALL init_submatrices(domain_s_inv_half)
+
       
       ALLOCATE(prec_vv(nspins))
       ALLOCATE(siginvTFTsiginv(nspins))
@@ -963,7 +957,6 @@ CONTAINS
       ALLOCATE(step(nspins))
       ALLOCATE(prev_minus_prec_grad(nspins))
       ALLOCATE(m_sig_sqrti_ii(nspins))
-
       DO ispin = 1, nspins
 
          ! init temporary storage
@@ -1027,8 +1020,6 @@ CONTAINS
                node_of_domain=almo_scf_env%cpu_of_domain)
 
          ENDIF
-
-
 
          IF (assume_t0_q0x) THEN
 
@@ -1300,13 +1291,13 @@ CONTAINS
 
             ! if unprojected XALMOs are optimized then compute both
             ! HessianInv/preconditioner and the "bad-mode" projector
-            ! This is done on every step
-            ! IF (blissful_neglect) THEN
-			!changed by Yifei, only compute the prec on first inner iter
-			IF (blissful_neglect .AND. iteration .EQ. 0) THEN
-               DO ispin = 1, nspins
 
-                  CALL compute_preconditioner(&
+			IF (blissful_neglect) THEN
+               DO ispin = 1, nspins
+                  !compute the prec only for the first step, 
+                  !but project the gradient every step
+                  IF(iteration .EQ. 0) THEN
+                     CALL compute_preconditioner(&
                           domain_prec_out=almo_scf_env%domain_preconditioner(:,ispin),&
                           bad_modes_projector_down_out=bad_modes_projector_down(:,ispin),&
                           m_prec_out=prec_vv(ispin),&
@@ -1321,8 +1312,8 @@ CONTAINS
                           blacs_env=almo_scf_env%blacs_env,&
                           nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin),&
                           domain_s_inv=almo_scf_env%domain_s_inv(:,ispin),&
-                          !domain_s_inv_half=almo_scf_env%domain_s_sqrt_inv(:,ispin),&
-                          !domain_s_half=almo_scf_env%domain_s_sqrt(:,ispin),&
+                          domain_s_inv_half=almo_scf_env%domain_s_sqrt_inv(:,ispin),&
+                          domain_s_half=almo_scf_env%domain_s_sqrt(:,ispin),&
                           domain_r_down=domain_r_down(:,ispin),&
                           cpu_of_domain=almo_scf_env%cpu_of_domain,&
                           domain_map=almo_scf_env%domain_map(ispin),&
@@ -1330,9 +1321,10 @@ CONTAINS
                           penalty_occ_vol=penalty_occ_vol,&
                           penalty_occ_vol_prefactor=penalty_occ_vol_g_prefactor(ispin),&
                           eps_filter=almo_scf_env%eps_filter,&
+                          neg_thr=optimizer%neglect_threshold,&
                           spin_factor=spin_factor,&
                           special_case=my_special_case)
-
+                  ENDIF
                   ! remove bad modes from the gradient
                   CALL apply_domain_operators(&
                           matrix_in=grad(ispin),&
@@ -1527,6 +1519,7 @@ CONTAINS
                                   penalty_occ_vol=penalty_occ_vol,&
                                   penalty_occ_vol_prefactor=penalty_occ_vol_g_prefactor(ispin),&
                                   eps_filter=almo_scf_env%eps_filter,&
+                                  neg_thr=0.5_dp,&
                                   spin_factor=spin_factor,&
                                   special_case=my_special_case)
 
@@ -1892,8 +1885,6 @@ CONTAINS
       DEALLOCATE(penalty_occ_vol_h_prefactor)
       DEALLOCATE(grad_norm_spin)
       DEALLOCATE(nocc)
-      DEALLOCATE(domain_s_half)
-      DEALLOCATE(domain_s_inv_half)
 
       DEALLOCATE (m_theta, m_t_in_local)
 
@@ -5437,7 +5428,7 @@ CONTAINS
      blacs_env, nocc_of_domain, domain_s_inv, domain_s_inv_half, domain_s_half, &
      domain_r_down, cpu_of_domain, &
      domain_map, assume_t0_q0x, penalty_occ_vol, penalty_occ_vol_prefactor, &
-     eps_filter, spin_factor, special_case, bad_modes_projector_down_out)
+     eps_filter, neg_thr, spin_factor, special_case, bad_modes_projector_down_out)
 
     TYPE(domain_submatrix_type), DIMENSION(:),&
        INTENT(INOUT)                            :: domain_prec_out
@@ -5470,6 +5461,7 @@ CONTAINS
     LOGICAL, INTENT(IN)                         :: penalty_occ_vol
     REAL(KIND=dp), INTENT(IN)                   :: penalty_occ_vol_prefactor
     REAL(KIND=dp), INTENT(IN)                   :: eps_filter
+    REAL(KIND=dp), INTENT(IN)                   :: neg_thr
     REAL(KIND=dp), INTENT(IN)                   :: spin_factor
     INTEGER, INTENT(IN)                         :: special_case
     
@@ -5624,9 +5616,8 @@ CONTAINS
              preconditioner=domain_prec_out(:),&
              use_trimmer=.FALSE.,&
              bad_modes_projector_down=bad_modes_projector_down_out(:),&
-             !eps_zero_eigenvalues=eps_filter,&
+             eps_zero_eigenvalues=neg_thr,&
              ! added by Yifei, besure to change later
-             eps_zero_eigenvalues=0.005_dp,&
              my_action=precond_domain_projector&
              )
        ELSE
@@ -6081,6 +6072,7 @@ CONTAINS
                   penalty_occ_vol=penalty_occ_vol,&
                   penalty_occ_vol_prefactor=penalty_occ_vol_prefactor(ispin),&
                   eps_filter=eps_filter,&
+                  neg_thr=0.5_dp,&
                   spin_factor=spin_factor,&
                   special_case=special_case&
                   )

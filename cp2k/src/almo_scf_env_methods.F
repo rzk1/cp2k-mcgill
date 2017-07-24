@@ -202,6 +202,8 @@ CONTAINS
                                 r_val=almo_scf_env%opt_xalmo_pcg%lin_search_eps_error)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "LIN_SEARCH_STEP_SIZE_GUESS", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%lin_search_step_size_guess)
+      CALL section_vals_val_get(xalmo_opt_pcg_section, "NEGLECT_THRESHOLD", &
+                                r_val=almo_scf_env%opt_xalmo_pcg%neglect_threshold)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "CONJUGATOR", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%conjugator)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "PRECONDITIONER", &
