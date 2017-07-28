@@ -19,7 +19,7 @@ MODULE input_cp2k_almo
         almo_frz_none, almo_scf_diag, almo_scf_pcg, atomic_guess, cg_dai_yuan, cg_fletcher, &
         cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, &
         cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, prec_default, prec_zero, &
-        spd_inversion_ls_hotelling, spd_inversion_dense_cholesky
+        spd_inversion_ls_taylor, spd_inversion_ls_hotelling, spd_inversion_dense_cholesky
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
                                               keyword_type
@@ -66,7 +66,7 @@ CONTAINS
                           description="Settings for a class of efficient linear scaling methods based "// &
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
-                          n_keywords=9, n_subsections=3, repeats=.FALSE., &
+                          n_keywords=9, n_subsections=5, repeats=.FALSE., &
                           citations=(/Khaliullin2013/))
 
       NULLIFY (keyword)
@@ -92,12 +92,13 @@ CONTAINS
 
       CALL keyword_create(keyword, name="MO_OVERLAP_INV_ALG", &
                           description="Algorithm to invert MO overlap matrix.", &
-                          usage="MO_OVERLAP_INV_ALG HOTELLING", &
+                          usage="MO_OVERLAP_INV_ALG LS_HOTELLING", &
                           default_i_val=spd_inversion_ls_hotelling, &
-                          enum_c_vals=s2a("LS_HOTELLING", "DENSE_CHOLESKY"), &
+                          enum_c_vals=s2a("LS_HOTELLING", "LS_TAYLOR", "DENSE_CHOLESKY"), &
                           enum_desc=s2a("Linear scaling iterative Hotelling algorithm. Fast for large sparse matrices.", &
+                                        "Linear scaling algorithm based on Taylor expansion of (A+B)^(-1).", &
                                         "Stable but dense Cholesky algorithm. Cubically scaling."), &
-                          enum_i_vals=(/spd_inversion_ls_hotelling, spd_inversion_dense_cholesky/))
+                          enum_i_vals=(/spd_inversion_ls_hotelling, spd_inversion_ls_taylor, spd_inversion_dense_cholesky/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
@@ -610,17 +611,17 @@ CONTAINS
       CASE (optimizer_block_diagonal_diis)
          CALL section_create(section, "ALMO_OPTIMIZER_DIIS", &
                              description="Controls the iterative DIIS-accelerated optimization of block-diagonal ALMOs.", &
-                             n_keywords=3, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=5, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_diis
       CASE (optimizer_block_diagonal_pcg)
          CALL section_create(section, "ALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of block-diagonal ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=9, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_pcg
       CASE (optimizer_xalmo_pcg)
          CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of extended ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=9, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_pcg
       CASE DEFAULT
          CPABORT("No default values allowed")
@@ -746,7 +747,7 @@ CONTAINS
       CALL keyword_create(keyword, name="EPS_TARGET_FACTOR", &
                           description="Multiplication factor that determines acceptable error in the iterative procedure. " // &
                           "Acceptable error = EPS_TARGET_FACTOR * EPS_FILTER", &
-                          usage="EPS_TARGET 100.0", default_r_val=10.0_dp)
+                          usage="EPS_TARGET_FACTOR 100.0", default_r_val=10.0_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
@@ -792,7 +793,7 @@ CONTAINS
 
       CALL section_create(section, "ANALYSIS", &
                           description="Controls electronic structure analysis based on ALMOs and XALMOs.", &
-                          n_keywords=2, n_subsections=0, repeats=.FALSE., &
+                          n_keywords=2, n_subsections=1, repeats=.FALSE., &
                           citations=(/Khaliullin2007, Khaliullin2008/))
 
       NULLIFY (keyword)
