@@ -1848,6 +1848,10 @@ CONTAINS
                               step_size = next_step_size_guess*1.05_dp
                            ENDIF
                         ENDIF
+                        !IF (unit_nr > 0) THEN
+                        !   WRITE (unit_nr, '(A2,3F12.5)') &
+                        !      "EG", e0, g0, step_size
+                        !ENDIF
                         next_step_size_guess = step_size
                      ELSE
                         IF (fixed_line_search_niter .EQ. 0) THEN
@@ -1856,9 +1860,9 @@ CONTAINS
                            ! we have accumulated some points along this direction
                            ! use only the most recent g0 (quadratic approximation)
                            appr_sec_der = (g1-g0)/step_size
-                           !IF (unit_nr>0) THEN
-                           !   WRITE(unit_nr,'(A2,7F12.5)') &
-                           !           "EG",e0,e1,g0,g1,appr_sec_der,step_size,-g1/appr_sec_der
+                           !IF (unit_nr > 0) THEN
+                           !   WRITE (unit_nr, '(A2,7F12.5)') &
+                           !      "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
                            !ENDIF
                            step_size = -g1/appr_sec_der
                            e0 = e1
@@ -1870,10 +1874,10 @@ CONTAINS
                            e1 = energy_new
                            appr_sec_der = 2.0*((e1-e0)/step_size-g0)/step_size
                            g1 = appr_sec_der*step_size+g0
-                           IF (unit_nr > 0) THEN
-                              WRITE (unit_nr, '(A2,7F12.5)') &
-                                 "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
-                           ENDIF
+                           !IF (unit_nr > 0) THEN
+                           !   WRITE (unit_nr, '(A2,7F12.5)') &
+                           !      "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
+                           !ENDIF
                            !appr_sec_der=(g1-g0)/step_size
                            step_size = -g1/appr_sec_der
                            e0 = e1
