@@ -168,9 +168,6 @@ CONTAINS
       iscf = 0
       prepare_to_exit = .FALSE.
       true_mixing_fraction = 0.0_dp
-      ! set variables that control diag/pcg switching
-      nstrikes = 0
-      ntolerate = 3
       error_norm = 1.0E+10_dp ! arbitrary big step
 
       IF (unit_nr > 0) THEN
@@ -221,6 +218,7 @@ CONTAINS
          ! check convergence
          converged = .TRUE.
          IF (error_norm .GT. optimizer%eps_error) converged = .FALSE.
+
          ! check other exit criteria: max SCF steps and timing
          CALL external_control(should_stop, "SCF", &
                                start_time=qs_env%start_time, &
@@ -229,6 +227,10 @@ CONTAINS
             prepare_to_exit = .TRUE.
             IF ( iscf == 1 ) energy_new = energy_old
          ENDIF
+
+         ! if early stopping is on do at least one iteration
+         IF ( optimizer%early_stopping_on .AND. iscf .eq. 1 ) &
+            prepare_to_exit=.FALSE.
 
          IF (.NOT. prepare_to_exit) THEN ! update the ALMOs and density matrix
 
@@ -320,6 +322,10 @@ CONTAINS
                                     sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                                     use_guess=use_prev_as_guess, &
                                     algorithm=almo_scf_env%sigma_inv_algorithm, &
+                                    inverse_accelerator=almo_scf_env%order_lanczos, &
+                                    inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                                    eps_lanczos=almo_scf_env%eps_lanczos, &
+                                    max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                     para_env=almo_scf_env%para_env, &
                                     blacs_env=almo_scf_env%blacs_env)
 
@@ -355,7 +361,7 @@ CONTAINS
 
       ENDDO ! end scf cycle
 
-      IF (.NOT. converged) THEN
+      IF (.NOT. converged .AND. (.NOT.optimizer%early_stopping_on) ) THEN
          IF (unit_nr > 0) THEN
             CPABORT("SCF for block-diagonal ALMOs not converged!")
          ENDIF
@@ -533,6 +539,10 @@ CONTAINS
             prepare_to_exit = .TRUE.
          ENDIF
 
+         ! if early stopping is on do at least one iteration
+         IF ( optimizer%early_stopping_on .AND. iscf .eq. 1 ) &
+            prepare_to_exit=.FALSE.
+
          IF (.NOT. prepare_to_exit) THEN ! update the ALMOs and density matrix
 
             ! perform mixing of KS matrices
@@ -587,6 +597,10 @@ CONTAINS
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   use_guess=.TRUE., &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
+                  inverse_accelerator=almo_scf_env%order_lanczos, &
+                  inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                  eps_lanczos=almo_scf_env%eps_lanczos, &
+                  max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                   para_env=almo_scf_env%para_env, &
                   blacs_env=almo_scf_env%blacs_env)
                CALL dbcsr_scale(almo_scf_env%matrix_p(ispin), spin_factor)
@@ -724,7 +738,7 @@ CONTAINS
 
       ENDDO ! end scf cycle
 
-      IF (.NOT. converged) THEN
+      IF (.NOT.converged .AND. .NOT.optimizer%early_stopping_on ) THEN
          CPABORT("SCF for ALMOs on overlapping domains not converged! ")
       ENDIF
 
@@ -1129,6 +1143,10 @@ CONTAINS
                   sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
                   use_guess=use_guess, &
                   algorithm=almo_scf_env%sigma_inv_algorithm, &
+                  inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                  inverse_accelerator=almo_scf_env%order_lanczos, &
+                  eps_lanczos=almo_scf_env%eps_lanczos, &
+                  max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                   para_env=almo_scf_env%para_env, &
                   blacs_env=almo_scf_env%blacs_env)
                CALL dbcsr_scale(almo_scf_env%matrix_p(ispin), &
@@ -1228,16 +1246,24 @@ CONTAINS
                ENDIF ! skip_grad
 
                ! check convergence and other exit criteria
-               grad_norm_frob = dbcsr_frobenius_norm(grad)
+               grad_norm_frob = dbcsr_frobenius_norm(grad) / &
+                                dbcsr_frobenius_norm(quench_t(ispin))
                CALL dbcsr_norm(grad, dbcsr_norm_maxabsnorm, &
                                norm_scalar=grad_norm)
                converged = (grad_norm .LT. optimizer%eps_error)
                IF (converged .OR. (iteration .GE. max_iter)) THEN
                   prepare_to_exit = .TRUE.
                ENDIF
+
+               ! if early stopping is on do at least one iteration
+               IF ( optimizer%early_stopping_on .AND. just_started ) &
+                  prepare_to_exit=.FALSE.
+
                IF (grad_norm .LT. almo_scf_env%eps_prev_guess) THEN
                   use_guess = .TRUE.
                ENDIF
+
+               IF (unit_nr > 0 ) WRITE(*,*) "Gradient RMS norm: ", grad_norm_frob
 
                IF (md_in_theta_space) THEN
 
@@ -1822,6 +1848,10 @@ CONTAINS
                               step_size = next_step_size_guess*1.05_dp
                            ENDIF
                         ENDIF
+                        !IF (unit_nr > 0) THEN
+                        !   WRITE (unit_nr, '(A2,3F12.5)') &
+                        !      "EG", e0, g0, step_size
+                        !ENDIF
                         next_step_size_guess = step_size
                      ELSE
                         IF (fixed_line_search_niter .EQ. 0) THEN
@@ -1830,9 +1860,9 @@ CONTAINS
                            ! we have accumulated some points along this direction
                            ! use only the most recent g0 (quadratic approximation)
                            appr_sec_der = (g1-g0)/step_size
-                           !IF (unit_nr>0) THEN
-                           !   WRITE(unit_nr,'(A2,7F12.5)') &
-                           !           "EG",e0,e1,g0,g1,appr_sec_der,step_size,-g1/appr_sec_der
+                           !IF (unit_nr > 0) THEN
+                           !   WRITE (unit_nr, '(A2,7F12.5)') &
+                           !      "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
                            !ENDIF
                            step_size = -g1/appr_sec_der
                            e0 = e1
@@ -1844,10 +1874,10 @@ CONTAINS
                            e1 = energy_new
                            appr_sec_der = 2.0*((e1-e0)/step_size-g0)/step_size
                            g1 = appr_sec_der*step_size+g0
-                           IF (unit_nr > 0) THEN
-                              WRITE (unit_nr, '(A2,7F12.5)') &
-                                 "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
-                           ENDIF
+                           !IF (unit_nr > 0) THEN
+                           !   WRITE (unit_nr, '(A2,7F12.5)') &
+                           !      "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
+                           !ENDIF
                            !appr_sec_der=(g1-g0)/step_size
                            step_size = -g1/appr_sec_der
                            e0 = e1
@@ -2070,7 +2100,7 @@ CONTAINS
          CALL dbcsr_release(step)
          CALL dbcsr_release(prev_minus_prec_grad)
 
-         IF (.NOT. converged) THEN
+         IF (.NOT.converged .AND. .NOT.optimizer%early_stopping_on ) THEN
             CPABORT("Optimization not converged! ")
          ENDIF
 
@@ -3707,6 +3737,10 @@ CONTAINS
                                  sigma_inv=almo_scf_env%matrix_sigma_inv(ispin),&
                                  !use_guess=use_guess, &
                                  algorithm=almo_scf_env%sigma_inv_algorithm, &
+                                 inverse_accelerator=almo_scf_env%order_lanczos, &
+                                 inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                                 eps_lanczos=almo_scf_env%eps_lanczos, &
+                                 max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
                                  para_env=almo_scf_env%para_env, &
                                  blacs_env=almo_scf_env%blacs_env)
 

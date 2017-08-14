@@ -19,7 +19,7 @@ MODULE input_cp2k_almo
         almo_frz_none, almo_scf_diag, almo_scf_pcg, atomic_guess, cg_dai_yuan, cg_fletcher, &
         cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, &
         cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, prec_default, prec_zero, &
-        spd_inversion_ls_hotelling, spd_inversion_dense_cholesky
+        spd_inversion_ls_taylor, spd_inversion_ls_hotelling, spd_inversion_dense_cholesky
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
                                               keyword_type
@@ -66,7 +66,7 @@ CONTAINS
                           description="Settings for a class of efficient linear scaling methods based "// &
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
-                          n_keywords=8, n_subsections=3, repeats=.FALSE., &
+                          n_keywords=9, n_subsections=5, repeats=.FALSE., &
                           citations=(/Khaliullin2013/))
 
       NULLIFY (keyword)
@@ -92,14 +92,22 @@ CONTAINS
 
       CALL keyword_create(keyword, name="MO_OVERLAP_INV_ALG", &
                           description="Algorithm to invert MO overlap matrix.", &
-                          usage="MO_OVERLAP_INV_ALG HOTELLING", &
+                          usage="MO_OVERLAP_INV_ALG LS_HOTELLING", &
                           default_i_val=spd_inversion_ls_hotelling, &
-                          enum_c_vals=s2a("LS_HOTELLING", "DENSE_CHOLESKY"), &
+                          enum_c_vals=s2a("LS_HOTELLING", "LS_TAYLOR", "DENSE_CHOLESKY"), &
                           enum_desc=s2a("Linear scaling iterative Hotelling algorithm. Fast for large sparse matrices.", &
+                                        "Linear scaling algorithm based on Taylor expansion of (A+B)^(-1).", &
                                         "Stable but dense Cholesky algorithm. Cubically scaling."), &
-                          enum_i_vals=(/spd_inversion_ls_hotelling, spd_inversion_dense_cholesky/))
+                          enum_i_vals=(/spd_inversion_ls_hotelling, spd_inversion_ls_taylor, spd_inversion_dense_cholesky/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
+
+      !CALL keyword_create(keyword, name="STOP_SCF_EARLY",&
+      !     description="Stops SCF using EPS_ERROR_EARLY or MAX_ITER_EARLY", &
+      !     usage="STOP_SCF_EARLY .TRUE.", default_l_val=.FALSE.,&
+      !     lone_keyword_l_val=.TRUE.)
+      !CALL section_add_keyword(section,keyword)
+      !CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="ALMO_EXTRAPOLATION_ORDER", &
                           description="Number of previous states used for the ASPC extrapolation of the ALMO "// &
@@ -160,6 +168,14 @@ CONTAINS
                           "R_cutoff = XALMO_R_CUTOFF_FACTOR*(radius(at1)+radius(at2))", &
                           usage="XALMO_R_CUTOFF_FACTOR 1.6", default_r_val=1.50_dp)
       CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="RETURN_ORTHOGONALIZED_MOS",&
+           description="Orthogonalize final ALMOs before they are returned"// &
+           "to Quickstep (i.e. for calculation of properties)", &
+           usage="RETURN_ORTHOGONALIZED_MOS .TRUE.", default_l_val=.FALSE.,&
+           lone_keyword_l_val=.TRUE.)
+      CALL section_add_keyword(section,keyword)
       CALL keyword_release(keyword)
 
       !CALL keyword_create(keyword, name="DELOCALIZE_EPS_ITER",&
@@ -555,6 +571,11 @@ CONTAINS
       CALL section_release(subsection)
 
       NULLIFY (subsection)
+      CALL create_matrix_iterate_section(subsection)
+      CALL section_add_subsection(section, subsection)
+      CALL section_release(subsection)
+
+      NULLIFY (subsection)
       CALL create_almo_analysis_section(subsection)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
@@ -590,17 +611,17 @@ CONTAINS
       CASE (optimizer_block_diagonal_diis)
          CALL section_create(section, "ALMO_OPTIMIZER_DIIS", &
                              description="Controls the iterative DIIS-accelerated optimization of block-diagonal ALMOs.", &
-                             n_keywords=3, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=5, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_diis
       CASE (optimizer_block_diagonal_pcg)
          CALL section_create(section, "ALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of block-diagonal ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=9, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_pcg
       CASE (optimizer_xalmo_pcg)
          CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of extended ALMOs.", &
-                             n_keywords=6, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=9, n_subsections=0, repeats=.FALSE.)
          optimizer_type = optimizer_pcg
       CASE DEFAULT
          CPABORT("No default values allowed")
@@ -618,6 +639,21 @@ CONTAINS
       CALL keyword_create(keyword, name="EPS_ERROR", &
                           description="Target value of the MAX norm of the error", &
                           usage="EPS_ERROR 1.E-6", default_r_val=1.0E-5_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      ! add common keywords
+      CALL keyword_create(keyword, name="MAX_ITER_EARLY", &
+                          description="Maximum number of iterations for truncated SCF "//&
+                          "(e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.", &
+                          usage="MAX_ITER_EARLY 5", default_i_val=-1)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="EPS_ERROR_EARLY", &
+                          description="Target value of the MAX norm of the error for truncated SCF "//&
+                          "(e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.", &
+                          usage="EPS_ERROR_EARLY 1.E-2", default_r_val=-1.0_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
@@ -685,6 +721,57 @@ CONTAINS
    END SUBROUTINE create_optimizer_section
 
 ! **************************************************************************************************
+!> \brief The section controls iterative matrix operations like SQRT or inverse
+!> \param section ...
+!> \par History
+!>       2017.05 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE create_matrix_iterate_section(section)
+
+      TYPE(section_type), POINTER                        :: section
+
+      TYPE(keyword_type), POINTER                        :: keyword
+      TYPE(section_type), POINTER                        :: subsection
+
+      CPASSERT(.NOT. ASSOCIATED(section))
+      NULLIFY (section)
+
+      CALL section_create(section, "MATRIX_ITERATE", &
+                          description="Controls linear scaling iterative procedure on matrices: inversion, sqrti, etc. " // &
+                          "High-order Lanczos accelerates convergence provided it can estimate the eigenspectrum correctly.", &
+                          n_keywords=4, n_subsections=0, repeats=.FALSE.)
+
+      NULLIFY (keyword)
+
+      CALL keyword_create(keyword, name="EPS_TARGET_FACTOR", &
+                          description="Multiplication factor that determines acceptable error in the iterative procedure. " // &
+                          "Acceptable error = EPS_TARGET_FACTOR * EPS_FILTER", &
+                          usage="EPS_TARGET_FACTOR 100.0", default_r_val=10.0_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="EPS_LANCZOS", &
+                          description="Threshold for Lanczos eigenvalue estimation.", &
+                          usage="EPS_LANCZOS 1.0E-4", default_r_val=1.0E-3_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="ORDER_LANCZOS", &
+                          description="Order of the Lanczos estimator. Use 0 to turn off. Do not use 1.", &
+                          usage="ORDER_LANCZOS 5", default_i_val=3)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="MAX_ITER_LANCZOS", &
+                          description="Maximum number of Lanczos iterations.", &
+                          usage="MAX_ITER_LANCZOS 64", default_i_val=128)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+   END SUBROUTINE create_matrix_iterate_section
+
+! **************************************************************************************************
 !> \brief The section controls electronic structure analysis based on ALMOs
 !> \param section ...
 !> \par History
@@ -706,7 +793,7 @@ CONTAINS
 
       CALL section_create(section, "ANALYSIS", &
                           description="Controls electronic structure analysis based on ALMOs and XALMOs.", &
-                          n_keywords=2, n_subsections=0, repeats=.FALSE., &
+                          n_keywords=2, n_subsections=1, repeats=.FALSE., &
                           citations=(/Khaliullin2007, Khaliullin2008/))
 
       NULLIFY (keyword)

@@ -902,7 +902,8 @@ MODULE input_constants
 
    ! spd matrix inversion algorithm
    INTEGER, PARAMETER, PUBLIC   :: spd_inversion_ls_hotelling = 0, &
-                                   spd_inversion_dense_cholesky = 1
+                                   spd_inversion_dense_cholesky = 1, &
+                                   spd_inversion_ls_taylor = 2
 
    ! some MP2 parameters
    INTEGER, PARAMETER, PUBLIC               :: mp2_method_none = 0, &
