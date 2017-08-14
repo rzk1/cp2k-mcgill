@@ -403,7 +403,7 @@ CONTAINS
          ! S^-1_{n+1} = 2 S^-1 - S^-1 S S^-1
          CALL dbcsr_add(matrix_inverse, tmp2, 2.0_dp, -1.0_dp)
 
-         CALL dbcsr_filter(matrix_inverse, threshold)
+         CALL dbcsr_filter(matrix_inverse, filter_eps)
          t2 = m_walltime()
          occ_matrix = dbcsr_get_occupation(matrix_inverse)
 
