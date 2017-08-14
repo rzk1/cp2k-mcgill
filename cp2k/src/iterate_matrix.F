@@ -23,7 +23,9 @@ MODULE iterate_matrix
         dbcsr_frobenius_norm, dbcsr_gershgorin_norm, dbcsr_get_info, dbcsr_get_matrix_type, &
         dbcsr_get_occupation, dbcsr_multiply, dbcsr_norm, dbcsr_norm_maxabsnorm, dbcsr_p_type, &
         dbcsr_release, dbcsr_scale, dbcsr_set, dbcsr_trace, dbcsr_transposed, dbcsr_type, &
-        dbcsr_type_no_symmetry, dbcsr_set_diag, dbcsr_get_diag
+        dbcsr_type_no_symmetry, dbcsr_set_diag, dbcsr_get_diag, dbcsr_print, &
+        dbcsr_desymmetrize, dbcsr_distribution_type, dbcsr_distribution_get, &
+        dbcsr_nblkrows_total, dbcsr_nblkcols_total, dbcsr_get_block_p 
    USE kinds,                           ONLY: dp,&
                                               int_8
    USE machine,                         ONLY: m_flush,&
@@ -43,7 +45,7 @@ MODULE iterate_matrix
    END INTERFACE
 
    PUBLIC :: invert_Hotelling, matrix_sign_Newton_Schulz, matrix_sqrt_Newton_Schulz, &
-             purify_mcweeny, determinant
+             purify_mcweeny, invert_Taylor, determinant
 
 CONTAINS
 
@@ -242,6 +244,195 @@ CONTAINS
     CALL timestop(handle)
 
   END SUBROUTINE determinant
+
+! **************************************************************************************************
+!> \brief invert a symmetric positive definite diagonally dominant matrix 
+!> \param matrix_inverse ...
+!> \param matrix ...
+!> \param threshold convergence threshold nased on the max abs
+!> \param use_inv_as_guess logical whether input can be used as guess for inverse
+!> \param norm_convergence convergence threshold for the 2-norm, useful for approximate solutions
+!> \param filter_eps filter_eps for matrix multiplications, if not passed nothing is filteres
+!> \param silent ...
+!> \par History
+!>       2010.10 created [Joost VandeVondele]
+!>       2011.10 guess option added [Rustam Z Khaliullin]
+!> \author Joost VandeVondele
+! **************************************************************************************************
+   SUBROUTINE invert_Taylor(matrix_inverse, matrix, threshold, use_inv_as_guess, &
+                               norm_convergence, filter_eps, accelerator_order, &
+                               max_iter_lanczos, eps_lanczos, silent)
+
+      TYPE(dbcsr_type), INTENT(INOUT), TARGET            :: matrix_inverse, matrix
+      REAL(KIND=dp), INTENT(IN)                          :: threshold
+      LOGICAL, INTENT(IN), OPTIONAL                      :: use_inv_as_guess
+      INTEGER, INTENT(IN), OPTIONAL                      :: accelerator_order, &
+                                                            max_iter_lanczos
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: norm_convergence, &
+                                                            filter_eps, &
+                                                            eps_lanczos
+      LOGICAL, INTENT(IN), OPTIONAL                      :: silent
+
+      CHARACTER(LEN=*), PARAMETER :: routineN = 'invert_Taylor', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: handle, i, nrows, unit_nr, &
+                                                            accelerator_type, &
+                                                            my_max_iter_lanczos
+      INTEGER(KIND=int_8)                                :: flop1, flop2
+      LOGICAL                                            :: use_inv_guess, converged, &
+                                                            arnoldi_converged
+      REAL(KIND=dp)                                      :: convergence, frob_matrix, &
+                                                            gershgorin_norm, max_ev, &
+                                                            maxnorm_matrix, min_ev, occ_matrix, &
+                                                            t1, t2, scalingf, &
+                                                            coeff, &
+                                                            my_eps_lanczos
+      TYPE(cp_logger_type), POINTER                      :: logger
+      TYPE(dbcsr_type), TARGET                           :: tmp1, tmp2, tmp3_sym
+      REAL(KIND=dp), DIMENSION(:), ALLOCATABLE           :: p_diagonal
+
+      CALL timeset(routineN, handle)
+
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      ENDIF
+      IF (PRESENT(silent)) THEN
+         IF (silent) unit_nr = -1
+      END IF
+
+      convergence = threshold
+      IF (PRESENT(norm_convergence)) convergence = norm_convergence
+
+      accelerator_type = 0
+      IF (PRESENT(accelerator_order)) accelerator_type = accelerator_order
+      IF (accelerator_type.gt.1) accelerator_type = 1
+
+      use_inv_guess = .FALSE.
+      IF (PRESENT(use_inv_as_guess)) use_inv_guess = use_inv_as_guess
+
+      my_max_iter_lanczos = 64
+      my_eps_lanczos = 1.0E-3_dp
+      IF (PRESENT(max_iter_lanczos)) my_max_iter_lanczos = max_iter_lanczos
+      IF (PRESENT(eps_lanczos)) my_eps_lanczos = eps_lanczos
+
+      CALL dbcsr_create(tmp1, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(tmp2, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(tmp3_sym, template=matrix_inverse)
+
+      CALL dbcsr_get_info(matrix, nfullrows_total=nrows)
+      ALLOCATE (p_diagonal(nrows))
+
+      ! generate the initial guess 
+      IF (.NOT. use_inv_guess) THEN
+
+         SELECT CASE (accelerator_type)
+         CASE (0)
+            ! use tmp1 to hold off-diagonal elements
+            CALL dbcsr_desymmetrize(matrix, tmp1)
+            p_diagonal(:) = 0.0_dp
+            CALL dbcsr_set_diag(tmp1, p_diagonal)
+            !CALL dbcsr_print(tmp1)
+            ! invert the main diagonal
+            CALL dbcsr_get_diag(matrix,p_diagonal)
+            p_diagonal(:) = 1.0_dp/p_diagonal(:)
+            CALL dbcsr_set(matrix_inverse, 0.0_dp)
+            CALL dbcsr_add_on_diag(matrix_inverse, 1.0_dp)
+            CALL dbcsr_set_diag(matrix_inverse, p_diagonal)
+         CASE DEFAULT
+            CPABORT("Illegal accelerator order")
+         END SELECT
+
+      ELSE
+
+         CPABORT("Guess is NYI")
+
+      ENDIF
+
+      CALL dbcsr_multiply("N", "N", 1.0_dp, tmp1, matrix_inverse, &
+                          0.0_dp, tmp2, filter_eps=filter_eps)
+
+      IF (unit_nr > 0) WRITE (unit_nr, *)
+
+      ! scale the approximate inverse to be within the convergence radius
+      t1 = m_walltime()
+
+      ! done with the initial guess, start iterations
+      converged = .FALSE.
+      CALL dbcsr_desymmetrize(matrix_inverse,tmp1)
+      coeff = 1.0_dp
+      DO i = 1, 100
+
+         ! coeff = +/- 1
+         coeff = -1.0_dp * coeff
+         CALL dbcsr_multiply("N", "N", 1.0_dp, tmp1, tmp2, 0.0_dp, &
+                             tmp3_sym, &
+                             flop=flop2, filter_eps=filter_eps)
+                             !flop=flop2)
+         CALL dbcsr_add(matrix_inverse,tmp3_sym,1.0_dp,coeff)
+         CALL dbcsr_release(tmp1)
+         CALL dbcsr_create(tmp1, template=matrix_inverse, matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_desymmetrize(tmp3_sym,tmp1)
+
+         ! for the convergence check
+         CALL dbcsr_norm(tmp3_sym, &
+                         dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix)
+
+         !CALL dbcsr_filter(matrix_inverse, threshold)
+
+         t2 = m_walltime()
+         occ_matrix = dbcsr_get_occupation(matrix_inverse)
+
+         IF (unit_nr > 0) THEN
+            WRITE (unit_nr, '(T6,A,1X,I3,1X,F10.8,E12.3,F12.3,F13.3)') "Taylor iter", i, occ_matrix, &
+               maxnorm_matrix, t2-t1, &
+               flop2/(1.0E6_dp*MAX(0.001_dp, t2-t1))
+            CALL m_flush(unit_nr)
+         ENDIF
+
+         IF (maxnorm_matrix < convergence) THEN
+            converged = .TRUE.
+            EXIT
+         ENDIF
+
+         t1 = m_walltime()
+
+      ENDDO
+
+      !last convergence check
+      CALL dbcsr_multiply("N","N",1.0_dp,matrix,matrix_inverse,0.0_dp,tmp1, &
+                           filter_eps=filter_eps)
+      CALL dbcsr_add_on_diag(tmp1,-1.0_dp)
+      !frob_matrix =  dbcsr_frobenius_norm(tmp1)
+      CALL dbcsr_norm(tmp1, dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix)
+      IF (unit_nr > 0) THEN
+         WRITE(unit_nr,'(T6,A,E12.5)') "Final Taylor error", maxnorm_matrix
+         WRITE (unit_nr, '()')
+         CALL m_flush(unit_nr)
+      ENDIF
+      IF (maxnorm_matrix > convergence) THEN
+         converged = .FALSE.
+         IF (unit_nr > 0) THEN
+            WRITE(*,*) 'Final convergence check failed'
+         ENDIF
+      ENDIF
+
+      IF (.NOT.converged) THEN
+         CPABORT("Taylor inversion did not converge")
+      ENDIF
+
+      CALL dbcsr_release(tmp1)
+      CALL dbcsr_release(tmp2)
+      CALL dbcsr_release(tmp3_sym)
+
+      DEALLOCATE (p_diagonal)
+
+      CALL timestop(handle)
+
+   END SUBROUTINE invert_Taylor
 
 ! **************************************************************************************************
 !> \brief invert a symmetric positive definite matrix by Hotelling's method
