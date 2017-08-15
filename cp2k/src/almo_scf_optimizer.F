@@ -1497,7 +1497,6 @@ CONTAINS
                   
                         ! computing preconditioner
                         DO ispin = 1, nspins
-
                           CALL compute_preconditioner(&
                                   domain_prec_out=almo_scf_env%domain_preconditioner(:,ispin),&
                                   m_prec_out=prec_vv(ispin),&
@@ -1522,9 +1521,7 @@ CONTAINS
                                   neg_thr=0.5_dp,&
                                   spin_factor=spin_factor,&
                                   special_case=my_special_case)
-
                         ENDDO ! ispin
-                     
                      ENDIF ! compute_prec
                   
                      !IF (unit_nr>0) THEN
@@ -5598,7 +5595,6 @@ CONTAINS
        ELSE
           precond_domain_projector=0
        ENDIF
-
        !! RZK-warning: use PRESENT to make two nearly-identical calls
        !! this is done because intel compiler does not seem to conform
        !! to the FORTRAN standard for passing through optional arguments
@@ -5617,15 +5613,12 @@ CONTAINS
              use_trimmer=.FALSE.,&
              bad_modes_projector_down=bad_modes_projector_down_out(:),&
              eps_zero_eigenvalues=neg_thr,&
-             ! added by Yifei, besure to change later
              my_action=precond_domain_projector&
              )
        ELSE
           CALL construct_domain_preconditioner(&
              matrix_main=m_tmp_nn_1,&
              subm_s_inv=domain_s_inv(:),&
-             subm_s_inv_half=domain_s_inv_half(:),&
-             subm_s_half=domain_s_half(:),&
              subm_r_down=domain_r_down(:),&
              matrix_trimmer=m_quench_t,&
              dpattern=m_quench_t,&
@@ -5633,11 +5626,10 @@ CONTAINS
              node_of_domain=cpu_of_domain,&
              preconditioner=domain_prec_out(:),&
              use_trimmer=.FALSE.,&
-             !eps_zero_eigenvalues=eps_filter,&
+             !eps_zero_eigenvalues=neg_thr,&
              my_action=precond_domain_projector&
              )
        ENDIF
-
     ENDIF
 
     ! invert using cholesky (works with S matrix, will not work with S-SRS matrix)
@@ -6076,7 +6068,7 @@ CONTAINS
                   spin_factor=spin_factor,&
                   special_case=special_case&
                   )
-       
+    
 !       ENDIF ! use_preconditioner
        
        ! initial guess

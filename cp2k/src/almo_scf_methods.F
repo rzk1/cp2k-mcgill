@@ -1068,7 +1068,7 @@ CONTAINS
             methodID = 1
             CALL pseudo_invert_matrix(data_p, data_copy, iblock_size, &
                                       methodID, &
-                                      range1=nocc(iblock_row), &   !Yifei, check this 
+                                      range1=nocc(iblock_row), &    
                                       !range1_thr,range2_thr,&
                                       shift=1.0E-5_dp)
             !!! IT IS EXTREMELY IMPORTANT THAT THE BLOCKS OF THE "OUT"  !!!
@@ -2155,7 +2155,7 @@ CONTAINS
             IF (PRESENT(eps_zero_eigenvalues)) THEN
                 IF(PRESENT(subm_s_inv_half)) THEN
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=n_domain_mos, &  !added by Yifei
+                		range1=n_domain_mos, &  
                         range1_thr=eps_zero_eigenvalues, &
                         bad_modes_projector_down=proj_array, &
                         s_inv_half=subm_s_inv_half(idomain)%mdata, &
@@ -2164,7 +2164,7 @@ CONTAINS
                         )
                 ELSE
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=n_domain_mos, &  !added by Yifei
+                		range1=n_domain_mos, &  
                         range1_thr=eps_zero_eigenvalues, &
                         bad_modes_projector_down=proj_array &
                         )
@@ -2191,7 +2191,7 @@ CONTAINS
                CALL copy_submatrices(subm_main(idomain), bad_modes_projector_down(idomain), .FALSE.)
                CALL copy_submatrix_data(proj_array, bad_modes_projector_down(idomain))
             ENDIF
-
+ 
             DEALLOCATE (Minv)
             IF (PRESENT(bad_modes_projector_down)) THEN 
                DEALLOCATE (proj_array)
@@ -2639,8 +2639,6 @@ CONTAINS
          ALLOCATE (temp1(N, N))
          ALLOCATE (temp4(N, N))
          IF (PRESENT(s_inv_half)) THEN
-            !temp1 = MATMUL(s_inv_half, A)
-            !Ainv = MATMUL(temp1,s_inv_half)
             CALL DSYMM('L', 'U', N, N, 1.0_dp, s_inv_half, N, A, N, 0.0_dp, temp1, N)
             CALL DSYMM('R', 'U', N, N, 1.0_dp, s_inv_half, N, temp1, N, 0.0_dp, Ainv, N)
          ENDIF
@@ -2715,19 +2713,15 @@ CONTAINS
          !WRITE(*,*) ' EIV RANGES: ', range1_eiv, range2_eiv, range3_eiv
          IF (PRESENT(bad_modes_projector_down)) THEN
             IF(PRESENT(s_half)) THEN
-               !bad_modes_projector_down = MATMUL(MATMUL(s_half, temp2),MATMUL(temp3, s_half))
                CALL DSYMM('L', 'U', N, N, 1.0_dp, s_half, N, temp2, N, 0.0_dp, Ainv, N)
                CALL DSYMM('R', 'U', N, N, 1.0_dp, s_half, N, temp3, N, 0.0_dp, temp4, N)
-               !bad_modes_projector_down = MATMUL(Ainv, temp4)
                CALL DGEMM('N', 'N', N, N, N, 1.0_dp, Ainv, N, temp4, N, 0.0_dp, bad_modes_projector_down, N)
             ELSE
-               !bad_modes_projector_down = MATMUL(temp2,temp3)
                CALL DGEMM('N', 'N', N, N, N, 1.0_dp, temp2, N, temp3, N, 0.0_dp, bad_modes_projector_down, N)
             ENDIF
          ENDIF
          
          IF (PRESENT(s_inv_half)) THEN
-            !Ainv = MATMUL(MATMUL(s_inv_half,temp2), MATMUL(temp1,s_inv_half))
             CALL DSYMM('L', 'U', N, N, 1.0_dp, s_inv_half, N, temp2, N, 0.0_dp, temp4, N)
             CALL DSYMM('R', 'U', N, N, 1.0_dp, s_inv_half, N, temp1, N, 0.0_dp, temp2, N)
             CALL DGEMM('N', 'N', N, N, N, 1.0_dp, temp4, N, temp2, N, 0.0_dp, Ainv, N)
