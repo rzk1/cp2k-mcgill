@@ -185,8 +185,6 @@ CONTAINS
          CALL dbcsr_norm(tmp3_sym, &
                          dbcsr_norm_maxabsnorm, norm_scalar=maxnorm_matrix)
 
-         !CALL dbcsr_filter(matrix_inverse, threshold)
-
          t2 = m_walltime()
          occ_matrix = dbcsr_get_occupation(matrix_inverse)
 
