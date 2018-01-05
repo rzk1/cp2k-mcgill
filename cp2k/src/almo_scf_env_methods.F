@@ -18,7 +18,7 @@ MODULE almo_scf_env_methods
         almo_constraint_distance, almo_deloc_xalmo_1diag, almo_domain_layout_atomic, &
         almo_domain_layout_molecular, almo_frz_crystal, almo_mat_distr_molecular, almo_scf_diag, &
         almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, tensor_orthogonal, &
-        virt_full, virt_minimal, virt_number
+        virt_full, virt_minimal, virt_number, almo_scf_skip, xalmo_trial_r0_out, almo_deloc_none
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
@@ -106,7 +106,7 @@ CONTAINS
       INTEGER                                            :: handle
       TYPE(section_vals_type), POINTER :: almo_analysis_section, almo_opt_diis_section, &
          almo_opt_pcg_section, almo_scf_section, xalmo_opt_pcg_section, &
-         matrix_iterate_section
+         xalmo_opt_newton_pcg_section, matrix_iterate_section
 
       CALL timeset(routineN, handle)
 
@@ -118,6 +118,8 @@ CONTAINS
       xalmo_opt_pcg_section => section_vals_get_subs_vals(almo_scf_section, &
                                                           "XALMO_OPTIMIZER_PCG")
       almo_analysis_section => section_vals_get_subs_vals(almo_scf_section, "ANALYSIS")
+      xalmo_opt_newton_pcg_section => section_vals_get_subs_vals(xalmo_opt_pcg_section,&
+                             "XALMO_NEWTON_PCG_SOLVER")
       matrix_iterate_section => section_vals_get_subs_vals(almo_scf_section, &
                                                           "MATRIX_ITERATE")
 
@@ -129,6 +131,8 @@ CONTAINS
                                 i_val=almo_scf_env%almo_scf_guess)
       CALL section_vals_val_get(almo_scf_section, "ALMO_ALGORITHM", &
                                 i_val=almo_scf_env%almo_update_algorithm)
+      CALL section_vals_val_get(almo_scf_section,"XALMO_TRIAL_WF",&
+                                i_val=almo_scf_env%xalmo_trial_wf)
       CALL section_vals_val_get(almo_scf_section, "MO_OVERLAP_INV_ALG", &
                                 i_val=almo_scf_env%sigma_inv_algorithm)
       CALL section_vals_val_get(almo_scf_section, "DELOCALIZE_METHOD", &
@@ -198,10 +202,21 @@ CONTAINS
                                 r_val=almo_scf_env%opt_xalmo_pcg%lin_search_eps_error)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "LIN_SEARCH_STEP_SIZE_GUESS", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%lin_search_step_size_guess)
+      CALL section_vals_val_get(xalmo_opt_pcg_section, "NEGLECT_THRESHOLD", &
+                                r_val=almo_scf_env%opt_xalmo_pcg%neglect_threshold)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "CONJUGATOR", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%conjugator)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "PRECONDITIONER", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%preconditioner)
+
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"EPS_ERROR",&
+                                r_val=almo_scf_env%opt_xalmo_newton_pcg_solver%eps_error)
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"MAX_ITER",&
+                                i_val=almo_scf_env%opt_xalmo_newton_pcg_solver%max_iter)
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"MAX_ITER_OUTER_LOOP",&
+                                i_val=almo_scf_env%opt_xalmo_newton_pcg_solver%max_iter_outer_loop)
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"PRECONDITIONER",&
+                                i_val=almo_scf_env%opt_xalmo_newton_pcg_solver%preconditioner)
 
       CALL section_vals_val_get(almo_analysis_section, "_SECTION_PARAMETERS_", &
                                 l_val=almo_scf_env%almo_analysis%do_analysis)
@@ -384,6 +399,17 @@ CONTAINS
       ENDIF
 
       ! check for conflicts between options
+      IF (almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out .AND. &
+          almo_scf_env%almo_update_algorithm.EQ.almo_scf_skip .AND. &
+          almo_scf_env%almo_scf_guess.NE.molecular_guess) THEN
+        CPABORT("R0 projector requires optimized ALMOs")
+      ENDIF
+      
+      IF (almo_scf_env%deloc_method.EQ.almo_deloc_none .AND. &
+          almo_scf_env%almo_update_algorithm.EQ.almo_scf_skip) THEN
+        CPABORT("No optimization requested")
+      ENDIF
+
       IF (almo_scf_env%deloc_truncate_virt .EQ. virt_number .AND. &
           almo_scf_env%deloc_virt_per_domain .LE. 0) THEN
          CPABORT("specify a positive number of virtual orbitals")

@@ -25,6 +25,7 @@
       DELOCALIZE_METHOD          XALMO_SCF
       XALMO_R_CUTOFF_FACTOR      0.6
       ALMO_SCF_GUESS             ATOMIC
+      !XALMO_TRIAL_WF             SIMPLE
 
       &ALMO_OPTIMIZER_DIIS
         MAX_ITER                 100
@@ -37,7 +38,7 @@
         EPS_ERROR                1.0E-5
         CONJUGATOR               HESTENES_STIEFEL
         PRECONDITIONER           DEFAULT
-        LIN_SEARCH_EPS_ERROR     0.1
+        LIN_SEARCH_EPS_ERROR     0.05
         LIN_SEARCH_STEP_SIZE_GUESS 0.1
         MAX_ITER_OUTER_LOOP      5
       &END ALMO_OPTIMIZER_PCG

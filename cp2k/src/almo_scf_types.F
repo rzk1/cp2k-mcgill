@@ -18,8 +18,8 @@ MODULE almo_scf_types
                                               domain_submatrix_type
    USE input_constants,                 ONLY: &
         cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, &
-        cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, prec_default, &
-        prec_zero
+        cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, &
+        xalmo_prec_domain, xalmo_prec_zero, xalmo_prec_full
    USE kinds,                           ONLY: dp
 #include "./base/base_uses.f90"
 
@@ -69,7 +69,8 @@ MODULE almo_scf_types
       REAL(KIND=dp)  :: eps_error, &
                         eps_error_early, &
                         lin_search_eps_error, &
-                        lin_search_step_size_guess
+                        lin_search_step_size_guess, &
+                        neglect_threshold
 
       INTEGER        :: optimizer_type ! diis, pcg, etc.
 
@@ -208,6 +209,7 @@ MODULE almo_scf_types
 
       ! Controls for the SCF procedure
       REAL(KIND=dp)         :: eps_filter
+      INTEGER               :: xalmo_trial_wf
       INTEGER               :: almo_scf_guess
       REAL(KIND=dp)         :: eps_prev_guess
       INTEGER               :: order_lanczos
@@ -344,6 +346,7 @@ MODULE almo_scf_types
       TYPE(optimizer_options_type)                   :: opt_block_diag_pcg
       TYPE(optimizer_options_type)                   :: opt_xalmo_diis
       TYPE(optimizer_options_type)                   :: opt_xalmo_pcg
+      TYPE(optimizer_options_type)                   :: opt_xalmo_newton_pcg_solver
       TYPE(optimizer_options_type)                   :: opt_k_pcg
 
       ! keywords that control electron delocalization treatment
@@ -441,10 +444,12 @@ CONTAINS
                optimizer%max_iter_outer_loop
 
             SELECT CASE (optimizer%preconditioner)
-            CASE (prec_zero)
+            CASE (xalmo_prec_zero)
                prec_string = "NONE"
-            CASE (prec_default)
-               prec_string = "0.5 H + 0.5 S"
+            CASE (xalmo_prec_domain)
+               prec_string = "0.5 KS + 0.5 S, DOMAINS"
+            CASE (xalmo_prec_full)
+               prec_string = "0.5 KS + 0.5 S, FULL"
             END SELECT
             WRITE (unit_nr, '(T4,A,T48,A33)') "preconditioner:", TRIM(prec_string)
 
