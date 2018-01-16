@@ -20,7 +20,8 @@ MODULE input_cp2k_almo
         cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, &
         cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, xalmo_prec_zero, xalmo_prec_domain, &
         xalmo_prec_full, spd_inversion_ls_hotelling, spd_inversion_dense_cholesky, almo_scf_skip, &
-        xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg, spd_inversion_ls_taylor
+        xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg, spd_inversion_ls_taylor, &
+        almo_occ_vol_penalty_none, almo_occ_vol_penalty_lndet
 
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
@@ -588,6 +589,11 @@ CONTAINS
       CALL section_release(subsection)
 
       NULLIFY (subsection)
+      CALL create_penalty_section(subsection)
+      CALL section_add_subsection(section, subsection)
+      CALL section_release(subsection)
+
+      NULLIFY (subsection)
       CALL create_matrix_iterate_section(subsection)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
@@ -814,6 +820,49 @@ CONTAINS
       CALL keyword_release(keyword)
 
    END SUBROUTINE create_matrix_iterate_section
+
+! **************************************************************************************************
+!> \brief The section controls penalty methods 
+!> \param section ...
+!> \par History
+!>       2018.01 created [Rustam Z Khaliullin]
+!> \author Rustam Z Khaliullin
+! **************************************************************************************************
+   SUBROUTINE create_penalty_section(section)
+
+      TYPE(section_type), POINTER                        :: section
+
+      TYPE(keyword_type), POINTER                        :: keyword
+      TYPE(section_type), POINTER                        :: subsection
+
+      CPASSERT(.NOT. ASSOCIATED(section))
+      NULLIFY (section)
+
+      CALL section_create(section, "PENALTY", &
+                          description="Add penalty terms to the energy functional.", &
+                          n_keywords=2, n_subsections=0, repeats=.FALSE.)
+
+      NULLIFY (keyword)
+
+      CALL keyword_create( &
+         keyword, name="OCCUPIED_VOLUME_PENALTY_METHOD", &
+         description="Penalty that prevents nonorthogonal orbitals from becoming linear dependent.", &
+         usage="OCCUPIED_VOLUME_PENALTY_METHOD LNDET", &
+         default_i_val=almo_occ_vol_penalty_lndet, &
+         enum_c_vals=s2a("NONE", "LNDET"), &
+         enum_desc=s2a("Do not use penalties", &
+                       "Use -coeff*ln(det(MO-overlap)) term."), &
+         enum_i_vals=(/almo_occ_vol_penalty_none, almo_occ_vol_penalty_lndet/))
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="OCCUPIED_VOLUME_PENALTY_COEFF", &
+                          description="Multiplication factor that determines the strength of the penalty term.", &
+                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 10.0", default_r_val=1.0_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+   END SUBROUTINE create_penalty_section
 
 ! **************************************************************************************************
 !> \brief The section controls electronic structure analysis based on ALMOs

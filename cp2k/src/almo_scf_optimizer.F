@@ -57,7 +57,7 @@ MODULE almo_scf_optimizer
         dbcsr_iterator_stop, dbcsr_iterator_type, dbcsr_multiply, dbcsr_norm, &
         dbcsr_norm_maxabsnorm, dbcsr_p_type, dbcsr_print_block_sum, dbcsr_release, &
         dbcsr_reserve_block2d, dbcsr_scale, dbcsr_set, dbcsr_set_diag, dbcsr_trace, dbcsr_triu, &
-        dbcsr_nblkrows_total, dbcsr_nblkcols_total, &
+        dbcsr_nblkrows_total, dbcsr_nblkcols_total, dbcsr_print, &
         dbcsr_type, dbcsr_type_no_symmetry, dbcsr_work_create, dbcsr_get_block_p
    USE domain_submatrix_methods,        ONLY: add_submatrices,&
                                               construct_submatrices,&
@@ -71,7 +71,7 @@ MODULE almo_scf_optimizer
    USE input_constants,                 ONLY: &
         almo_scf_diag, almo_scf_dm_sign, cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, &
         cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, cg_zero, &
-        xalmo_prec_zero, xalmo_prec_domain, xalmo_prec_full, &
+        xalmo_prec_zero, xalmo_prec_domain, xalmo_prec_full, almo_occ_vol_penalty_none, &
         virt_full, xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type
@@ -875,10 +875,11 @@ CONTAINS
       ! A = T for n = 2
       ! A = 2T for n = 4
       ! A = (32/6)T for n = 6
-      penalty_occ_vol=.FALSE.
-      normalize_orbitals=.FALSE.
-      penalty_order=2
-      penalty_amplitude=0.002_dp
+      penalty_occ_vol = ( almo_scf_env%penalty%occ_vol_method .NE. almo_occ_vol_penalty_none .AND. &
+                          my_special_case .EQ. xalmo_case_fully_deloc )
+      normalize_orbitals = penalty_occ_vol
+      ! not used with lndet: penalty_order=2
+      penalty_amplitude=almo_scf_env%penalty%occ_vol_coeff
       ALLOCATE(penalty_occ_vol_g_prefactor(nspins))
       ALLOCATE(penalty_occ_vol_h_prefactor(nspins))
       penalty_occ_vol_g_prefactor(:)=0.0_dp
@@ -1175,6 +1176,8 @@ CONTAINS
                ENDIF
 
                IF (penalty_occ_vol) THEN
+!CALL dbcsr_print(matrix_t_out(ispin))
+!CALL dbcsr_print(almo_scf_env%matrix_sigma(ispin))
                   CALL determinant(almo_scf_env%matrix_sigma(ispin), det1, &
                           almo_scf_env%eps_filter)
                   penalty_func_new = &
@@ -1222,6 +1225,7 @@ CONTAINS
                      WRITE(unit_nr,*) "penalty c0: ", penalty_occ_vol_g_prefactor(ispin)
                      WRITE(unit_nr,*) "penalty c1: ", penalty_occ_vol_h_prefactor(ispin)
                      WRITE(unit_nr,*) "penalty c0*c1: ", penalty_occ_vol_g_prefactor(ispin)*penalty_occ_vol_h_prefactor(ispin)
+                     WRITE(unit_nr,*) "energy, penalty: ", energy_new, penalty_func_new
                   ENDIF
                   ! this is not pure energy anymore
                   energy_new=energy_new+penalty_func_new
@@ -1292,7 +1296,7 @@ CONTAINS
             ! if unprojected XALMOs are optimized then compute both
             ! HessianInv/preconditioner and the "bad-mode" projector
 
-			IF (blissful_neglect) THEN
+            IF (blissful_neglect) THEN
                DO ispin = 1, nspins
                   !compute the prec only for the first step, 
                   !but project the gradient every step

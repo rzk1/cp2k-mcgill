@@ -100,8 +100,10 @@ CONTAINS
     ! initial matrix (tmp3 does not have symmetry constraints)
     ! this might lead to uninteded results with anti-symmetric
     ! matrices
-    CALL dbcsr_create(tmp1,template=matrix)
-    CALL dbcsr_create(tmp2,template=matrix)
+    CALL dbcsr_create(tmp1,template=matrix, &
+            matrix_type=dbcsr_type_no_symmetry)
+    CALL dbcsr_create(tmp2,template=matrix, &
+            matrix_type=dbcsr_type_no_symmetry)
     CALL dbcsr_create(tmp3,template=matrix, &
             matrix_type=dbcsr_type_no_symmetry)
 
@@ -113,7 +115,8 @@ CONTAINS
 
     ! create diagonal SQRTI matrix
     diagonal(:) = 1.0_dp/(SQRT(diagonal(:)))
-    CALL dbcsr_copy(tmp1,matrix)
+    !ROLL CALL dbcsr_copy(tmp1,matrix)
+    CALL dbcsr_desymmetrize(matrix,tmp1)
     CALL dbcsr_set(tmp1,0.0_dp)
     CALL dbcsr_set_diag(tmp1,diagonal)
     CALL dbcsr_filter(tmp1,threshold)
@@ -172,7 +175,7 @@ CONTAINS
        ! create accumulator
        CALL dbcsr_copy(tmp1,tmp2)
        ! re-create to make use of symmetry
-       CALL dbcsr_create(tmp3,template=matrix)
+       !ROLL CALL dbcsr_create(tmp3,template=matrix)
 
        IF (unit_nr>0) WRITE(unit_nr,*)
 
