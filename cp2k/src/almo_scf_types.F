@@ -41,6 +41,15 @@ MODULE almo_scf_types
              print_optimizer_options, almo_scf_env_release, &
              almo_scf_history_type
 
+   ! methods that add penalty terms to the energy functional 
+   TYPE penalty_type
+
+      REAL(KIND=dp)      :: occ_vol_coeff
+      INTEGER            :: occ_vol_method
+
+   END TYPE penalty_type
+
+
    ! almo-based electronic structure analysis
    TYPE almo_analysis_type
 
@@ -50,6 +59,7 @@ MODULE almo_scf_types
       INTEGER :: frozen_mo_energy_term
 
    END TYPE almo_analysis_type
+
 
    TYPE optimizer_options_type
 
@@ -338,8 +348,9 @@ MODULE almo_scf_types
 
       INTEGER, DIMENSION(:), ALLOCATABLE                       :: cpu_of_domain
 
-      ! Options for various optimizers collected neatly
+      ! Options for various subsection options collected neatly
       TYPE(almo_analysis_type)                       :: almo_analysis
+      TYPE(penalty_type)                             :: penalty
 
       ! Options for various optimizers collected neatly
       TYPE(optimizer_options_type)                   :: opt_block_diag_diis
