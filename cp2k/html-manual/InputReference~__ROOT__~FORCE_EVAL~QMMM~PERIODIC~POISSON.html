@@ -1,0 +1,62 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section POISSON                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section POISSON                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC.html">PERIODIC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON.html">POISSON</A>.
+<BR><BR>Sets up the poisson resolutor. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~MT.html">MT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~WAVELET.html">WAVELET </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~MULTIPOLE.html">MULTIPOLE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~EWALD.html">EWALD </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~IMPLICIT.html">IMPLICIT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#POISSON_SOLVER">POISSON_SOLVER </A>
+<LI><A HREF="#PERIODIC">PERIODIC </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="POISSON_SOLVER"><u>POISSON_SOLVER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">POISSON_SOLVER char
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify which kind of solver to use to solve the Poisson equation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  PERIODIC
+<TR><TD WIDTH="10%"><TD>  valid keywords: PERIODIC, ANALYTIC, MT, MULTIPOLE, WAVELET, IMPLICIT<TR><TD WIDTH="10%"><TD>variants: POISSON, PSOLVER<BR> This keyword cites following references: 
+<A HREF="references.html#reference_12" TITLE="
+ BLOCHL, PE. 
+ JOURNAL OF CHEMICAL PHYSICS, 103 (17), 7422-7428 (1995). 
+ ELECTROSTATIC DECOUPLING OF PERIODIC IMAGES OF PLANE-WAVE-EXPANDED
+ DENSITIES AND DERIVED ATOMIC POINT CHARGES.
+ http://dx.doi.org/10.1063/1.470314
+">[BLOCHL1995]</A>
+<A HREF="references.html#reference_53" TITLE="
+ Martyna, GJ; Tuckerman, ME. 
+ JOURNAL OF CHEMICAL PHYSICS, 110 (6), 2810-2821 (1999). 
+ A reciprocal space based method for treating long range interactions in
+ ab initio and force-field-based calculations in clusters.
+ http://dx.doi.org/10.1063/1.477923
+">[Martyna1999]</A>
+<A HREF="references.html#reference_62" TITLE="
+ Genovese, L; Deutsch, T; Neelov, A; Goedecker, S; Beylkin, G. 
+ JOURNAL OF CHEMICAL PHYSICS, 125 (7), 074105 (2006). 
+ Efficient solution of Poisson's equation with free boundary conditions.
+ http://dx.doi.org/10.1063/1.2335442
+">[Genovese2006]</A>
+<A HREF="references.html#reference_63" TITLE="
+ Genovese, L; Deutsch, T; Goedecker, S. 
+ JOURNAL OF CHEMICAL PHYSICS, 127 (5), 054704 (2007). 
+ Efficient and accurate three-dimensional Poisson solver for surface
+ problems.
+ http://dx.doi.org/10.1063/1.2754685
+">[Genovese2007]</A>
+<TR><TD WITDH="20%"><A NAME="PERIODIC"><u>PERIODIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PERIODIC (x|y|z|xy|xz|yz|xyz|none)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the directions in which PBC apply. Important notice,  this only applies to the electrostatics. See the CELL section to specify the periodicity used for e.g. the pair lists. Typically the settings should be the same.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  XYZ
+<TR><TD WIDTH="10%"><TD>  valid keywords: X, Y, Z, XY, XZ, YZ, XYZ, NONE</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

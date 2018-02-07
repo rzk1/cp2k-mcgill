@@ -1,0 +1,72 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section RESP                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section RESP                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP.html">RESP</A>.
+<BR><BR>Requests a RESP fit of charges. When using a periodic Poisson solver and a periodic cell, the periodic RESP routines are used. If the Hartree potential matches with the one of an isolated system (i.e. isolated Poisson solver and big, nonperiodic cells), the nonperiodic RESP routines are automatically used. All restraints are harmonic!. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_130" TITLE="
+ Golze, D; Hutter, J; Iannuzzi, M. 
+ Physical Chemistry Chemical Physics, 17 (22), 14307-14316 (2015). 
+ Wetting of water on hexagonal boron nitride@Rh(111): a QM/MM model
+ based on atomic charges derived for nano-structured substrates.
+ http://dx.doi.org/10.1039/C4CP04638B
+">[Golze2015]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP~CONSTRAINT.html">CONSTRAINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP~RESTRAINT.html">RESTRAINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP~SPHERE_SAMPLING.html">SPHERE_SAMPLING </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP~SLAB_SAMPLING.html">SLAB_SAMPLING </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#STRIDE">STRIDE </A>
+<LI><A HREF="#INTEGER_TOTAL_CHARGE">INTEGER_TOTAL_CHARGE </A>
+<LI><A HREF="#RESTRAIN_HEAVIES_TO_ZERO">RESTRAIN_HEAVIES_TO_ZERO </A>
+<LI><A HREF="#RESTRAIN_HEAVIES_STRENGTH">RESTRAIN_HEAVIES_STRENGTH </A>
+<LI><A HREF="#WIDTH">WIDTH </A>
+<LI><A HREF="#USE_REPEAT_METHOD">USE_REPEAT_METHOD </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="STRIDE"><u>STRIDE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STRIDE 2 2 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The stride (X,Y,Z) used to write the cube file (larger values result in smaller cube files). You can provide 3 numbers (for X,Y,Z) or 1 number valid for all components.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  2 2 2
+<TR><TD WITDH="20%"><A NAME="INTEGER_TOTAL_CHARGE"><u>INTEGER_TOTAL_CHARGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INTEGER_TOTAL_CHARGE TRUE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Forces the total charge to be integer</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  T
+<TR><TD WITDH="20%"><A NAME="RESTRAIN_HEAVIES_TO_ZERO"><u>RESTRAIN_HEAVIES_TO_ZERO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTRAIN_HEAVIES_TO_ZERO FALSE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Restrain non-hydrogen atoms to zero.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="RESTRAIN_HEAVIES_STRENGTH"><u>RESTRAIN_HEAVIES_STRENGTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTRAIN_HEAVIES_STRENGTH 0.0001
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If defined, enforce the restraint of non-hydrogen atoms to zero. Its value is the strength of the restraint on the heavy atoms.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="WIDTH"><u>WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WIDTH <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the value of the width of the Gaussian charge distribution carried by each atom. Needs only to be specified when using a periodic Poisson solver.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-2], default value:     1.1248999999999999E+01
+angstrom^-2<TR><TD WITDH="20%"><A NAME="USE_REPEAT_METHOD"><u>USE_REPEAT_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">USE_REPEAT_METHOD
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Fits the variance of the potential, i.e. the deviation from the mean value of the potential within the selected range. The evaluation of the potentials is still treated within the GPW approach as described in [Golze2015]. When used in conjunction with INTEGER_TOTAL_CHARGE = T and SPHERE_SAMPLING, the results will be very similar to the REPEAT charges given in [Campana2009]. In most cases switching on this option gives reasonable atomic charges without the need to define any restraints. Note that by switching on this option, RESTRAIN_HEAVIES_TO_ZERO will be switched off.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_155" TITLE="
+ Campana, C; Mussard, B; Woo, T K. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 5 (10), 2866 (2009). 
+ Electrostatic Potential Derived Atomic Charges for
+ Periodic Systems Using a Modified Error Functional.
+ http://dx.doi.org/10.1021/ct9003405
+">[Campana2009]</A>
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,60 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MSD                                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MSD                                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~REFTRAJ.html">REFTRAJ</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~REFTRAJ~MSD.html">MSD</A>.
+<BR><BR>Loads an external trajectory file and performs analysis on the loaded snapshots. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~REFTRAJ~MSD~DEFINE_REGION.html">DEFINE_REGION </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#REF0_FILENAME">REF0_FILENAME </A>
+<LI><A HREF="#MSD_PER_KIND">MSD_PER_KIND </A>
+<LI><A HREF="#MSD_PER_MOLKIND">MSD_PER_MOLKIND </A>
+<LI><A HREF="#MSD_PER_REGION">MSD_PER_REGION </A>
+<LI><A HREF="#DISPLACED_ATOM">DISPLACED_ATOM </A>
+<LI><A HREF="#DISPLACEMENT_TOL">DISPLACEMENT_TOL </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&MSD T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>controls the activation of core-level spectroscopy simulations</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="REF0_FILENAME"><u>REF0_FILENAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REF0_FILENAME <CHARACTER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the filename where the initial reference configuration is stored.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="MSD_PER_KIND"><u>MSD_PER_KIND</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MSD_PER_KIND <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set up the calculation of the MSD for each atomic kind</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="MSD_PER_MOLKIND"><u>MSD_PER_MOLKIND</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MSD_PER_MOLKIND <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set up the calculation of the MSD for each molecule kind.The position of the center of mass of the molecule is considered.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="MSD_PER_REGION"><u>MSD_PER_REGION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MSD_PER_REGION <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set up the calculation of the MSD for each defined region.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DISPLACED_ATOM"><u>DISPLACED_ATOM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPLACED_ATOM <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Identify the atoms that moved from their initialposition of a distance larger than a given tolerance (see msd%displacement_tol).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DISPLACEMENT_TOL"><u>DISPLACEMENT_TOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPLACEMENT_TOL real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Lower limit to define displaced atoms</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     0.0000000000000000E+00
+bohr</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

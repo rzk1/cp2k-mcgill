@@ -1,0 +1,82 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ENERGY_WINDOWS                                                                  </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ENERGY_WINDOWS                                                                   </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~ENERGY_WINDOWS.html">ENERGY_WINDOWS</A>.
+<BR><BR>Controls the printing of the DOS from the density matrix. This allows the calculation of the DOS even in density matrix based/linear scaling. However, it requires a cubically scaling diagonalization of the Hamiltonian. Hartree-Fock NYI, values will be wrong. Careful, the orbitals in rtp/emd are not actually eigenstates of the Hamiltonian. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~ENERGY_WINDOWS~EACH.html">EACH </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#__CONTROL_VAL">__CONTROL_VAL </A>
+<LI><A HREF="#ADD_LAST">ADD_LAST </A>
+<LI><A HREF="#COMMON_ITERATION_LEVELS">COMMON_ITERATION_LEVELS </A>
+<LI><A HREF="#FILENAME">FILENAME </A>
+<LI><A HREF="#LOG_PRINT_KEY">LOG_PRINT_KEY </A>
+<LI><A HREF="#N_WINDOWS">N_WINDOWS </A>
+<LI><A HREF="#RESTRICT_RANGE">RESTRICT_RANGE </A>
+<LI><A HREF="#RANGE">RANGE </A>
+<LI><A HREF="#PRINT_CUBES">PRINT_CUBES </A>
+<LI><A HREF="#STRIDE">STRIDE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">silent
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Level starting at which this property is printed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch SILENT
+. Default value:  HIGH
+<TR><TD WIDTH="10%"><TD>  valid keywords: ON, OFF, SILENT, LOW, MEDIUM, HIGH, DEBUG<TR><TD WITDH="20%"><A NAME="__CONTROL_VAL"><u>__CONTROL_VAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> hidden parameter that controls storage, printing,... of the print_key</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  8
+<TR><TD WITDH="20%"><A NAME="ADD_LAST"><u>ADD_LAST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ADD_LAST (NO|NUMERIC|SYMBOLIC)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If the last iteration should be added, and if it should be marked symbolically (with lowercase letter l) or with the iteration number. Not every iteration level is able to identify the last iteration early enough to be able to output. When this keyword is activated all iteration levels are checked for the last iteration step.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NUMERIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NO</code>: Do not mark last iteration specifically</li>
+<li><code>NUMERIC</code>: Mark last iteration with its iteration number</li>
+<li><code>SYMBOLIC</code>: Mark last iteration with lowercase letter l</li>
+</ul><TR><TD WITDH="20%"><A NAME="COMMON_ITERATION_LEVELS"><u>COMMON_ITERATION_LEVELS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COMMON_ITERATION_LEVELS <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>How many iterations levels should be written in the same file (no extra information about the actual iteration level is written to the file)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="FILENAME"><u>FILENAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FILENAME ./filename
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> controls part of the filename for output.  use __STD_OUT__ (exactly as written here) for the screen or standard logger.  use filename to obtain projectname-filename.  use ./filename to get filename. A middle name (if present), iteration numbers and extension are always added to the filename. if you want to avoid it use =filename, in this case the filename is always exactly as typed. Please note that this can lead to clashes of filenames.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: energy-windows
+<TR><TD WITDH="20%"><A NAME="LOG_PRINT_KEY"><u>LOG_PRINT_KEY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LOG_PRINT_KEY <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keywords enables the logger for the print_key (a message is printed on screen everytime data, controlled by this print_key, are written)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="N_WINDOWS"><u>N_WINDOWS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_WINDOWS 200
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of energy windows.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  100
+<TR><TD WITDH="20%"><A NAME="RESTRICT_RANGE"><u>RESTRICT_RANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTRICT_RANGE .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Restricts the energy windows to states close to the fermi level</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RANGE"><u>RANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RANGE 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If the RESTRICT_RANGE keyword is set, then all energy widnows will be placed in an interval from from the fermi level minus to the fermi level plus this keyword</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="PRINT_CUBES"><u>PRINT_CUBES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DENSITY_PROPAGATION .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Print the energy windows to cube files</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="STRIDE"><u>STRIDE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STRIDE 2 2 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The stride (X,Y,Z) used to write the energy windows cube files (if enabled) (larger values result in smaller cube files). You can provide 3 numbers (for X,Y,Z) or 1 number valid for all components.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  2 2 2
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

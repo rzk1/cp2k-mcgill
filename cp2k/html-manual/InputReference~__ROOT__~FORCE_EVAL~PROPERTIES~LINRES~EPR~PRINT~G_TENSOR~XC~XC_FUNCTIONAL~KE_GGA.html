@@ -1,0 +1,37 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section KE_GGA                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section KE_GGA                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES.html">LINRES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR.html">EPR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR.html">G_TENSOR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~XC_FUNCTIONAL.html">XC_FUNCTIONAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~XC_FUNCTIONAL~KE_GGA.html">KE_GGA</A>.
+<BR><BR>Uses one of the KE_GGA functionals (optimized versions of some of these functionals might be available outside this section). These functionals are needed for the computation of the kinetic energy in the Kim-Gordon method. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#FUNCTIONAL">FUNCTIONAL </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>activates the functional</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="FUNCTIONAL"><u>FUNCTIONAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FUNCTIONAL (OL1|OL2|LLP|PW86|PW91|LC|T92|PBE)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which one of the KE_GGA functionals should be used</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  LLP
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>OL1</code>: Uses first Ou-Yang and Levy functional, currently not producing correct results</li>
+<li><code>OL2</code>: Uses second Ou-Yang and Levy functional, currently not producing correct results</li>
+<li><code>LLP</code>: Uses Lee, Lee, and Parr functional</li>
+<li><code>PW86</code>: Uses Perdew and Wang's 1986 functional</li>
+<li><code>PW91</code>: Uses Perdew and Wang's 1991 functional</li>
+<li><code>LC</code>: Uses Lembarki and Chermette functional</li>
+<li><code>T92</code>: Uses Thakkar functional</li>
+<li><code>PBE</code>: Uses the 1996 functional of Perdew, Burke and Ernzerhof</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

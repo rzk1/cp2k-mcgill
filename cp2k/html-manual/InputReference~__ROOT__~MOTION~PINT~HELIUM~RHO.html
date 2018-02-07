@@ -1,0 +1,71 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section RHO                                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section RHO                                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT.html">PINT</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM.html">HELIUM</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~RHO.html">RHO</A>.
+<BR><BR>Spatial distribution settings. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#NBIN">NBIN </A>
+<LI><A HREF="#MIN_CYCLE_LENGTHS_WDG">MIN_CYCLE_LENGTHS_WDG </A>
+<LI><A HREF="#MIN_CYCLE_LENGTHS_NON">MIN_CYCLE_LENGTHS_NON </A>
+<LI><A HREF="#MIN_CYCLE_LENGTHS_ALL">MIN_CYCLE_LENGTHS_ALL </A>
+<LI><A HREF="#ATOM_NUMBER">ATOM_NUMBER </A>
+<LI><A HREF="#PROJECTED_AREA_2">PROJECTED_AREA_2 </A>
+<LI><A HREF="#WINDING_NUMBER_2">WINDING_NUMBER_2 </A>
+<LI><A HREF="#WINDING_CYCLE_2">WINDING_CYCLE_2 </A>
+<LI><A HREF="#MOMENT_OF_INERTIA">MOMENT_OF_INERTIA </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether or not to actually calculate densities (requires significant amount of memory, depending on the value of NBIN)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="NBIN"><u>NBIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of grid points in each direction for density binning</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  100
+<TR><TD WITDH="20%"><A NAME="MIN_CYCLE_LENGTHS_WDG"><u>MIN_CYCLE_LENGTHS_WDG</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><INT> <INT> .. <INT>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Density of winding paths not shorter than the given length</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="MIN_CYCLE_LENGTHS_NON"><u>MIN_CYCLE_LENGTHS_NON</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><INT> <INT> .. <INT>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Density of non-winding paths not shorter than the given length</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="MIN_CYCLE_LENGTHS_ALL"><u>MIN_CYCLE_LENGTHS_ALL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><INT> <INT> .. <INT>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Density of all paths not shorter than the given length</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="ATOM_NUMBER"><u>ATOM_NUMBER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Atom number density</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="PROJECTED_AREA_2"><u>PROJECTED_AREA_2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Projected area squared density, A*A(r)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="WINDING_NUMBER_2"><u>WINDING_NUMBER_2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Winding number squared density, W*W(r)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="WINDING_CYCLE_2"><u>WINDING_CYCLE_2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Winding number squared density, W^2(r)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="MOMENT_OF_INERTIA"><u>MOMENT_OF_INERTIA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Moment of inertia density</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

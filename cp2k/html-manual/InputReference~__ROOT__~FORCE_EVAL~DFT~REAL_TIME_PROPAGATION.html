@@ -1,0 +1,134 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section REAL_TIME_PROPAGATION                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section REAL_TIME_PROPAGATION                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~REAL_TIME_PROPAGATION.html">REAL_TIME_PROPAGATION</A>.
+<BR><BR>Parameters needed to set up the real time propagation for the electron dynamics. This currently works only in the NVE ensemble. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_100" TITLE="
+ Kunert, T; Schmidt, R. EUROPEAN PHYSICAL JOURNAL D, 25 (1), (2003). 
+ Non-adiabatic quantum molecular dynamics: General formalism and case
+ study H-2(+) in strong laser fields.
+ http://dx.doi.org/10.1140/epjd/e2003-00086-8
+">[Kunert2003]</A>
+<A HREF="references.html#reference_171" TITLE="
+ Andermatt, S; Cha, J; Schiffmann, F; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 12 (7), 3214-3227 (2016). 
+ Combining Linear-Scaling DFT with Subsystem DFT in Born Oppenheimer and
+ Ehrenfest Molecular Dynamics Simulations: From Molecules to a Virus in
+ Solution.
+ http://dx.doi.org/10.1021/acs.jctc.6b00398
+">[Andermatt2016]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~REAL_TIME_PROPAGATION~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MAX_ITER">MAX_ITER </A>
+<LI><A HREF="#EPS_ITER">EPS_ITER </A>
+<LI><A HREF="#ASPC_ORDER">ASPC_ORDER </A>
+<LI><A HREF="#MAT_EXP">MAT_EXP </A>
+<LI><A HREF="#DENSITY_PROPAGATION">DENSITY_PROPAGATION </A>
+<LI><A HREF="#SC_CHECK_START">SC_CHECK_START </A>
+<LI><A HREF="#EXP_ACCURACY">EXP_ACCURACY </A>
+<LI><A HREF="#PROPAGATOR">PROPAGATOR </A>
+<LI><A HREF="#INITIAL_WFN">INITIAL_WFN </A>
+<LI><A HREF="#APPLY_DELTA_PULSE">APPLY_DELTA_PULSE </A>
+<LI><A HREF="#PERIODIC">PERIODIC </A>
+<LI><A HREF="#DELTA_PULSE_DIRECTION">DELTA_PULSE_DIRECTION </A>
+<LI><A HREF="#DELTA_PULSE_SCALE">DELTA_PULSE_SCALE </A>
+<LI><A HREF="#HFX_BALANCE_IN_CORE">HFX_BALANCE_IN_CORE </A>
+<LI><A HREF="#MCWEENY_MAX_ITER">MCWEENY_MAX_ITER </A>
+<LI><A HREF="#ACCURACY_REFINEMENT">ACCURACY_REFINEMENT </A>
+<LI><A HREF="#MCWEENY_EPS">MCWEENY_EPS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MAX_ITER"><u>MAX_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximal number of iterations for the self consistent propagator loop.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  10
+<TR><TD WITDH="20%"><A NAME="EPS_ITER"><u>EPS_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_ITER 1.0E-5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the self consistent propagator loop.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-08
+<TR><TD WITDH="20%"><A NAME="ASPC_ORDER"><u>ASPC_ORDER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ASPC_ORDER 3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Speciefies how many steps will be used for extrapolation. One will be always used which is means X(t+dt)=X(t)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="MAT_EXP"><u>MAT_EXP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAT_EXP TAYLOR
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which method should be used to calculate the exponential in the propagator. For Ehrenfest MD only the Taylor method works, for real time propagation diagonalization works as well.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ARNOLDI
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>TAYLOR</code>: exponential is evaluated using scaling and squaring in combination with a taylor expansion of the exponential.</li>
+<li><code>PADE</code>: uses scaling and squaring together with the pade approximation</li>
+<li><code>ARNOLDI</code>: uses arnoldi subspace algorithm to compute exp(H)*MO directly, can't be used in combination with Crank Nicholson or density propagation</li>
+<li><code>BCH</code>: Uses a Baker-Campbell-Hausdorff expansion to propagate the density matrix, only works for density propagation</li>
+</ul><TR><TD WITDH="20%"><A NAME="DENSITY_PROPAGATION"><u>DENSITY_PROPAGATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DENSITY_PROPAGATION .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The density matrix is propagated instead of the molecular orbitals. This can allow a linear scaling simulation. The density matrix is filtered with the threshold based on the EPS_FILTER keyword from the LS_SCF section</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="SC_CHECK_START"><u>SC_CHECK_START</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SC_CHECK_START 3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Speciefies how many iteration steps will be done without a check for self consistency. Can save some time in big calculations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="EXP_ACCURACY"><u>EXP_ACCURACY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXP_ACCURACY 1.0E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Accuracy for the taylor and pade approximation. This is only an upper bound bound since the norm used for the guess is an upper bound for the needed one.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-09
+<TR><TD WITDH="20%"><A NAME="PROPAGATOR"><u>PROPAGATOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PROPAGATOR ETRS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which propagator should be used for the orbitals</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ETRS
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ETRS</code>: enforced time reversible symmetry</li>
+<li><code>CN</code>: Crank Nicholson propagator</li>
+<li><code>EM</code>: Exponential midpoint propagator</li>
+</ul><TR><TD WITDH="20%"><A NAME="INITIAL_WFN"><u>INITIAL_WFN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INITIAL_WFN SCF_WFN
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the initial WFN used for propagation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SCF_WFN
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SCF_WFN</code>: An SCF run is performed to get the initial state.</li>
+<li><code>RESTART_WFN</code>: A wavefunction from a previous SCF is propagated. Especially useful, if electronic constraints or restraints are used in the previous calculation, since these do not work in the rtp scheme.</li>
+<li><code>RT_RESTART</code>: use the wavefunction of a real time propagation/ehrenfest run</li>
+</ul><TR><TD WITDH="20%"><A NAME="APPLY_DELTA_PULSE"><u>APPLY_DELTA_PULSE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">APPLY_DELTA_PULSE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Applies a delta kick to the initial wfn (only RTP for now - the EMD  case is not yet implemented).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PERIODIC"><u>PERIODIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PERIODIC
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Apply a delta-kick that is compatible with periodic boundary conditions for any value of DELTA_PULSE_SCALE. Uses perturbation theory for the preparation of the initial wfn. Note that the pulse is only applied when INITIAL_WFN is set to SCF_WFN, and not for restarts (RT_RESTART).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DELTA_PULSE_DIRECTION"><u>DELTA_PULSE_DIRECTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DELTA_PULSE_DIRECTION 1 1 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Direction of the applied electric field. The k vector is given as 2*Pi*[i,j,k]*inv(h_mat), which for PERIODIC .FALSE. yields exp(ikr) periodic with the unit cell, only if DELTA_PULSE_SCALE is set to unity. For an orthorhombic cell [1,0,0] yields [2*Pi/L_x,0,0]. For small cells, this results in a very large kick.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers. Default value:  1 0 0
+<TR><TD WITDH="20%"><A NAME="DELTA_PULSE_SCALE"><u>DELTA_PULSE_SCALE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DELTA_PULSE_SCALE 0.01
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scale the k vector, which for PERIODIC .FALSE. results in exp(ikr) no longer being periodic with the unit cell. The norm of k is the strength of the applied electric field in atomic units.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-03
+<TR><TD WITDH="20%"><A NAME="HFX_BALANCE_IN_CORE"><u>HFX_BALANCE_IN_CORE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">HFX_BALANCE_IN_CORE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If HFX is used, this keyword forces a redistribution/recalculation of the integrals, balanced with respect to the in core steps.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="MCWEENY_MAX_ITER"><u>MCWEENY_MAX_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MCWEENY_MAX_ITER 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines the maximum amount of McWeeny steps used after each converged step in density propagation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="ACCURACY_REFINEMENT"><u>ACCURACY_REFINEMENT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ACCURACY_REFINEMENT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If using density propagation some parts should be calculated with a higher accuracy than the rest to reduce numerical noise. This factor determines by how much the filtering threshold is reduced for these calculations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  100
+<TR><TD WITDH="20%"><A NAME="MCWEENY_EPS"><u>MCWEENY_EPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MCWEENY_EPS 0.00001
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold after which McWeeny is terminated</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

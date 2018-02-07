@@ -1,0 +1,46 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CONTACT                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CONTACT                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT.html">TRANSPORT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT~CONTACT.html">CONTACT</A>.
+<BR><BR>Parameters for defining device contacts. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#BANDWIDTH">BANDWIDTH </A>
+<LI><A HREF="#START">START </A>
+<LI><A HREF="#N_ATOMS">N_ATOMS </A>
+<LI><A HREF="#INJECTION_SIGN">INJECTION_SIGN </A>
+<LI><A HREF="#INJECTING_CONTACT">INJECTING_CONTACT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="BANDWIDTH"><u>BANDWIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BANDWIDTH <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of neighboring unit cells that one unit cell interacts with.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="START"><u>START</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">START <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Index of the first atom in the contact unit cell. Set to 0 to define the contact unit cell as the first/last N_ATOMS of the structure (after cutout)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="N_ATOMS"><u>N_ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_ATOMS <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of atoms in the contact unit cell.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="INJECTION_SIGN"><u>INJECTION_SIGN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INJECTION_SIGN <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Contact unit cell interacts with unit cells to the right (positive) or to the left (negative).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  POSITIVE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>POSITIVE</code>: When the contact unit cell is at the upper left corner of the Hamiltonian.</li>
+<li><code>NEGATIVE</code>: When the contact unit cell is at the lower right corner of the Hamiltonian.</li>
+</ul><TR><TD WITDH="20%"><A NAME="INJECTING_CONTACT"><u>INJECTING_CONTACT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>whether or not the contact can inject electrons.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

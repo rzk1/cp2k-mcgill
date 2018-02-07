@@ -1,0 +1,38 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CUTOFF_CALIB                                                                    </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CUTOFF_CALIB                                                                     </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT.html">TDDFPT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT~XC~WF_CORRELATION.html">WF_CORRELATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT~XC~WF_CORRELATION~ERI_MME.html">ERI_MME</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT~XC~WF_CORRELATION~ERI_MME~CUTOFF_CALIB.html">CUTOFF_CALIB</A>.
+<BR><BR>Parameters for the calibration of the energy cutoff by minimizing the errors due to finite cutoff and minimax approximation. Implemented as bisection of error(minimax) - error(cutoff). Not implemented for non-orthorhombic cells. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MIN">MIN </A>
+<LI><A HREF="#MAX">MAX </A>
+<LI><A HREF="#DELTA">DELTA </A>
+<LI><A HREF="#EPS">EPS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MIN"><u>MIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial guess of lower bound for cutoff.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+01
+<TR><TD WITDH="20%"><A NAME="MAX"><u>MAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial guess of upper bound for cutoff.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+04
+<TR><TD WITDH="20%"><A NAME="DELTA"><u>DELTA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Relative widening of cutoff interval in case starting values are not valid.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.0000000000000002E-01
+<TR><TD WITDH="20%"><A NAME="EPS"><u>EPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Relative cutoff precision required to stop calibration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-02
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

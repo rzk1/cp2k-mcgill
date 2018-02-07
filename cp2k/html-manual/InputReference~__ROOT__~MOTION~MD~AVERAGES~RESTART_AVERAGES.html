@@ -1,0 +1,126 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section RESTART_AVERAGES                                                                </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section RESTART_AVERAGES                                                                 </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~AVERAGES.html">AVERAGES</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~AVERAGES~RESTART_AVERAGES.html">RESTART_AVERAGES</A>.
+<BR><BR>Stores information for restarting averages. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ITIMES_START">ITIMES_START </A>
+<LI><A HREF="#AVECPU">AVECPU </A>
+<LI><A HREF="#AVEHUGONIOT">AVEHUGONIOT </A>
+<LI><A HREF="#AVETEMP_BARO">AVETEMP_BARO </A>
+<LI><A HREF="#AVEPOT">AVEPOT </A>
+<LI><A HREF="#AVEKIN">AVEKIN </A>
+<LI><A HREF="#AVETEMP">AVETEMP </A>
+<LI><A HREF="#AVEKIN_QM">AVEKIN_QM </A>
+<LI><A HREF="#AVETEMP_QM">AVETEMP_QM </A>
+<LI><A HREF="#AVEVOL">AVEVOL </A>
+<LI><A HREF="#AVECELL_A">AVECELL_A </A>
+<LI><A HREF="#AVECELL_B">AVECELL_B </A>
+<LI><A HREF="#AVECELL_C">AVECELL_C </A>
+<LI><A HREF="#AVEALPHA">AVEALPHA </A>
+<LI><A HREF="#AVEBETA">AVEBETA </A>
+<LI><A HREF="#AVEGAMMA">AVEGAMMA </A>
+<LI><A HREF="#AVE_ECONS">AVE_ECONS </A>
+<LI><A HREF="#AVE_PRESS">AVE_PRESS </A>
+<LI><A HREF="#AVE_PXX">AVE_PXX </A>
+<LI><A HREF="#AVE_PV_VIR">AVE_PV_VIR </A>
+<LI><A HREF="#AVE_PV_TOT">AVE_PV_TOT </A>
+<LI><A HREF="#AVE_PV_KIN">AVE_PV_KIN </A>
+<LI><A HREF="#AVE_PV_CNSTR">AVE_PV_CNSTR </A>
+<LI><A HREF="#AVE_PV_XC">AVE_PV_XC </A>
+<LI><A HREF="#AVE_PV_FOCK_4C">AVE_PV_FOCK_4C </A>
+<LI><A HREF="#AVE_COLVARS">AVE_COLVARS </A>
+<LI><A HREF="#AVE_MMATRIX">AVE_MMATRIX </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ITIMES_START"><u>ITIMES_START</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ITIMES_START <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>TIME STEP starting the evaluation of averages</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WITDH="20%"><A NAME="AVECPU"><u>AVECPU</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVECPU <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>CPU average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEHUGONIOT"><u>AVEHUGONIOT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEHUGONIOT <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>HUGONIOT average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVETEMP_BARO"><u>AVETEMP_BARO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVETEMP_BARO <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>BAROSTAT TEMPERATURE average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEPOT"><u>AVEPOT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEPOT <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>POTENTIAL ENERGY average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEKIN"><u>AVEKIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEKIN <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>KINETIC ENERGY average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVETEMP"><u>AVETEMP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVETEMP <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>TEMPERATURE average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEKIN_QM"><u>AVEKIN_QM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEKIN_QM <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>QM KINETIC ENERGY average in QMMM runs</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVETEMP_QM"><u>AVETEMP_QM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVETEMP_QM <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>QM TEMPERATURE average in QMMM runs</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEVOL"><u>AVEVOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEVOL <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>VOLUME average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVECELL_A"><u>AVECELL_A</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVECELL_A <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>CELL VECTOR A average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVECELL_B"><u>AVECELL_B</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVECELL_B <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>CELL VECTOR B average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVECELL_C"><u>AVECELL_C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVECELL_C <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>CELL VECTOR C average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEALPHA"><u>AVEALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEALPHA <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>ALPHA cell angle average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEBETA"><u>AVEBETA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEBETA <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>BETA cell angle average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVEGAMMA"><u>AVEGAMMA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVEGAMMA <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAMMA cell angle average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVE_ECONS"><u>AVE_ECONS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_ECONS <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>CONSTANT ENERGY average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVE_PRESS"><u>AVE_PRESS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PRESS <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PRESSURE average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVE_PXX"><u>AVE_PXX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PXX <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>P_{XX} average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="AVE_PV_VIR"><u>AVE_PV_VIR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PV_VIR <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PV VIRIAL average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     9 reals<TR><TD WITDH="20%"><A NAME="AVE_PV_TOT"><u>AVE_PV_TOT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PV_TOT <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PV TOTAL average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     9 reals<TR><TD WITDH="20%"><A NAME="AVE_PV_KIN"><u>AVE_PV_KIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PV_KIN <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PV KINETIC average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     9 reals<TR><TD WITDH="20%"><A NAME="AVE_PV_CNSTR"><u>AVE_PV_CNSTR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PV_CNSTR <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PV CONSTRAINTS average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     9 reals<TR><TD WITDH="20%"><A NAME="AVE_PV_XC"><u>AVE_PV_XC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PV_XC <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PV XC average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     9 reals<TR><TD WITDH="20%"><A NAME="AVE_PV_FOCK_4C"><u>AVE_PV_FOCK_4C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_PV_FOCK_4C <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PV XC average</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     9 reals<TR><TD WITDH="20%"><A NAME="AVE_COLVARS"><u>AVE_COLVARS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_COLVARS <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>COLVARS averages</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals<TR><TD WITDH="20%"><A NAME="AVE_MMATRIX"><u>AVE_MMATRIX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVE_MMATRIX <REAL> .. <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>METRIC TENSOR averages</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

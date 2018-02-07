@@ -1,0 +1,64 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PLANAR                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PLANAR                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~POISSON.html">POISSON</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~POISSON~IMPLICIT.html">IMPLICIT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~POISSON~IMPLICIT~DIRICHLET_BC.html">DIRICHLET_BC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~POISSON~IMPLICIT~DIRICHLET_BC~PLANAR.html">PLANAR</A>.
+<BR><BR>Parameters for creating planar (rectangular) Dirichlet boundary regions with given vertices. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#V_D">V_D </A>
+<LI><A HREF="#OSCILLATING_FRACTION">OSCILLATING_FRACTION </A>
+<LI><A HREF="#FREQUENCY">FREQUENCY </A>
+<LI><A HREF="#PHASE">PHASE </A>
+<LI><A HREF="#A">A </A>
+<LI><A HREF="#B">B </A>
+<LI><A HREF="#C">C </A>
+<LI><A HREF="#N_PRTN">N_PRTN </A>
+<LI><A HREF="#THICKNESS">THICKNESS </A>
+<LI><A HREF="#SMOOTHING_WIDTH">SMOOTHING_WIDTH </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="V_D"><u>V_D</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">v_D <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The value of the fixed potential to be imposed at the planar Dirichlet boundary.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [volt].<TR><TD WITDH="20%"><A NAME="OSCILLATING_FRACTION"><u>OSCILLATING_FRACTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OSCILLATING_FRACTION <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>A fraction of the field can be set to oscilate over time.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="FREQUENCY"><u>FREQUENCY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FREQUENCY <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The frequency with which the oscillating fraction oscillates.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [s^-1], default value:     0.0000000000000000E+00
+s^-1<TR><TD WITDH="20%"><A NAME="PHASE"><u>PHASE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PHASE <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The phase of the oscillattion. A phase of zero corresponds to a cosine function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="A"><u>A</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A <x(real)> <y(real)> <z(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Coordinates of the vertex A.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="B"><u>B</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">B <x(real)> <y(real)> <z(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Coordinates of the vertex B.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="C"><u>C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">C <x(real)> <y(real)> <z(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Coordinates of the vertex C.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="N_PRTN"><u>N_PRTN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_PRTN <integer> <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of partitions along the edges for tiling the rectangular region. If the edges have different lengths, from the two given values, the larger one will be assigned to the longer edge.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers. Default value:  1 1
+<TR><TD WITDH="20%"><A NAME="THICKNESS"><u>THICKNESS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">THICKNESS <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The thickness of the planar Dirichlet region.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     3.9688290644250002E-01
+angstrom<TR><TD WITDH="20%"><A NAME="SMOOTHING_WIDTH"><u>SMOOTHING_WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SMOOTHING_WIDTH <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The width of the transition region between the Dirichlet subdomain and its surrounding.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.0583544171800002E-01
+angstrom<TR><TD WIDTH="10%"><TD>variants: SIGMA</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

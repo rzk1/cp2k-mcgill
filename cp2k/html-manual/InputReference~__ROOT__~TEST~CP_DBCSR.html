@@ -1,0 +1,143 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CP_DBCSR                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CP_DBCSR                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>%<A HREF="InputReference~__ROOT__~TEST~CP_DBCSR.html">CP_DBCSR</A>.
+<BR><BR>Benchmark and test the cp_dbcsr routines. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#N_LOOP">N_LOOP </A>
+<LI><A HREF="#DATA_TYPE">DATA_TYPE </A>
+<LI><A HREF="#TEST_TYPE">TEST_TYPE </A>
+<LI><A HREF="#M">M </A>
+<LI><A HREF="#N">N </A>
+<LI><A HREF="#K">K </A>
+<LI><A HREF="#TRANSA">TRANSA </A>
+<LI><A HREF="#TRANSB">TRANSB </A>
+<LI><A HREF="#BS_M">BS_M </A>
+<LI><A HREF="#BS_N">BS_N </A>
+<LI><A HREF="#BS_K">BS_K </A>
+<LI><A HREF="#ATYPE">ATYPE </A>
+<LI><A HREF="#BTYPE">BTYPE </A>
+<LI><A HREF="#CTYPE">CTYPE </A>
+<LI><A HREF="#NPROC">NPROC </A>
+<LI><A HREF="#KEEPSPARSE">KEEPSPARSE </A>
+<LI><A HREF="#ASPARSITY">ASPARSITY </A>
+<LI><A HREF="#BSPARSITY">BSPARSITY </A>
+<LI><A HREF="#CSPARSITY">CSPARSITY </A>
+<LI><A HREF="#ALPHA">ALPHA </A>
+<LI><A HREF="#BETA">BETA </A>
+<LI><A HREF="#FILTER_EPS">FILTER_EPS </A>
+<LI><A HREF="#ALWAYS_CHECKSUM">ALWAYS_CHECKSUM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="N_LOOP"><u>N_LOOP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_LOOP 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of operations being timed (useful for small matrices).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  10
+<TR><TD WITDH="20%"><A NAME="DATA_TYPE"><u>DATA_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DATA_TYPE real_4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Data type of the matrices</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  REAL_8
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>REAL_4</code>: Real (Single Precision)</li>
+<li><code>REAL_8</code>: Real (Double Precision)</li>
+<li><code>COMPLEX_4</code>: Complex (Single Precision)</li>
+<li><code>COMPLEX_8</code>: Complex (Double Precision)</li>
+</ul><TR><TD WITDH="20%"><A NAME="TEST_TYPE"><u>TEST_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TEST_TYPE MM
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which part of DBCSR is tested</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  MM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>MM</code>: Run matrix multiplications</li>
+<li><code>BINARY_IO</code>: Run binary IO checks</li>
+</ul><TR><TD WITDH="20%"><A NAME="M"><u>M</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Dimension 1 of C</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  256
+<TR><TD WITDH="20%"><A NAME="N"><u>N</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Dimension 2 of C</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  256
+<TR><TD WITDH="20%"><A NAME="K"><u>K</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Inner dimension M</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  256
+<TR><TD WITDH="20%"><A NAME="TRANSA"><u>TRANSA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRANSA
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Transpose matrix A</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TRANSB"><u>TRANSB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRANSB
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Transpose matrix B</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="BS_M"><u>BS_M</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BS_M 1 13 2 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Row block sizes of C</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  1 13 2 15
+<TR><TD WITDH="20%"><A NAME="BS_N"><u>BS_N</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BS_N 1 13 2 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Column block sizes of C</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  1 13 2 15
+<TR><TD WITDH="20%"><A NAME="BS_K"><u>BS_K</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BS_K 1 13 2 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Block sizes of inner dimension</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  1 13 2 15
+<TR><TD WITDH="20%"><A NAME="ATYPE"><u>ATYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATYPE N
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Matrix A type</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: N
+<TR><TD WITDH="20%"><A NAME="BTYPE"><u>BTYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BTYPE N
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Matrix B type</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: N
+<TR><TD WITDH="20%"><A NAME="CTYPE"><u>CTYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CTYPE N
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Matrix C type</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: N
+<TR><TD WITDH="20%"><A NAME="NPROC"><u>NPROC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NPROC 128 16 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of processors to test</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  0
+<TR><TD WITDH="20%"><A NAME="KEEPSPARSE"><u>KEEPSPARSE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KEEPSPARSE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Keep product sparse</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ASPARSITY"><u>ASPARSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ASPARSITY 70
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sparsity of A matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="BSPARSITY"><u>BSPARSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ASPARSITY 80
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sparsity of B matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="CSPARSITY"><u>CSPARSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ASPARSITY 90
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sparsity of C matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="ALPHA"><u>ALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALPHA 2.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Multiplication factor</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="BETA"><u>BETA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BETA 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Product premultiplication factor</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="FILTER_EPS"><u>FILTER_EPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FILTER_EPS 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold for on-the-fly and final filtering.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="ALWAYS_CHECKSUM"><u>ALWAYS_CHECKSUM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALWAYS_CHECKSUM
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>perform a checksum after each multiplication</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

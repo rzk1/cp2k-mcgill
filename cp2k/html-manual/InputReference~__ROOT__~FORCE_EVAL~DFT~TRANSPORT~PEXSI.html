@@ -1,0 +1,43 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PEXSI                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PEXSI                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT.html">TRANSPORT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT~PEXSI.html">PEXSI</A>.
+<BR><BR>Parameters for the PEXSI solver to be used within OMEN. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ORDERING">ORDERING </A>
+<LI><A HREF="#ROW_ORDERING">ROW_ORDERING </A>
+<LI><A HREF="#VERBOSITY">VERBOSITY </A>
+<LI><A HREF="#NP_SYMB_FACT">NP_SYMB_FACT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ORDERING"><u>ORDERING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ORDERING <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Ordering strategy for factorization and selected inversion.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SEQUENTIAL
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>PARALLEL</code>: Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS option in SuperLU_DIST)</li>
+<li><code>SEQUENTIAL</code>: Sequential ordering using METIS (METIS_AT_PLUS_A option in SuperLU_DIST)</li>
+<li><code>MULTIPLE_MINIMUM_DEGREE</code>: Multiple minimum degree ordering (MMD_AT_PLUS_A option in SuperLU_DIST)</li>
+</ul><TR><TD WITDH="20%"><A NAME="ROW_ORDERING"><u>ROW_ORDERING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ROW_ORDERING <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>row permutation strategy for factorization and selected inversion.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NOROWPERM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NOROWPERM</code>: No row permutation (NOROWPERM option in SuperLU_DIST)</li>
+<li><code>LARGEDIAG</code>: Make diagonal entry larger than off diagonal (LargeDiag option in SuperLU_DIST)</li>
+</ul><TR><TD WITDH="20%"><A NAME="VERBOSITY"><u>VERBOSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VERBOSITY <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The level of output information.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SILENT
+<TR><TD WIDTH="10%"><TD>  valid keywords: SILENT, BASIC, DETAILED<TR><TD WITDH="20%"><A NAME="NP_SYMB_FACT"><u>NP_SYMB_FACT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NP_SYMB_FACT <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of processors for PARMETIS/PT-SCOTCH. Only used if ORDERING is set to PARALLEL. If 0, the number of processors for PARMETIS/PT-SCOTCH will be set equal to the number of MPI ranks per pole. Note: if more than one processor is used, a segmentation fault may occur in the symbolic factorization phase.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

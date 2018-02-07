@@ -1,0 +1,79 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section BUCKMORSE                                                                       </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section BUCKMORSE                                                                        </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD.html">FORCEFIELD</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~NONBONDED.html">NONBONDED</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~NONBONDED~BUCKMORSE.html">BUCKMORSE</A>.
+<BR><BR>This section specifies the input parameters for Buckingham plus Morse potential type  Functional Form: V(r) = F0*(B1+B2)*EXP([A1+A2-r]/[B1+B2])-C/r^6+D*{EXP[-2*beta*(r-R0)]-2*EXP[-beta*(r-R0)]}. This section can be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_30" TITLE="
+ Yamada, K; Kurosaki, K; Uno, M; Yamanaka, S. 
+ JOURNAL OF ALLOYS AND COMPOUNDS, 307, 10-16 (2000). 
+ Evaluation of thermal properties of uranium dioxide by molecular
+ dynamics.
+ http://dx.doi.org/10.1016/S0925-8388(00)00806-9
+">[Yamada2000]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#F0">F0 </A>
+<LI><A HREF="#A1">A1 </A>
+<LI><A HREF="#A2">A2 </A>
+<LI><A HREF="#B1">B1 </A>
+<LI><A HREF="#B2">B2 </A>
+<LI><A HREF="#C">C </A>
+<LI><A HREF="#D">D </A>
+<LI><A HREF="#R0">R0 </A>
+<LI><A HREF="#BETA">BETA </A>
+<LI><A HREF="#RCUT">RCUT </A>
+<LI><A HREF="#RMIN">RMIN </A>
+<LI><A HREF="#RMAX">RMAX </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {KIND1} {KIND2}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the atomic kind involved in the nonbond potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 words<TR><TD WITDH="20%"><A NAME="F0"><u>F0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">F0 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the f0 parameter of Buckingham+Morse potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-1*K_e].<TR><TD WITDH="20%"><A NAME="A1"><u>A1</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A1 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the A1 parameter of Buckingham+Morse potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="A2"><u>A2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A2 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the A2 parameter of Buckingham+Morse potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="B1"><u>B1</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">B1 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the B1 parameter of Buckingham+Morse potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="B2"><u>B2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">B2 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the B2 parameter of Buckingham+Morse potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="C"><u>C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">C {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the C parameter of Buckingham+Morse  potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^6*K_e].<TR><TD WITDH="20%"><A NAME="D"><u>D</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">D {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the amplitude for the Morse part</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K_e].<TR><TD WITDH="20%"><A NAME="R0"><u>R0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">R0 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the equilibrium distance for the Morse part</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="BETA"><u>BETA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">Beta {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the width for the Morse part</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-1].<TR><TD WITDH="20%"><A NAME="RCUT"><u>RCUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RCUT {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the cutoff parameter of the Buckingham potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.0000000000000002E+01
+angstrom<TR><TD WITDH="20%"><A NAME="RMIN"><u>RMIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RMIN {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the lower bound of the potential. If not set the range is the full range generate by the spline</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="RMAX"><u>RMAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RMAX {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the upper bound of the potential. If not set the range is the full range generate by the spline</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

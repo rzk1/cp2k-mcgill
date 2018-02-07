@@ -1,0 +1,111 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section OUTER_SCF                                                                       </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section OUTER_SCF                                                                        </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCF.html">SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCF~OUTER_SCF.html">OUTER_SCF</A>.
+<BR><BR>parameters controlling the outer SCF loop. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#TYPE">TYPE </A>
+<LI><A HREF="#OPTIMIZER">OPTIMIZER </A>
+<LI><A HREF="#BROYDEN_TYPE">BROYDEN_TYPE </A>
+<LI><A HREF="#JACOBIAN_TYPE">JACOBIAN_TYPE </A>
+<LI><A HREF="#JACOBIAN_STEP">JACOBIAN_STEP </A>
+<LI><A HREF="#JACOBIAN_FREQ">JACOBIAN_FREQ </A>
+<LI><A HREF="#BISECT_TRUST_COUNT">BISECT_TRUST_COUNT </A>
+<LI><A HREF="#EPS_SCF">EPS_SCF </A>
+<LI><A HREF="#DIIS_BUFFER_LENGTH">DIIS_BUFFER_LENGTH </A>
+<LI><A HREF="#EXTRAPOLATION_ORDER">EXTRAPOLATION_ORDER </A>
+<LI><A HREF="#MAX_SCF">MAX_SCF </A>
+<LI><A HREF="#STEP_SIZE">STEP_SIZE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&OUTER_SCF ON
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>controls the activation of the outer SCF loop</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TYPE"><u>TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TYPE DDAPC_CONSTRAINT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies which kind of outer SCF should be employed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>DDAPC_CONSTRAINT</code>: Enforce a constraint on the DDAPC, requires the corresponding section</li>
+<li><code>S2_CONSTRAINT</code>: Enforce a constraint on the S2, requires the corresponding section</li>
+<li><code>BECKE_CONSTRAINT</code>: Enforce a constraint on the Becke weight population, requires the corresponding section</li>
+<li><code>BASIS_CENTER_OPT</code>: Optimize positions of basis functions, if atom types FLOATING_BASIS_CENTER  are defined</li>
+<li><code>CDFT_CONSTRAINT</code>: Enforce a constraint on a generic CDFT weight population, requires the corresponding section which determines the type of weight used (currently only Gaussian Hirshfeld supported)</li>
+<li><code>NONE</code>: Do nothing in the outer loop, useful for resetting the inner loop,</li>
+</ul><TR><TD WITDH="20%"><A NAME="OPTIMIZER"><u>OPTIMIZER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OPTIMIZER SD
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method used to bring the outer loop to a stationary point</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SD</code>: Takes steps in the direction of the gradient, multiplied by step_size</li>
+<li><code>DIIS</code>: Uses a Direct Inversion in the Iterative Subspace method</li>
+<li><code>NONE</code>: Do nothing, useful only with the none type</li>
+<li><code>BISECT</code>: Bisection of the gradient, useful for difficult one dimensional cases</li>
+<li><code>BROYDEN</code>: Broyden's method. Variant defined in BROYDEN_TYPE.</li>
+<li><code>NEWTON</code>: Newton's method. Only compatible with CDFT constraints</li>
+<li><code>SECANT</code>: Secant method. Only for one dimensional cases. See Broyden for multidimensional cases.</li>
+<li><code>NEWTON_LS</code>: Newton's method with backtracking line search to find the optimal step size. Only compatible with CDFT constraints. Starts from the regular Newton solution and successively reduces the step size until the L2 norm of the CDFT gradient decreases. Potentially very expensive because each iteration performs a full  SCF calculation.</li>
+</ul><TR><TD WITDH="20%"><A NAME="BROYDEN_TYPE"><u>BROYDEN_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BROYDEN_TYPE BT1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the Broyden optimizer variant to use.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  BT1
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>BT1</code>: Broyden's first method, also known as the good method. The initial Jacobian is built from MD history if available. Otherwise switches to SD for one SCF iteration until a Jacobian can be built from the SCF history.</li>
+<li><code>BT1_EXPLICIT</code>: Same as BT1, but computes the explicit Jacobian with finite differences. Requires a CDFT SCF procedure to be active.</li>
+<li><code>BT2</code>: Same as BT1, but uses Broyden's second method, also known as the bad method</li>
+<li><code>BT2_EXPLICIT</code>: Same as BT1_EXPLICIT, but using Broyden's second method.</li>
+<li><code>BT1_LS</code>: Same as BT1, but uses backtracking line search for optimizing the step size (see optimizer NEWTON_LS).</li>
+<li><code>BT1_EXPLICIT_LS</code>: Same as BT1_EXPLICIT, but uses backtracking line search for optimizing the step size</li>
+<li><code>BT2_LS</code>: Same as BT2, but uses backtracking line search for optimizing the step size</li>
+<li><code>BT2_EXPLICIT_LS</code>: Same as BT2_EXPLICIT, but uses backtracking line search for optimizing the step size</li>
+</ul><TR><TD WITDH="20%"><A NAME="JACOBIAN_TYPE"><u>JACOBIAN_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">JACOBIAN_TYPE FD1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Finite difference method used to calculate the inverse Jacobian needed by some optimizers. Compatible only with CDFT constraints.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FD1
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>FD1</code>: First order forward difference (one extra energy evaluation per constraint)</li>
+<li><code>FD1_BACKWARD</code>: First order backward difference (one extra energy evaluation per constraint)</li>
+<li><code>FD2</code>: Second order forward difference (two extra energy evaluations per constraint)</li>
+<li><code>FD2_BACKWARD</code>: Second order backward difference (two extra energy evaluations per constraint)</li>
+<li><code>FD1_CENTRAL</code>: First order central difference (two extra energy evaluations per constraint)</li>
+</ul><TR><TD WITDH="20%"><A NAME="JACOBIAN_STEP"><u>JACOBIAN_STEP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">JACOBIAN_STEP 1.0E-4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Step size to use in the calculation of the inverse Jacobian with finite differences.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-04
+<TR><TD WITDH="20%"><A NAME="JACOBIAN_FREQ"><u>JACOBIAN_FREQ</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">JACOBIAN_FREQ 1 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines parameters that control how often the explicit Jacobian is built, which is needed by some optimizers. Expects two values. The first value determines how many consecutive CDFT SCF iterations should skip a rebuild, whereas the latter how many MD steps. The values can be zero (meaning never  rebuild) or positive. Both values cannot be zero.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers. Default value:  1 1
+<TR><TD WITDH="20%"><A NAME="BISECT_TRUST_COUNT"><u>BISECT_TRUST_COUNT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BISECT_TRUST_COUNT 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of times the same point will be used in bisection, a small number guards against the effect of wrongly converged states.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  10
+<TR><TD WITDH="20%"><A NAME="EPS_SCF"><u>EPS_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_SCF 1.0E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The target gradient of the outer SCF variables. Notice that the EPS_SCF of the inner loop also determines the value that can be reached in the outer loop, typically EPS_SCF of the outer loop must be smaller than EPS_SCF of the inner loop.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WITDH="20%"><A NAME="DIIS_BUFFER_LENGTH"><u>DIIS_BUFFER_LENGTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DIIS_BUFFER_LENGTH 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of DIIS vectors used</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="EXTRAPOLATION_ORDER"><u>EXTRAPOLATION_ORDER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXTRAPOLATION_ORDER 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of past states used in the extrapolation of the variables during e.g. MD</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="MAX_SCF"><u>MAX_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_SCF 20
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The maximum number of outer loops</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  50
+<TR><TD WITDH="20%"><A NAME="STEP_SIZE"><u>STEP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STEP_SIZE -1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The initial step_size used in the optimizer (currently steepest descent).Note that in cases where a sadle point is sought for (DDAPC_CONSTRAINT), this can be negative</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.0000000000000000E-01
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

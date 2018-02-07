@@ -1,0 +1,117 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MIXING                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MIXING                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCF.html">SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCF~DIAGONALIZATION.html">DIAGONALIZATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCF~DIAGONALIZATION~DIAG_SUB_SCF.html">DIAG_SUB_SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCF~DIAGONALIZATION~DIAG_SUB_SCF~MIXING.html">MIXING</A>.
+<BR><BR>Define type and parameters for mixing procedures to be applied to the density matrix. Normally, only one type of mixing method should be accepted. The mixing procedures activated by this section are only active for diagonalization methods and linear scaling SCF, i.e. not with minimization methods based on OT. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#METHOD">METHOD </A>
+<LI><A HREF="#ALPHA">ALPHA </A>
+<LI><A HREF="#BETA">BETA </A>
+<LI><A HREF="#PULAY_ALPHA">PULAY_ALPHA </A>
+<LI><A HREF="#PULAY_BETA">PULAY_BETA </A>
+<LI><A HREF="#NMIXING">NMIXING </A>
+<LI><A HREF="#NBUFFER">NBUFFER </A>
+<LI><A HREF="#BROY_W0">BROY_W0 </A>
+<LI><A HREF="#BROY_WREF">BROY_WREF </A>
+<LI><A HREF="#BROY_WMAX">BROY_WMAX </A>
+<LI><A HREF="#REGULARIZATION">REGULARIZATION </A>
+<LI><A HREF="#MAX_STEP">MAX_STEP </A>
+<LI><A HREF="#R_FACTOR">R_FACTOR </A>
+<LI><A HREF="#NSKIP">NSKIP </A>
+<LI><A HREF="#N_SIMPLE_MIX">N_SIMPLE_MIX </A>
+<LI><A HREF="#MAX_GVEC_EXP">MAX_GVEC_EXP </A>
+<LI><A HREF="#GMIX_P">GMIX_P </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&MIXING ON
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the activation of the mixing procedure</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="METHOD"><u>METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">METHOD KERKER_MIXING
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixing method to be applied</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  DIRECT_P_MIXING
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: No mixing is applied</li>
+<li><code>DIRECT_P_MIXING</code>: Direct mixing of new and old density matrices</li>
+<li><code>KERKER_MIXING</code>: Mixing of the potential in reciprocal space using the Kerker damping</li>
+<li><code>PULAY_MIXING</code>: Pulay mixing</li>
+<li><code>BROYDEN_MIXING</code>: Broyden mixing</li>
+<li><code>BROYDEN_MIXING_NEW</code>: Broyden mixing second version</li>
+<li><code>MULTISECANT_MIXING</code>: Multisecant scheme for mixing</li>
+</ul><TR><TD WITDH="20%"><A NAME="ALPHA"><u>ALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALPHA 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Fraction of new density to be included</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     4.0000000000000002E-01
+<TR><TD WITDH="20%"><A NAME="BETA"><u>BETA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BETA 1.5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Denominator parameter in Kerker damping introduced to suppress charge sloshing: rho_mix(g) =rho_in(g) + alpha*g^2/(g^2 + beta^2)*(rho_out(g)-rho_in(g))</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr^-1], default value:     5.0000000000000000E-01
+bohr^-1<TR><TD WITDH="20%"><A NAME="PULAY_ALPHA"><u>PULAY_ALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PULAY_ALPHA 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Fraction of new density to be added to the Pulay expansion</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="PULAY_BETA"><u>PULAY_BETA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PULAY_BETA 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Fraction of residual contribution to be added to Pulay expansion</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="NMIXING"><u>NMIXING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NMIXING 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Minimal number of density mixing (should be greater than 0),before starting DIIS</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WITDH="20%"><A NAME="NBUFFER"><u>NBUFFER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NBUFFER 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of previous steps stored for the actual mixing scheme</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  4
+<TR><TD WIDTH="10%"><TD>variants: NPULAY, NBROYDEN, NMULTISECANT<TR><TD WITDH="20%"><A NAME="BROY_W0"><u>BROY_W0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BROY_W0 0.03
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> w0 parameter used in Broyden mixing</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-02
+<TR><TD WITDH="20%"><A NAME="BROY_WREF"><u>BROY_WREF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BROY_WREF 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i></i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+02
+<TR><TD WITDH="20%"><A NAME="BROY_WMAX"><u>BROY_WMAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BROY_WMAX 10.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i></i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     3.0000000000000000E+01
+<TR><TD WITDH="20%"><A NAME="REGULARIZATION"><u>REGULARIZATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REGULARIZATION 0.000001
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Regularization parameter to stabilize the inversion of the residual matrix {Yn^t Yn} in the multisecant mixing scheme (noise)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WITDH="20%"><A NAME="MAX_STEP"><u>MAX_STEP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_STEP .2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Upper bound for the magnitude of the unpredicted step size in the update by the multisecant mixing scheme</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="R_FACTOR"><u>R_FACTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">R_FACTOR .12
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Control factor for the magnitude of the unpredicted step size in the update by the multisecant mixing scheme</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.0000000000000003E-02
+<TR><TD WITDH="20%"><A NAME="NSKIP"><u>NSKIP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NSKIP 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of initial iteration for which the mixing is skipped</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WIDTH="10%"><TD>variants: NSKIP_MIXING<TR><TD WITDH="20%"><A NAME="N_SIMPLE_MIX"><u>N_SIMPLE_MIX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NSIMPLEMIX
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of kerker damping iterations before starting other mixing procedures</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WIDTH="10%"><TD>variants: NSIMPLEMIX<TR><TD WITDH="20%"><A NAME="MAX_GVEC_EXP"><u>MAX_GVEC_EXP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_GVEC_EXP 3.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Restricts the G-space mixing to lower part of G-vector spectrum, up to a G0, by assigning the exponent of the Gaussian that can be represented by vectors smaller than G0 within a certain accuracy.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="GMIX_P"><u>GMIX_P</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GMIX_P
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Activate the mixing of the denisty matrix, using the same mixing coefficient applied for the g-space mixing.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

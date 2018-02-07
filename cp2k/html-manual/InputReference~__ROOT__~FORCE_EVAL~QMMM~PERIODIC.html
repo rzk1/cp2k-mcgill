@@ -1,0 +1,46 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PERIODIC                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PERIODIC                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC.html">PERIODIC</A>.
+<BR><BR>Specify parameters for QM/MM periodic boundary conditions calculations. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_41" TITLE="
+ Laino, T; Mohamed, F; Laio, A; Parrinello, M. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 2 (5), 1370-1378 (2006). 
+ An efficient linear-scaling electrostatic coupling for treating
+ periodic boundary conditions in QM/MM simulations.
+ http://dx.doi.org/10.1021/ct6001169
+">[Laino2006]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~MULTIPOLE.html">MULTIPOLE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~INTERPOLATOR.html">INTERPOLATOR </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON.html">POISSON </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~CHECK_SPLINE.html">CHECK_SPLINE </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#GMAX">GMAX </A>
+<LI><A HREF="#REPLICA">REPLICA </A>
+<LI><A HREF="#NGRIDS">NGRIDS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="GMAX"><u>GMAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GMAX <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the maximum value of G in the reciprocal space over which perform the Ewald sum.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="REPLICA"><u>REPLICA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REPLICA <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the number of replica to take into consideration for the real part of the calculation. Default is letting the qmmm module decide how many replica you really need.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="NGRIDS"><u>NGRIDS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NGRIDS <integer> <iteger> <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the number of grid points used for the Interpolation of the G-space term</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers. Default value:  50 50 50
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

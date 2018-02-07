@@ -1,0 +1,44 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section KRYLOV                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section KRYLOV                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS.html">XAS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~SCF.html">SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~SCF~DIAGONALIZATION.html">DIAGONALIZATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~SCF~DIAGONALIZATION~KRYLOV.html">KRYLOV</A>.
+<BR><BR> This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#NKRYLOV">NKRYLOV </A>
+<LI><A HREF="#NBLOCK">NBLOCK </A>
+<LI><A HREF="#EPS_KRYLOV">EPS_KRYLOV </A>
+<LI><A HREF="#EPS_STD_DIAG">EPS_STD_DIAG </A>
+<LI><A HREF="#CHECK_MOS_CONV">CHECK_MOS_CONV </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="NKRYLOV"><u>NKRYLOV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NKRYLOV 20
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Dimension of the Krylov space used for the Lanczos refinement</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  4
+<TR><TD WITDH="20%"><A NAME="NBLOCK"><u>NBLOCK</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NBLOCK 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Size of the block of vectors refined simultaneously by the Lanczos procedure</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  32
+<TR><TD WITDH="20%"><A NAME="EPS_KRYLOV"><u>EPS_KRYLOV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_KRYLOV 0.00001
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the MOs</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-08
+<TR><TD WITDH="20%"><A NAME="EPS_STD_DIAG"><u>EPS_STD_DIAG</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_STD_DIAG 0.001
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Level of convergence to be reached before starting the Lanczos procedure. Above this threshold a standard diagonalization method is used.  If negative Lanczos is started at the first iteration</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="CHECK_MOS_CONV"><u>CHECK_MOS_CONV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CHECK_MOS_CONV T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This requires to check the convergence of MOS also when standard diagonalization steps are performed, if the block krylov approach is active.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

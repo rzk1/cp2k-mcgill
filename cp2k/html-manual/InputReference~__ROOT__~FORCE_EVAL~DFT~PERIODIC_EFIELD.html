@@ -1,0 +1,61 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PERIODIC_EFIELD                                                                 </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PERIODIC_EFIELD                                                                  </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PERIODIC_EFIELD.html">PERIODIC_EFIELD</A>.
+<BR><BR>parameters for finite periodic electric field computed using the Berry phase approach. IMPORTANT: Can only be used in combination  with OT. Can not be used in combination with RTP or EMD. This section can be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_149" TITLE="
+ Souza, I; Iniguez, J; Vanderbilt, D. 
+ PHYSICAL REVIEW LETTERS, 89 (11), 117602 (2002). 
+ First-principles approach to insulators in finite electric fields.
+ http://dx.doi.org/10.1103/PhysRevLett.89.117602
+">[Souza2002]</A>
+<A HREF="references.html#reference_150" TITLE="
+ Umari, P; Pasquarello, A. 
+ PHYSICAL REVIEW LETTERS, 89 (15), 157602 (2002). 
+ Ab initio molecular dynamics in a finite homogeneous electric field.
+ http://dx.doi.org/10.1103/PhysRevLett.89.157602
+">[Umari2002]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#INTENSITY">INTENSITY </A>
+<LI><A HREF="#POLARISATION">POLARISATION </A>
+<LI><A HREF="#DISPLACEMENT_FIELD">DISPLACEMENT_FIELD </A>
+<LI><A HREF="#D_FILTER">D_FILTER </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="INTENSITY"><u>INTENSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INTENSITY  0.001
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Intensity of the electric field in a.u</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="POLARISATION"><u>POLARISATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">POLARISIATION  0.0 0.0 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Polarisation vector of electric field</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default value:     0.0000000000000000E+00    0.0000000000000000E+00    1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="DISPLACEMENT_FIELD"><u>DISPLACEMENT_FIELD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPLACEMENT_FIELD T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use the displacement field formulation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_151" TITLE="
+ Stengel, Massimiliano; Spaldin, Nicola A.; Vanderbilt, David. 
+ NATURE PHYSICS, 5 (4), 304-308 (2009). 
+ Ab initio molecular dynamics in a finite homogeneous electric field
+ Electric displacement as the fundamental variable in
+ electronic-structure calculations.
+ http://dx.doi.org/10.1038/NPHYS1185
+">[Stengel2009]</A>
+<TR><TD WITDH="20%"><A NAME="D_FILTER"><u>D_FILTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">D_FILTER  1.0 0.0 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Filter for displacement field (x,y,z-dirction)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default value:     1.0000000000000000E+00    1.0000000000000000E+00    1.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

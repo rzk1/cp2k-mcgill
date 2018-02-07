@@ -1,0 +1,51 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FORCE_EVAL                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FORCE_EVAL                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>.
+<BR><BR>parameters needed to calculate energy and forces and describe the system you want to analyze. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~EXTERNAL_POTENTIAL.html">EXTERNAL_POTENTIAL </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~RESCALE_FORCES.html">RESCALE_FORCES </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED.html">MIXED </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~EIP.html">EIP </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~BSSE.html">BSSE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#METHOD">METHOD </A>
+<LI><A HREF="#STRESS_TENSOR">STRESS_TENSOR </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="METHOD"><u>METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">METHOD <STRING>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which method should be used to compute forces</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  QS
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>QS</code>: Alias for QUICKSTEP</li>
+<li><code>FIST</code>: Molecular Mechanics</li>
+<li><code>QMMM</code>: Hybrid quantum classical</li>
+<li><code>EIP</code>: Empirical Interatomic Potential</li>
+<li><code>QUICKSTEP</code>: Electronic structure methods (DFT, ...)</li>
+<li><code>MIXED</code>: Use a combination of two of the above</li>
+</ul><TR><TD WITDH="20%"><A NAME="STRESS_TENSOR"><u>STRESS_TENSOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">stress_tensor (NONE|ANALYTICAL|NUMERICAL|DIAGONAL_ANA|DIAGONAL_NUM)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the calculation of the stress tensor. The combinations defined below are not implemented for all methods.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: Do not compute stress tensor</li>
+<li><code>ANALYTICAL</code>: Compute the stress tensor analytically (if available).</li>
+<li><code>NUMERICAL</code>: Compute the stress tensor numerically.</li>
+<li><code>DIAGONAL_ANALYTICAL</code>: Compute the diagonal part only of the stress tensor analytically (if available).</li>
+<li><code>DIAGONAL_NUMERICAL</code>: Compute the diagonal part only of the stress tensor numerically</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

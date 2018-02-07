@@ -1,0 +1,36 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section RESPA                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section RESPA                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~RESPA.html">RESPA</A>.
+<BR><BR>Multiple timestep integration based on RESPA (implemented for NVE only). RESPA exploits multiple force_eval. In this case the order of the force_eval maps  the order of the respa shells from the slowest to the fastest force evaluation. If force_evals share the same subsys, it's enough then to specify the  subsys in the force_eval corresponding at the first index in the multiple_force_eval list. Can be used to speedup classical and ab initio MD simulations. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_134" TITLE="
+ TUCKERMAN, M; BERNE, BJ; MARTYNA, GJ. 
+ JOURNAL OF CHEMICAL PHYSICS, 97 (3), 1990-2001 (1992). 
+ REVERSIBLE MULTIPLE TIME SCALE MOLECULAR-DYNAMICS.
+ http://dx.doi.org/10.1063/1.463137
+">[TUCKERMAN1992]</A>
+<A HREF="references.html#reference_85" TITLE="
+ Guidon, M; Schiffmann, F; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL PHYSICS, 128 (21), 214104 (2008). 
+ Ab initio molecular dynamics using hybrid density functionals.
+ http://dx.doi.org/10.1063/1.2931945
+">[Guidon2008]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#FREQUENCY">FREQUENCY </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="FREQUENCY"><u>FREQUENCY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FREQUENCY <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of reference MD steps between two RESPA corrections.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  5
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

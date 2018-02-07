@@ -1,0 +1,69 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section INIT                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section INIT                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT.html">PINT</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT~INIT.html">INIT</A>.
+<BR><BR>Controls the initialization if the beads are not present. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#LEVY_POS_SAMPLE">LEVY_POS_SAMPLE </A>
+<LI><A HREF="#LEVY_CORRELATED">LEVY_CORRELATED </A>
+<LI><A HREF="#LEVY_TEMP_FACTOR">LEVY_TEMP_FACTOR </A>
+<LI><A HREF="#LEVY_SEED">LEVY_SEED </A>
+<LI><A HREF="#THERMOSTAT_SEED">THERMOSTAT_SEED </A>
+<LI><A HREF="#RANDOMIZE_POS">RANDOMIZE_POS </A>
+<LI><A HREF="#CENTROID_SPEED">CENTROID_SPEED </A>
+<LI><A HREF="#VELOCITY_QUENCH">VELOCITY_QUENCH </A>
+<LI><A HREF="#VELOCITY_SCALE">VELOCITY_SCALE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="LEVY_POS_SAMPLE"><u>LEVY_POS_SAMPLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sample bead positions assuming free particle behavior (performs a Levy random walk of length P around the classical position of each atom at the physical temperature defined in PINT%TEMP)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="LEVY_CORRELATED"><u>LEVY_CORRELATED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use the same Levy path for all atoms, though with mass-dependent variances (might help at very low T)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="LEVY_TEMP_FACTOR"><u>LEVY_TEMP_FACTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Multiplicative correction factor for the temperature at which the Levy walk is performed (correction is due to the interactions that modify the spread of a free particle)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="LEVY_SEED"><u>LEVY_SEED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LEVY_SEED <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial seed for the (pseudo)random number generator that controls Levy walk for bead positions.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1234
+<TR><TD WITDH="20%"><A NAME="THERMOSTAT_SEED"><u>THERMOSTAT_SEED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">THERMOSTAT_SEED <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial seed for the (pseudo)random number generator that controls the PILE and PIGLET thermostats.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  12345
+<TR><TD WITDH="20%"><A NAME="RANDOMIZE_POS"><u>RANDOMIZE_POS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>add gaussian noise to the positions of the beads</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="CENTROID_SPEED"><u>CENTROID_SPEED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>adds random velocity component to the centroid modes (useful to correct for the averaging out of the speed of various beads)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="VELOCITY_QUENCH"><u>VELOCITY_QUENCH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>set the initial velocities to zero</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="VELOCITY_SCALE"><u>VELOCITY_SCALE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>scale initial velocities to the temperature given in MOTION%PINT%TEMP</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

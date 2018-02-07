@@ -1,0 +1,117 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section QMMM                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section QMMM                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM</A>.
+<BR><BR>Input for QM/MM calculations. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_40" TITLE="
+ Laino, T; Mohamed, F; Laio, A; Parrinello, M. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 1 (6), 1176-1184 (2005). 
+ An efficient real space multigrid QM/MM electrostatic coupling.
+ http://dx.doi.org/10.1021/ct050123f
+">[Laino2005]</A>
+<A HREF="references.html#reference_41" TITLE="
+ Laino, T; Mohamed, F; Laio, A; Parrinello, M. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 2 (5), 1370-1378 (2006). 
+ An efficient linear-scaling electrostatic coupling for treating
+ periodic boundary conditions in QM/MM simulations.
+ http://dx.doi.org/10.1021/ct6001169
+">[Laino2006]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~FORCE_MIXING.html">FORCE_MIXING </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~QM_KIND.html">QM_KIND </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~MM_KIND.html">MM_KIND </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~CELL.html">CELL </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC.html">PERIODIC </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~LINK.html">LINK </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~INTERPOLATOR.html">INTERPOLATOR </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~FORCEFIELD.html">FORCEFIELD </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~WALLS.html">WALLS </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~IMAGE_CHARGE.html">IMAGE_CHARGE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#E_COUPL">E_COUPL </A>
+<LI><A HREF="#MM_POTENTIAL_FILE_NAME">MM_POTENTIAL_FILE_NAME </A>
+<LI><A HREF="#USE_GEEP_LIB">USE_GEEP_LIB </A>
+<LI><A HREF="#NOCOMPATIBILITY">NOCOMPATIBILITY </A>
+<LI><A HREF="#EPS_MM_RSPACE">EPS_MM_RSPACE </A>
+<LI><A HREF="#SPHERICAL_CUTOFF">SPHERICAL_CUTOFF </A>
+<LI><A HREF="#PARALLEL_SCHEME">PARALLEL_SCHEME </A>
+<LI><A HREF="#CENTER">CENTER </A>
+<LI><A HREF="#CENTER_TYPE">CENTER_TYPE </A>
+<LI><A HREF="#CENTER_GRID">CENTER_GRID </A>
+<LI><A HREF="#INITIAL_TRANSLATION_VECTOR">INITIAL_TRANSLATION_VECTOR </A>
+<LI><A HREF="#DELTA_CHARGE">DELTA_CHARGE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="E_COUPL"><u>E_COUPL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">E_COUPL GAUSS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the type of the QM - MM electrostatic coupling.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: Mechanical coupling (i.e. classical point charge based)</li>
+<li><code>COULOMB</code>: Using analytical 1/r potential (Coulomb) - not available for GPW/GAPW</li>
+<li><code>GAUSS</code>: Using fast gaussian expansion of the electrostatic potential (Erf(r/rc)/r)</li>
+<li><code>S-WAVE</code>: Using fast gaussian expansion of the s-wave electrostatic potential</li>
+<li><code>POINT_CHARGE</code>: Using quantum mechanics derived point charges interacting with MM charges</li>
+</ul><TR><TD WIDTH="10%"><TD>variants: QMMM_COUPLING, ECOUPL<TR><TD WITDH="20%"><A NAME="MM_POTENTIAL_FILE_NAME"><u>MM_POTENTIAL_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MM_POTENTIAL_FILE_NAME {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Name of the file containing the potential expansion in gaussians. See the USE_GEEP_LIB keyword.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: MM_POTENTIAL
+<TR><TD WITDH="20%"><A NAME="USE_GEEP_LIB"><u>USE_GEEP_LIB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">use_geep_lib INTEGER
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> This keyword enables the use of the internal GEEP library to generate the gaussian expansion of the MM potential. Using this keyword there's no need to provide the MM_POTENTIAL_FILENAME. It expects a number from 2 to 15 (the number of gaussian funtions to be used in the expansion.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="NOCOMPATIBILITY"><u>NOCOMPATIBILITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">nocompatibility LOGICAL
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword disables the compatibility of QM/MM potential between CPMD and CP2K implementations. The compatibility is achieved using an MM potential of the form: Erf[x/rc]/x + (1/rc -2/(pi^1/2*rc))*Exp[-(x/rc)^2] .This keyword has effect only selecting GAUSS E_COUPLING type.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="EPS_MM_RSPACE"><u>EPS_MM_RSPACE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">eps_mm_rspace real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the threshold for the collocation of the GEEP gaussian functions.this keyword affects only the GAUSS E_COUPLING.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-10
+<TR><TD WITDH="20%"><A NAME="SPHERICAL_CUTOFF"><u>SPHERICAL_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SPHERICAL_CUTOFF  <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the spherical cutoff for the QMMM electrostatic interaction. This acts like a charge multiplicative factor dependent on cutoff. For MM atoms farther than the SPHERICAL_CUTOFF(1) their charge is zero. The switch is performed with a smooth function: 0.5*(1-TANH((r-[SPH_CUT(1)-20*SPH_CUT(2)])/(SPH_CUT(2)))). Two values are required: the first one is the distance cutoff. The second one controls the stiffness of the smoothing.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom], default value:    -5.2917720859000006E-01    0.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="PARALLEL_SCHEME"><u>PARALLEL_SCHEME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">parallel_scheme (ATOM|GRID)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Chooses the parallel_scheme for the long range Potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ATOM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ATOM</code>: parallelizes on atoms. grids replicated. Replication of the grids can be quite expensive memory wise if running on a system with limited memory per core. The grid option may be preferred in this case.</li>
+<li><code>GRID</code>: parallelizes on grid slices. atoms replicated.</li>
+</ul><TR><TD WITDH="20%"><A NAME="CENTER"><u>CENTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">center (EVERY_STEP|SETUP_ONLY|NEVER)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword sets when the QM system is automatically centered.  Default is EVERY_STEP.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  EVERY_STEP
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>EVERY_STEP</code>: Re-center every step</li>
+<li><code>SETUP_ONLY</code>: Center at first step only</li>
+<li><code>NEVER</code>: Never center</li>
+</ul><TR><TD WITDH="20%"><A NAME="CENTER_TYPE"><u>CENTER_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">center_type (MAX_MINUS_MIN|PBC_AWARE_MAX_MINUS_MIN)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword specifies how to do the QM system centering.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  MAX_MINUS_MIN
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>MAX_MINUS_MIN</code>: Center of box defined by maximum coordinate minus minimum coordinate</li>
+<li><code>PBC_AWARE_MAX_MINUS_MIN</code>: PBC-aware centering (useful for &QMMM&FORCE_MIXING)</li>
+</ul><TR><TD WITDH="20%"><A NAME="CENTER_GRID"><u>CENTER_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">grid_center LOGICAL
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword specifies whether the QM system is centered in units of the grid spacing.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+<TR><TD WITDH="20%"><A NAME="INITIAL_TRANSLATION_VECTOR"><u>INITIAL_TRANSLATION_VECTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">initial_translation_vector <REAL> <REAL> <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword specify the initial translation vector to be applied to the system.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default value:     0.0000000000000000E+00    0.0000000000000000E+00    0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="DELTA_CHARGE"><u>DELTA_CHARGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DELTA_CHARGE q
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Additional net charge relative to that specified in DFT section.  Used automatically by force mixing</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

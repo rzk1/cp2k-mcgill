@@ -1,0 +1,61 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PW_TRANSFER                                                                     </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PW_TRANSFER                                                                      </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>%<A HREF="InputReference~__ROOT__~TEST~PW_TRANSFER.html">PW_TRANSFER</A>.
+<BR><BR>Benchmark and test the pw_transfer routines. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#GRID">GRID </A>
+<LI><A HREF="#N_LOOP">N_LOOP </A>
+<LI><A HREF="#PW_GRID">PW_GRID </A>
+<LI><A HREF="#PW_GRID_LAYOUT_ALL">PW_GRID_LAYOUT_ALL </A>
+<LI><A HREF="#DEBUG">DEBUG </A>
+<LI><A HREF="#PW_GRID_LAYOUT">PW_GRID_LAYOUT </A>
+<LI><A HREF="#PW_GRID_BLOCKED">PW_GRID_BLOCKED </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="GRID"><u>GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GRID_DIMENSIONS 128 128 128
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the number of grid points (not all grid points are allowed)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers. Default value:  128 128 128
+<TR><TD WITDH="20%"><A NAME="N_LOOP"><u>N_LOOP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_LOOP 100
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of pw_transfers (backward&forward) being timed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  100
+<TR><TD WITDH="20%"><A NAME="PW_GRID"><u>PW_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PW_GRID NS-FULLSPACE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>What kind of PW_GRID should be employed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NS-FULLSPACE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SPHERICAL</code>: - not tested</li>
+<li><code>NS-FULLSPACE</code>:  tested</li>
+<li><code>NS-HALFSPACE</code>:  - not tested</li>
+</ul><TR><TD WITDH="20%"><A NAME="PW_GRID_LAYOUT_ALL"><u>PW_GRID_LAYOUT_ALL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PW_GRID_LAYOUT_ALL
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>loop overal all PW_GRID_LAYOUTs that are compatible with a given number of CPUs</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DEBUG"><u>DEBUG</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DEBUG
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Do the FFT in debug mode in all cases</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PW_GRID_LAYOUT"><u>PW_GRID_LAYOUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PW_GRID_LAYOUT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Expert use only, leave the default...Can be used to set the distribution for ray-distributed FFT.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers. Default value:  -1 -1
+<TR><TD WITDH="20%"><A NAME="PW_GRID_BLOCKED"><u>PW_GRID_BLOCKED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PW_GRID_BLOCKED FREE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Expert use only, leave the default...Can be used to set the distribution in g-space for the pw grids and their FFT.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FALSE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>FREE</code>: CP2K will select the optimal value</li>
+<li><code>TRUE</code>: blocked</li>
+<li><code>FALSE</code>: not blocked</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

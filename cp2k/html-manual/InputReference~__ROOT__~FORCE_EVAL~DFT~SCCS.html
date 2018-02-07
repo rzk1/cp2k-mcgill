@@ -1,0 +1,101 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SCCS                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SCCS                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCCS.html">SCCS</A>.
+<BR><BR>Define the parameters for self-consistent continuum solvation (SCCS) model. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_132" TITLE="
+ Fattebert, JL; Gygi, F. J. Comput. Chem., 23 (6), (2002). 
+ Density functional theory for efficient ab initio molecular dynamics
+ simulations in solution.
+ http://dx.doi.org/10.1002/jcc.10069
+">[Fattebert2002]</A>
+<A HREF="references.html#reference_133" TITLE="
+ Andreussi, O; Dabo, I; Marzari, N. 
+ J. Chem. Phys., 136 (6), 064102 (2012). 
+ Revised self-consistent continuum solvation in electronic-structure calculations.
+ http://dx.doi.org/10.1063/1.3676407
+">[Andreussi2012]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCCS~ANDREUSSI.html">ANDREUSSI </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~SCCS~FATTEBERT-GYGI.html">FATTEBERT-GYGI </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#ALPHA">ALPHA </A>
+<LI><A HREF="#BETA">BETA </A>
+<LI><A HREF="#DELTA_RHO">DELTA_RHO </A>
+<LI><A HREF="#DERIVATIVE_METHOD">DERIVATIVE_METHOD </A>
+<LI><A HREF="#DIELECTRIC_CONSTANT">DIELECTRIC_CONSTANT </A>
+<LI><A HREF="#EPS_SCCS">EPS_SCCS </A>
+<LI><A HREF="#EPS_SCF">EPS_SCF </A>
+<LI><A HREF="#GAMMA">GAMMA </A>
+<LI><A HREF="#MAX_ITER">MAX_ITER </A>
+<LI><A HREF="#METHOD">METHOD </A>
+<LI><A HREF="#MIXING">MIXING </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&SCCS ON
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the activation of the SCCS section</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ALPHA"><u>ALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Solvent specific tunable parameter for the calculation of the repulsion term <i>G<sup>rep</sup> = &alpha; S</i> where <i>S</i> is the (quantum) surface of the cavity</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [mN*m^-1], default value:     0.0000000000000000E+00
+mN*m^-1<TR><TD WITDH="20%"><A NAME="BETA"><u>BETA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Solvent specific tunable parameter for the calculation of the dispersion term <i>G<sup>dis</sup> = &beta; V</i> where <i>V</i> is the (quantum) volume of the cavity</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [GPa], default value:     0.0000000000000000E+00
+GPa<TR><TD WITDH="20%"><A NAME="DELTA_RHO"><u>DELTA_RHO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Numerical increment for the calculation of the (quantum) surface of the solute cavity</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.0000000000000002E-05
+<TR><TD WITDH="20%"><A NAME="DERIVATIVE_METHOD"><u>DERIVATIVE_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DERIVATIVE_METHOD cd5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method for the calculation of the numerical derivatives on the real-space grids</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FFT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>FFT</code>: Fast Fourier transformation</li>
+<li><code>CD3</code>: 3-point stencil central differences</li>
+<li><code>CD5</code>: 5-point stencil central differences</li>
+<li><code>CD7</code>: 7-point stencil central differences</li>
+</ul><TR><TD WITDH="20%"><A NAME="DIELECTRIC_CONSTANT"><u>DIELECTRIC_CONSTANT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DIELECTRIC_CONSTANT 78.36
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Dielectric constant of the solvent</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     8.0000000000000000E+01
+<TR><TD WIDTH="10%"><TD>variants: EPSILON_SOLVENT<TR><TD WITDH="20%"><A NAME="EPS_SCCS"><u>EPS_SCCS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_ITER 1.0E-7
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tolerance for the convergence of the polarisation density, i.e. requested accuracy for the SCCS iteration cycle</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WIDTH="10%"><TD>variants: EPS_ITER, TAU_POL<TR><TD WITDH="20%"><A NAME="EPS_SCF"><u>EPS_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_SCF 1.0E-2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The SCCS iteration cycle is activated only if the SCF iteration cycle is converged to this threshold value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.0000000000000000E-01
+<TR><TD WITDH="20%"><A NAME="GAMMA"><u>GAMMA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Surface tension of the solvent used for the calculation of the cavitation term <i>G<sup>cav</sup> = &gamma; S</i> where <i>S</i> is the (quantum) surface of the cavity</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [mN*m^-1], default value:     0.0000000000000000E+00
+mN*m^-1<TR><TD WIDTH="10%"><TD>variants: SURFACE_TENSION<TR><TD WITDH="20%"><A NAME="MAX_ITER"><u>MAX_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER 50
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of SCCS iteration steps performed to converge within the given tolerance</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  100
+<TR><TD WITDH="20%"><A NAME="METHOD"><u>METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">METHOD Fattebert-Gygi
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method used for the smoothing of the dielectric function</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ANDREUSSI
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ANDREUSSI</code>: Smoothing function proposed by Andreussi et al.</li>
+<li><code>FATTEBERT-GYGI</code>: Smoothing function proposed by Fattebert and Gygi</li>
+</ul><TR><TD WITDH="20%"><A NAME="MIXING"><u>MIXING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MIXING 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixing parameter (Hartree damping) employed during the iteration procedure</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.9999999999999998E-01
+<TR><TD WIDTH="10%"><TD>variants: ETA</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

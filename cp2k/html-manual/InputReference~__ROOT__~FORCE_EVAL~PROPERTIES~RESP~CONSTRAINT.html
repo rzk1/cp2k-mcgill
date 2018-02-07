@@ -1,0 +1,37 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CONSTRAINT                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CONSTRAINT                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP.html">RESP</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP~CONSTRAINT.html">CONSTRAINT</A>.
+<BR><BR>specifies a linear constraint on the fitted charges.This can be used to give equal values to equivalent atoms.sum over atom_list c_i * q_i = t. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TARGET">TARGET </A>
+<LI><A HREF="#EQUAL_CHARGES">EQUAL_CHARGES </A>
+<LI><A HREF="#ATOM_LIST">ATOM_LIST </A>
+<LI><A HREF="#ATOM_COEF">ATOM_COEF </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TARGET"><u>TARGET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TARGET 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the target value for the constraint</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="EQUAL_CHARGES"><u>EQUAL_CHARGES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EQUAL_CHARGES
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>All atoms in ATOM_LIST are constrained to have the same charges. When using this keyword, TARGET and ATOM_COEF do not need to be set and will be ignored. Instead of using this keyword, the constraint section could be repeated.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ATOM_LIST"><u>ATOM_LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOM_LIST 3 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the list of atoms involved in this constraint</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="ATOM_COEF"><u>ATOM_COEF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOM_COEF 1.0 -1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the coefficient of the atom in this linear constraint</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

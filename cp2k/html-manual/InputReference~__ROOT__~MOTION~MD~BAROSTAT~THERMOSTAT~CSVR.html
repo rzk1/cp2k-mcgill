@@ -1,0 +1,33 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CSVR                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CSVR                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT.html">BAROSTAT</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~THERMOSTAT.html">THERMOSTAT</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~THERMOSTAT~CSVR.html">CSVR</A>.
+<BR><BR>Parameters of the canonical sampling through velocity rescaling thermostat. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_35" TITLE="
+ Bussi, G; Donadio, D; Parrinello, M. 
+ JOURNAL OF CHEMICAL PHYSICS, 126 (1), 014101 (2007). 
+ Canonical sampling through velocity rescaling.
+ http://dx.doi.org/10.1063/1.2408420
+">[Bussi2007]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~THERMOSTAT~CSVR~THERMOSTAT_ENERGY.html">THERMOSTAT_ENERGY </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~THERMOSTAT~CSVR~RNG_INIT.html">RNG_INIT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TIMECON">TIMECON </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TIMECON"><u>TIMECON</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">timecon <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Time constant of the CSVR thermostat. A small time constant will result in strong thermostatting (useful for initial equilibrations) and a large time constant would be adequate to get weak thermostatting in production runs.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [fs], default value:     9.9999999999999989E+02
+fs</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

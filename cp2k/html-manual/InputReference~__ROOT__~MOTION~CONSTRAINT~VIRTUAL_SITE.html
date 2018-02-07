@@ -1,0 +1,54 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section VIRTUAL_SITE                                                                    </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section VIRTUAL_SITE                                                                     </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT.html">CONSTRAINT</A>%<A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~VIRTUAL_SITE.html">VIRTUAL_SITE</A>.
+<BR><BR>This section is used to set a virtual interaction-site constraint. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~VIRTUAL_SITE~RESTRAINT.html">RESTRAINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MOLECULE">MOLECULE </A>
+<LI><A HREF="#MOLNAME">MOLNAME </A>
+<LI><A HREF="#INTERMOLECULAR">INTERMOLECULAR </A>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#PARAMETERS">PARAMETERS </A>
+<LI><A HREF="#EXCLUDE_QM">EXCLUDE_QM </A>
+<LI><A HREF="#EXCLUDE_MM">EXCLUDE_MM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MOLECULE"><u>MOLECULE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MOL {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the molecule number on which constraint will be applied. MOLECULE and MOLNAME keyword exclude themself mutually.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WIDTH="10%"><TD>variants: MOL<TR><TD WITDH="20%"><A NAME="MOLNAME"><u>MOLNAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MOLNAME {character}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the name of the molecule on which the constraint will be applied.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word<TR><TD WIDTH="10%"><TD>variants: SEGNAME<TR><TD WITDH="20%"><A NAME="INTERMOLECULAR"><u>INTERMOLECULAR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INTERMOLECULAR <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify if the constraint/restraint is intermolecular.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS 1 2 3 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Atoms' index on which apply the constraint (v i j k), first is virtual site</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     4 integers<TR><TD WITDH="20%"><A NAME="PARAMETERS"><u>PARAMETERS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARAMETERS {real} {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The constrained paramters' values to construct virtual site.r_v=a*r_ij+b*r_kj</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [internal_cp2k].<TR><TD WITDH="20%"><A NAME="EXCLUDE_QM"><u>EXCLUDE_QM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXCLUDE_QM <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Does not apply the constraint to the QM region within a QM/MM calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="EXCLUDE_MM"><u>EXCLUDE_MM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXCLUDE_MM <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Does not apply the constraint to the MM region within a QM/MM calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

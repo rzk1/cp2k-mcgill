@@ -1,0 +1,52 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DFT_PLUS_U                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DFT_PLUS_U                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND.html">KIND</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~DFT_PLUS_U.html">DFT_PLUS_U</A>.
+<BR><BR>Define the parameters for a DFT+U run. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~DFT_PLUS_U~ENFORCE_OCCUPATION.html">ENFORCE_OCCUPATION </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#L">L </A>
+<LI><A HREF="#U_MINUS_J">U_MINUS_J </A>
+<LI><A HREF="#U_RAMPING">U_RAMPING </A>
+<LI><A HREF="#EPS_U_RAMPING">EPS_U_RAMPING </A>
+<LI><A HREF="#INIT_U_RAMPING_EACH_SCF">INIT_U_RAMPING_EACH_SCF </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&DFT_PLUS_U ON
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the activation of the DFT+U section</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="L"><u>L</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">L 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Angular momentum quantum number of theorbitals to which the correction is applied</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="U_MINUS_J"><u>U_MINUS_J</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">U_MINUS_J [eV] 1.4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Effective parameter U(eff) = U - J</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     0.0000000000000000E+00
+hartree<TR><TD WITDH="20%"><A NAME="U_RAMPING"><u>U_RAMPING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">U_RAMPING [eV] 0.1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Increase the effective U parameter stepwise using the specified increment until the target value given by U_MINUS_J is reached.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     0.0000000000000000E+00
+hartree<TR><TD WITDH="20%"><A NAME="EPS_U_RAMPING"><u>EPS_U_RAMPING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_U_RAMPING 1.0E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold value (SCF convergence) for incrementing the effective U value when U ramping is active.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WITDH="20%"><A NAME="INIT_U_RAMPING_EACH_SCF"><u>INIT_U_RAMPING_EACH_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INIT_U_RAMPING_EACH_SCF on
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the initial U ramping value to zero before each wavefunction optimisation. The default is to apply U ramping only for the initial wavefunction optimisation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

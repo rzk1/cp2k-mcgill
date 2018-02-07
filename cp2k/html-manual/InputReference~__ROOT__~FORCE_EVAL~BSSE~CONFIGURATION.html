@@ -1,0 +1,36 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CONFIGURATION                                                                   </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CONFIGURATION                                                                    </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~BSSE.html">BSSE</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~BSSE~CONFIGURATION.html">CONFIGURATION</A>.
+<BR><BR>Specify additional parameters for the combinatorial configurations. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#GLB_CONF">GLB_CONF </A>
+<LI><A HREF="#SUB_CONF">SUB_CONF </A>
+<LI><A HREF="#MULTIPLICITY">MULTIPLICITY </A>
+<LI><A HREF="#CHARGE">CHARGE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="GLB_CONF"><u>GLB_CONF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GLB_CONF {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the global configuration using 1 or 0.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="SUB_CONF"><u>SUB_CONF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SUB_CONF {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the subconfiguration using 1 or 0 belonging to the global configuration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="MULTIPLICITY"><u>MULTIPLICITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MULTIPLICITY 3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify for each fragment the multiplicity. Two times the total spin plus one. Specify 3 for a triplet, 4 for a quartet,and so on. Default is 1 (singlet) for an even number and 2 (doublet) for an odd number of electrons.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WIDTH="10%"><TD>variants: MULTIP<TR><TD WITDH="20%"><A NAME="CHARGE"><u>CHARGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CHARGE -1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The total charge for each fragment.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

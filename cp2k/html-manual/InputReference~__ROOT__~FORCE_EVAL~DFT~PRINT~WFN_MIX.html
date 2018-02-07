@@ -1,0 +1,26 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section WFN_MIX                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section WFN_MIX                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~WFN_MIX.html">WFN_MIX</A>.
+<BR><BR>A section that allows manipulation of the MO coeffs, e.g. for changing a ground state into an excited state.Starting from a copy of the original MOs, changes can be madeby adding linear combinations of HOMO/LUMO of the original MOs to the result MOs. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~WFN_MIX~UPDATE.html">UPDATE </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#OVERWRITE_MOS">OVERWRITE_MOS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="OVERWRITE_MOS"><u>OVERWRITE_MOS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If the keyword is active molecular orbitals in memory will be replaced by the mixed wfn. In combination with RTP or EMD no restart will be required to use the mixed wfn.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

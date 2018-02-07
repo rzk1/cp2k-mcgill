@@ -1,0 +1,62 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FILTER_MATRIX                                                                   </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FILTER_MATRIX                                                                    </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS.html">XAS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~SCF.html">SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~SCF~DIAGONALIZATION.html">DIAGONALIZATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~SCF~DIAGONALIZATION~FILTER_MATRIX.html">FILTER_MATRIX</A>.
+<BR><BR> This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#FILTER_TEMPERATURE">FILTER_TEMPERATURE </A>
+<LI><A HREF="#AUTO_CUTOFF_SCALE">AUTO_CUTOFF_SCALE </A>
+<LI><A HREF="#EPS_FB">EPS_FB </A>
+<LI><A HREF="#COLLECTIVE_COMMUNICATION">COLLECTIVE_COMMUNICATION </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="FILTER_TEMPERATURE"><u>FILTER_TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FILTER_TEMPERATURE [K] 10000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Temperature used for the filter function used to construct the filter matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     1.0000000000000002E+04
+K<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_144" TITLE="
+ Rayson, M. J.; Briddon, P. R.. 
+ PHYSICAL REVIEW B, 80 (20), 205104 (2009). 
+ Highly efficient method for Kohn-Sham density functional
+ calculations of 500-10 000 atom systems.
+ http://dx.doi.org/10.1103/PhysRevB.80.205104
+">[Rayson2009]</A>
+<TR><TD WITDH="20%"><A NAME="AUTO_CUTOFF_SCALE"><u>AUTO_CUTOFF_SCALE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AUTO_CUTOFF_SCALE 0.5_dp
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scalar constant multiplied to maximum orbital size of each atom, used for automatically creating cutoff radii for atomic matrices</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.0000000000000000E-01
+<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_144" TITLE="
+ Rayson, M. J.; Briddon, P. R.. 
+ PHYSICAL REVIEW B, 80 (20), 205104 (2009). 
+ Highly efficient method for Kohn-Sham density functional
+ calculations of 500-10 000 atom systems.
+ http://dx.doi.org/10.1103/PhysRevB.80.205104
+">[Rayson2009]</A>
+<TR><TD WITDH="20%"><A NAME="EPS_FB"><u>EPS_FB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_FB 1.e-12
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Default tolerance used in generating the filter matrix. Anything less than EPS_FB will be regarded as zero</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999998E-13
+<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_144" TITLE="
+ Rayson, M. J.; Briddon, P. R.. 
+ PHYSICAL REVIEW B, 80 (20), 205104 (2009). 
+ Highly efficient method for Kohn-Sham density functional
+ calculations of 500-10 000 atom systems.
+ http://dx.doi.org/10.1103/PhysRevB.80.205104
+">[Rayson2009]</A>
+<TR><TD WITDH="20%"><A NAME="COLLECTIVE_COMMUNICATION"><u>COLLECTIVE_COMMUNICATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COLLECTIVE_COMMUNICATION T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If set to TRUE, then all MPI communications required for the construction of the filter matrix is done at the start and end of each filter matrix calculation. This makes communications more efficient, at the expense of using more memory. If you find the fb_fltrmat_add_blkcol_mpi times at the end of CP2K output is high, then run again with this option set to .TRUE.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,62 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FLEXIBLE_PARTITIONING                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FLEXIBLE_PARTITIONING                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~FLEXIBLE_PARTITIONING.html">FLEXIBLE_PARTITIONING</A>.
+<BR><BR>This section sets up flexible_partitioning. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~FLEXIBLE_PARTITIONING~WEIGHTS.html">WEIGHTS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~FLEXIBLE_PARTITIONING~CONTROL.html">CONTROL </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#CENTRAL_ATOM">CENTRAL_ATOM </A>
+<LI><A HREF="#INNER_ATOMS">INNER_ATOMS </A>
+<LI><A HREF="#OUTER_ATOMS">OUTER_ATOMS </A>
+<LI><A HREF="#INNER_RADIUS">INNER_RADIUS </A>
+<LI><A HREF="#OUTER_RADIUS">OUTER_RADIUS </A>
+<LI><A HREF="#STRENGTH">STRENGTH </A>
+<LI><A HREF="#BIAS">BIAS </A>
+<LI><A HREF="#TEMPERATURE">TEMPERATURE </A>
+<LI><A HREF="#SMOOTH_WIDTH">SMOOTH_WIDTH </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="CENTRAL_ATOM"><u>CENTRAL_ATOM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CENTRAL_ATOM {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the central atom.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WITDH="20%"><A NAME="INNER_ATOMS"><u>INNER_ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INNER_ATOMS {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the list of atoms that should remain close to the central atom.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="OUTER_ATOMS"><u>OUTER_ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OUTER_ATOMS {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the list of atoms that should remain far from the central atom.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="INNER_RADIUS"><u>INNER_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INNER_RADIUS {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>radius of the inner wall</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="OUTER_RADIUS"><u>OUTER_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OUTER_RADIUS {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>radius of the outer wall</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="STRENGTH"><u>STRENGTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STRENGTH 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the force constant of the repulsive harmonic potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="BIAS"><u>BIAS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BIAS F
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If a bias potential counter-acting the weight term should be applied (recommended).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="TEMPERATURE"><u>TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TEMPERATURE 300
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the temperature parameter that is used in the baising potential.It is recommended to use the actual simulation temperature</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     9.4732394370883182E+07
+K<TR><TD WITDH="20%"><A NAME="SMOOTH_WIDTH"><u>SMOOTH_WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SMOOTH_WIDTH 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the width of the smooth counting function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.0583544171800002E-02
+angstrom</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

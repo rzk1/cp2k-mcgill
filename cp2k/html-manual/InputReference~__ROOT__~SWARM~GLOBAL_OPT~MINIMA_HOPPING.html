@@ -1,0 +1,67 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MINIMA_HOPPING                                                                  </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MINIMA_HOPPING                                                                   </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~SWARM.html">SWARM</A>%<A HREF="InputReference~__ROOT__~SWARM~GLOBAL_OPT.html">GLOBAL_OPT</A>%<A HREF="InputReference~__ROOT__~SWARM~GLOBAL_OPT~MINIMA_HOPPING.html">MINIMA_HOPPING</A>.
+<BR><BR>Section controlling the Minima Hopping method. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_135" TITLE="
+ Goedecker, S. 
+ Journal of Chemical Physics, 120 (21), 9911-9917 (2004). 
+ Minima hopping: An efficient search method for the global minimum
+ of the potential energy surface of complex molecular systems.
+ http://dx.doi.org/10.1063/1.1724816
+">[Goedecker2004]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#BETA_1">BETA_1 </A>
+<LI><A HREF="#BETA_2">BETA_2 </A>
+<LI><A HREF="#BETA_3">BETA_3 </A>
+<LI><A HREF="#ALPHA_1">ALPHA_1 </A>
+<LI><A HREF="#ALPHA_2">ALPHA_2 </A>
+<LI><A HREF="#E_ACCEPT_INIT">E_ACCEPT_INIT </A>
+<LI><A HREF="#TEMPERATURE_INIT">TEMPERATURE_INIT </A>
+<LI><A HREF="#SHARE_HISTORY">SHARE_HISTORY </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="BETA_1"><u>BETA_1</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Factor used to increase temperature when escape failed, should be larger than 1.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.1000000000000001E+00
+<TR><TD WITDH="20%"><A NAME="BETA_2"><u>BETA_2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Factor used to increase temperature when escape found known minima, should be larger than 1.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.1000000000000001E+00
+<TR><TD WITDH="20%"><A NAME="BETA_3"><u>BETA_3</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Factor used to decrease temperature when escape succeeded, should be smaller than 1.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.0909090909090906E-01
+<TR><TD WITDH="20%"><A NAME="ALPHA_1"><u>ALPHA_1</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Factor used to decrease acceptance energy, when minima was accepted, should be smaller than 1.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.7999999999999998E-01
+<TR><TD WITDH="20%"><A NAME="ALPHA_2"><u>ALPHA_2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Factor used to increase acceptance energy, when minima was rejected, should be larger than 1.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0204081632653061E+00
+<TR><TD WITDH="20%"><A NAME="E_ACCEPT_INIT"><u>E_ACCEPT_INIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial value of acceptance energy</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     5.0000000000000001E-03
+hartree<TR><TD WITDH="20%"><A NAME="TEMPERATURE_INIT"><u>TEMPERATURE_INIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initially temperature in Kelvin</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+02
+<TR><TD WITDH="20%"><A NAME="SHARE_HISTORY"><u>SHARE_HISTORY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If set all worker will use a single share history of visited minima.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

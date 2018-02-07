@@ -1,0 +1,77 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CP_FM_GEMM                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CP_FM_GEMM                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>%<A HREF="InputReference~__ROOT__~TEST~CP_FM_GEMM.html">CP_FM_GEMM</A>.
+<BR><BR>Benchmark and test the cp_fm_gemm routines by multiplying C=A*B. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#N_LOOP">N_LOOP </A>
+<LI><A HREF="#K">K </A>
+<LI><A HREF="#M">M </A>
+<LI><A HREF="#N">N </A>
+<LI><A HREF="#NROW_BLOCK">NROW_BLOCK </A>
+<LI><A HREF="#NCOL_BLOCK">NCOL_BLOCK </A>
+<LI><A HREF="#ROW_MAJOR">ROW_MAJOR </A>
+<LI><A HREF="#FORCE_BLOCKSIZE">FORCE_BLOCKSIZE </A>
+<LI><A HREF="#GRID_2D">GRID_2D </A>
+<LI><A HREF="#TRANSA">TRANSA </A>
+<LI><A HREF="#TRANSB">TRANSB </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="N_LOOP"><u>N_LOOP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_LOOP 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of cp_fm_gemm operations being timed (useful for small matrices).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  10
+<TR><TD WITDH="20%"><A NAME="K"><u>K</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Dimension 1 of C</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  256
+<TR><TD WITDH="20%"><A NAME="M"><u>M</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Inner dimension M</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  256
+<TR><TD WITDH="20%"><A NAME="N"><u>N</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Dimension 2 of C</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  256
+<TR><TD WITDH="20%"><A NAME="NROW_BLOCK"><u>NROW_BLOCK</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">nrow_block 64
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>block_size for rows</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  32
+<TR><TD WITDH="20%"><A NAME="NCOL_BLOCK"><u>NCOL_BLOCK</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">nrow_block 64
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>block_size for cols</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  32
+<TR><TD WITDH="20%"><A NAME="ROW_MAJOR"><u>ROW_MAJOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ROW_MAJOR .FALSE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use a row major blacs grid</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="FORCE_BLOCKSIZE"><u>FORCE_BLOCKSIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FORCE_BLOCKSIZE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Forces the blocksize, even if this implies that a few processes might have no data</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="GRID_2D"><u>GRID_2D</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GRID_2D 64 16
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Explicitly set the blacs 2D processor layout. If the product differs from the number of MPI ranks, it is ignored and a default nearly square layout is used.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers. Default value:  1 1
+<TR><TD WITDH="20%"><A NAME="TRANSA"><u>TRANSA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRANSA
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Transpose matrix A</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TRANSB"><u>TRANSB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRANSB
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Transpose matrix B</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

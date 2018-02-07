@@ -1,0 +1,83 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ERI_MME_TEST                                                                    </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ERI_MME_TEST                                                                     </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>%<A HREF="InputReference~__ROOT__~TEST~ERI_MME_TEST.html">ERI_MME_TEST</A>.
+<BR><BR>Parameters for testing the ERI_MME method for electron repulsion integrals. Testing w.r.t. performance and accuracy. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~TEST~ERI_MME_TEST~ERI_MME.html">ERI_MME </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#TEST_3C">TEST_3C </A>
+<LI><A HREF="#TEST_2C">TEST_2C </A>
+<LI><A HREF="#ABC">ABC </A>
+<LI><A HREF="#MIN_NPOS">MIN_NPOS </A>
+<LI><A HREF="#NREP">NREP </A>
+<LI><A HREF="#CHECK_2C_ACCURACY">CHECK_2C_ACCURACY </A>
+<LI><A HREF="#LMAX">LMAX </A>
+<LI><A HREF="#ZET_MIN">ZET_MIN </A>
+<LI><A HREF="#ZET_MAX">ZET_MAX </A>
+<LI><A HREF="#NZET">NZET </A>
+<LI><A HREF="#NSAMPLE_3C">NSAMPLE_3C </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the activation the ERI_MME test.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_3C"><u>TEST_3C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether to test 3-center integrals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="TEST_2C"><u>TEST_2C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether to test 2-center integrals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="ABC"><u>ABC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ABC 10.000 10.000 10.000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the lengths of the cell vectors A, B, and C.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="MIN_NPOS"><u>MIN_NPOS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Minimum number of atomic distances to consider.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  8
+<TR><TD WITDH="20%"><A NAME="NREP"><u>NREP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of repeated calculation of each integral.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="CHECK_2C_ACCURACY"><u>CHECK_2C_ACCURACY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether integrals should be compared to reference values, created on the fly by exact method (G-space sum on grid without minimax approximation). Note: only feasible for not too many integrals and maximum exponent around 10.0.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="LMAX"><u>LMAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum total angular momentum quantum number.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+<TR><TD WITDH="20%"><A NAME="ZET_MIN"><u>ZET_MIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Minimum exponent.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-03
+<TR><TD WITDH="20%"><A NAME="ZET_MAX"><u>ZET_MAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum exponent.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="NZET"><u>NZET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of exponents (logarithmic partition between ZET_MIN and ZET_MAX).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  4
+<TR><TD WITDH="20%"><A NAME="NSAMPLE_3C"><u>NSAMPLE_3C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If NSAMPLE_3C = N, only calculate every Nth 3-center integral.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

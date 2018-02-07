@@ -1,0 +1,116 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SHG_INTEGRALS_TEST                                                              </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SHG_INTEGRALS_TEST                                                               </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>%<A HREF="InputReference~__ROOT__~TEST~SHG_INTEGRALS_TEST.html">SHG_INTEGRALS_TEST</A>.
+<BR><BR>Parameters for testing the SHG 2-center integrals for different r12 operators. Test w.r.t. performance and accurarcy. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~TEST~SHG_INTEGRALS_TEST~BASIS.html">BASIS </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#ABC">ABC </A>
+<LI><A HREF="#NAB_MIN">NAB_MIN </A>
+<LI><A HREF="#NREP">NREP </A>
+<LI><A HREF="#CHECK_ACCURACY">CHECK_ACCURACY </A>
+<LI><A HREF="#ACCURACY_LEVEL">ACCURACY_LEVEL </A>
+<LI><A HREF="#CALCULATE_DERIVATIVES">CALCULATE_DERIVATIVES </A>
+<LI><A HREF="#TEST_OVERLAP">TEST_OVERLAP </A>
+<LI><A HREF="#TEST_COULOMB">TEST_COULOMB </A>
+<LI><A HREF="#TEST_VERF">TEST_VERF </A>
+<LI><A HREF="#TEST_VERFC">TEST_VERFC </A>
+<LI><A HREF="#TEST_VGAUSS">TEST_VGAUSS </A>
+<LI><A HREF="#TEST_GAUSS">TEST_GAUSS </A>
+<LI><A HREF="#TEST_RA2M">TEST_RA2M </A>
+<LI><A HREF="#M">M </A>
+<LI><A HREF="#TEST_OVERLAP_ABA">TEST_OVERLAP_ABA </A>
+<LI><A HREF="#TEST_OVERLAP_ABB">TEST_OVERLAP_ABB </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the activation the SHG integral test.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ABC"><u>ABC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ABC 10.000 10.000 10.000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the lengths of the cell vectors A, B, and C.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="NAB_MIN"><u>NAB_MIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Minimum number of atomic distances to consider.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  8
+<TR><TD WITDH="20%"><A NAME="NREP"><u>NREP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of repeated calculation of each integral.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="CHECK_ACCURACY"><u>CHECK_ACCURACY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Causes abortion when SHG and OS integrals differ more what's given by ACCURACY_LEVEL.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="ACCURACY_LEVEL"><u>ACCURACY_LEVEL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Level of accuracy for comparison of SHG and OS integrals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-08
+<TR><TD WITDH="20%"><A NAME="CALCULATE_DERIVATIVES"><u>CALCULATE_DERIVATIVES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates also the derivatives of the integrals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_OVERLAP"><u>TEST_OVERLAP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_COULOMB"><u>TEST_COULOMB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|1/r12|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_VERF"><u>TEST_VERF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|erf(omega*r12)/r12|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_VERFC"><u>TEST_VERFC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|erfc(omega*r12)/r12|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_VGAUSS"><u>TEST_VGAUSS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|exp(omega*r12^2)/r12|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_GAUSS"><u>TEST_GAUSS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|exp(omega*r12^2)|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_RA2M"><u>TEST_RA2M</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|(r-Ra)^(2m)|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="M"><u>M</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Exponent in integral (a|(r-Ra)^(2m)|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="TEST_OVERLAP_ABA"><u>TEST_OVERLAP_ABA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|b|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TEST_OVERLAP_ABB"><u>TEST_OVERLAP_ABB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculates the integrals (a|b|b).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

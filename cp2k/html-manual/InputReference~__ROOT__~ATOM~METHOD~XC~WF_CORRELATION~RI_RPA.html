@@ -1,0 +1,86 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section RI_RPA                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section RI_RPA                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~ATOM.html">ATOM</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD.html">METHOD</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~WF_CORRELATION.html">WF_CORRELATION</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~WF_CORRELATION~RI_RPA.html">RI_RPA</A>.
+<BR><BR>Parameters influencing the RI RPA method. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_122" TITLE="
+ Del Ben, M; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 9 (6), 2654-2671 (2013). 
+ Electron Correlation in the Condensed Phase from a Resolution of
+ Identity Approach Based on the Gaussian and Plane Waves Scheme.
+ http://dx.doi.org/10.1021/ct4002202
+">[DelBen2013]</A>
+<A HREF="references.html#reference_148" TITLE="
+ Del Ben, M; Schuett, O; Wentz, T; Messmer, P; Hutter, J;
+ VandeVondele, J. 
+ COMPUTER PHYSICS COMMUNICATIONS, 187, 120-129 (2015). 
+ Enabling simulation at the fifth rung of DFT: Large scale RPA
+ calculations with excellent time to solution.
+ http://dx.doi.org/10.1016/j.cpc.2014.10.021
+">[DelBen2015]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~WF_CORRELATION~RI_RPA~HF.html">HF </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~WF_CORRELATION~RI_RPA~RI_G0W0.html">RI_G0W0 </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~WF_CORRELATION~RI_RPA~IM_TIME.html">IM_TIME </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~WF_CORRELATION~RI_RPA~RI_AXK.html">RI_AXK </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#QUADRATURE_POINTS">QUADRATURE_POINTS </A>
+<LI><A HREF="#SIZE_FREQ_INTEG_GROUP">SIZE_FREQ_INTEG_GROUP </A>
+<LI><A HREF="#MM_STYLE">MM_STYLE </A>
+<LI><A HREF="#MINIMAX_QUADRATURE">MINIMAX_QUADRATURE </A>
+<LI><A HREF="#RI_G0W0">RI_G0W0 </A>
+<LI><A HREF="#RI_AXK">RI_AXK </A>
+<LI><A HREF="#ADMM">ADMM </A>
+<LI><A HREF="#IM_TIME">IM_TIME </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="QUADRATURE_POINTS"><u>QUADRATURE_POINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">QUADRATURE_POINTS 60
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of quadrature points for the numerical integration in the RI-RPA method.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  40
+<TR><TD WIDTH="10%"><TD>variants: RPA_NUM_QUAD_POINTS<TR><TD WITDH="20%"><A NAME="SIZE_FREQ_INTEG_GROUP"><u>SIZE_FREQ_INTEG_GROUP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SIZE_FREQ_INTEG_GROUP 16
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Group size for frequency integration, that is the number of processes involved in the computation of each integration point. SIZE_FREQ_INTEG_GROUP has to be a multiple of GROUP_SIZE in the WF_CORRELATION section. The default (-1) is automatic.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WIDTH="10%"><TD>variants: RPA_GROUP_SIZE<TR><TD WITDH="20%"><A NAME="MM_STYLE"><u>MM_STYLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MM_STYLE GEMM
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Matrix multiplication style for the Q matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  GEMM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>GEMM</code>: Use pdgemm: more flops, maybe faster.</li>
+<li><code>SYRK</code>: Use pdysrk: fewer flops, maybe slower.</li>
+</ul><TR><TD WITDH="20%"><A NAME="MINIMAX_QUADRATURE"><u>MINIMAX_QUADRATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MINIMAX_QUADRATURE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use the Minimax quadrature scheme for performing the numerical integration. Maximum number of quadrature point limited to 20.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WIDTH="10%"><TD>variants: MINIMAX<TR><TD WITDH="20%"><A NAME="RI_G0W0"><u>RI_G0W0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RI_G0W0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Decide whether to perform an RI_G0W0 calculation on top of RI_ RPA.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WIDTH="10%"><TD>variants: GW<TR><TD WITDH="20%"><A NAME="RI_AXK"><u>RI_AXK</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RI_AXK
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Decide whether to perform an RPA-AXK calculation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WIDTH="10%"><TD>variants: AXK<TR><TD WITDH="20%"><A NAME="ADMM"><u>ADMM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ADMM
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Decide whether to perform ADMM in the exact exchange calc. for RPA and/or GW. Not really recommended. In most cases, the Hartree-Fock exchange is not expensive and there is no need for ADMM. Only in case of diffuse functions for periodic systems (only reasonable for GW bandgap calculations) exact exchange can be expensive and then, we recommend using RI for exchange.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="IM_TIME"><u>IM_TIME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">IM_TIME
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Decide whether to calculate Q-matrix for imaginary time.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WIDTH="10%"><TD>variants: IMAG_TIME</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

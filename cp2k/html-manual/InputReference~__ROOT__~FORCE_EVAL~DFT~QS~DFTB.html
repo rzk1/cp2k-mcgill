@@ -1,0 +1,114 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DFTB                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DFTB                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS.html">QS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DFTB.html">DFTB</A>.
+<BR><BR>Parameters needed to set up the DFTB methods. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_60" TITLE="
+ POREZAG, D; FRAUENHEIM, T; KOHLER, T; SEIFERT, G; KASCHNER, R. 
+ PHYSICAL REVIEW B, 51 (19), 12947-12957 (1995). 
+ CONSTRUCTION OF TIGHT-BINDING-LIKE POTENTIALS ON THE BASIS OF
+ DENSITY-FUNCTIONAL THEORY - APPLICATION TO CARBON.
+ http://dx.doi.org/10.1103/PhysRevB.51.12947
+">[POREZAG1995]</A>
+<A HREF="references.html#reference_59" TITLE="
+ Seifert, G; Porezag, D; Frauenheim, T. 
+ INTERNATIONAL JOURNAL OF QUANTUM CHEMISTRY, 58 (2), 185-192 (1996). 
+ Calculations of molecules, clusters, and solids with a simplified
+ LCAO-DFT-LDA scheme.
+ http://dx.doi.org/10.1002/(SICI)1097-461X(1996)58:2<185::AID-QUA7>3.0.CO;2-U
+">[Seifert1996]</A>
+<A HREF="references.html#reference_58" TITLE="
+ Elstner, M; Porezag, D; Jungnickel, G; Elsner, J; Haugk, M;
+ Frauenheim, T; Suhai, S; Seifert, G. 
+ PHYSICAL REVIEW B, 58 (11), 7260-7268 (1998). 
+ Self-consistent-charge density-functional tight-binding method for
+ simulations of complex materials properties.
+ http://dx.doi.org/10.1103/PhysRevB.58.7260
+">[Elstner1998]</A>
+<A HREF="references.html#reference_57" TITLE="
+ Zhechkov, L; Heine, T; Patchkovskii, S; Seifert, G; Duarte, HA. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 1 (5), 841-847 (2005). 
+ An efficient a Posteriori treatment for dispersion interaction in
+ density-functional-based tight binding.
+ http://dx.doi.org/10.1021/ct050065y
+">[Zhechkov2005]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DFTB~PARAMETER.html">PARAMETER </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#SELF_CONSISTENT">SELF_CONSISTENT </A>
+<LI><A HREF="#ORTHOGONAL_BASIS">ORTHOGONAL_BASIS </A>
+<LI><A HREF="#DO_EWALD">DO_EWALD </A>
+<LI><A HREF="#DISPERSION">DISPERSION </A>
+<LI><A HREF="#DIAGONAL_DFTB3">DIAGONAL_DFTB3 </A>
+<LI><A HREF="#HB_SR_GAMMA">HB_SR_GAMMA </A>
+<LI><A HREF="#EPS_DISP">EPS_DISP </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="SELF_CONSISTENT"><u>SELF_CONSISTENT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SELF_CONSISTENT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use self-consistent method</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  T
+<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_58" TITLE="
+ Elstner, M; Porezag, D; Jungnickel, G; Elsner, J; Haugk, M;
+ Frauenheim, T; Suhai, S; Seifert, G. 
+ PHYSICAL REVIEW B, 58 (11), 7260-7268 (1998). 
+ Self-consistent-charge density-functional tight-binding method for
+ simulations of complex materials properties.
+ http://dx.doi.org/10.1103/PhysRevB.58.7260
+">[Elstner1998]</A>
+<TR><TD WITDH="20%"><A NAME="ORTHOGONAL_BASIS"><u>ORTHOGONAL_BASIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ORTHOGONAL_BASIS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Assume orthogonal basis set</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DO_EWALD"><u>DO_EWALD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DO_EWALD
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use Ewald type method instead of direct sum for Coulomb interaction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DISPERSION"><u>DISPERSION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPERSION
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use dispersion correction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_57" TITLE="
+ Zhechkov, L; Heine, T; Patchkovskii, S; Seifert, G; Duarte, HA. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 1 (5), 841-847 (2005). 
+ An efficient a Posteriori treatment for dispersion interaction in
+ density-functional-based tight binding.
+ http://dx.doi.org/10.1021/ct050065y
+">[Zhechkov2005]</A>
+<TR><TD WITDH="20%"><A NAME="DIAGONAL_DFTB3"><u>DIAGONAL_DFTB3</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DIAGONAL_DFTB3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use a diagonal version of the 3rd order energy correction (DFTB3)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="HB_SR_GAMMA"><u>HB_SR_GAMMA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">HB_SR_GAMMA
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Uses a modified version for the GAMMA within the SCC-DFTB scheme, specifically tuned for hydrogen bonds.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_9" TITLE="
+ Hu, H; Lu, ZY; Elstner, M; Hermans, J; Yang, WT. 
+ JOURNAL OF PHYSICAL CHEMISTRY A, 111 (26), 5685-5691 (2007). 
+ Simulating water with the self-consistent-charge density functional
+ tight binding method: From molecular clusters to the liquid state.
+ http://dx.doi.org/10.1021/jp070308d
+">[Hu2007]</A>
+<TR><TD WITDH="20%"><A NAME="EPS_DISP"><u>EPS_DISP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_DISP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define accuracy of dispersion interaction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-04
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

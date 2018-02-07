@@ -1,0 +1,55 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ERI                                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ERI                                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~ACTIVE_SPACE.html">ACTIVE_SPACE</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~ACTIVE_SPACE~ERI.html">ERI</A>.
+<BR><BR>Parameters for the electron repulsion integrals. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#METHOD">METHOD </A>
+<LI><A HREF="#OPERATOR">OPERATOR </A>
+<LI><A HREF="#OPERATOR_PARAMETER">OPERATOR_PARAMETER </A>
+<LI><A HREF="#PERIODICITY">PERIODICITY </A>
+<LI><A HREF="#CUTOFF_RADIUS">CUTOFF_RADIUS </A>
+<LI><A HREF="#EPS_INTEGRAL">EPS_INTEGRAL </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="METHOD"><u>METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">METHOD FULL_GPW
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method used in ERI calculation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  GPW_HALF_TRANSFORM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>FULL_GPW</code>: Use the GPW approach with MOs</li>
+<li><code>GPW_HALF_TRANSFORM</code>: Use the GPW approach for half-transformed MO ERIs</li>
+</ul><TR><TD WITDH="20%"><A NAME="OPERATOR"><u>OPERATOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OPERATOR <1/R>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Operator used in ERI calculation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  <1/R>
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code><1/R></code>: Coulomb operator</li>
+<li><code><EXP(-A*R)/R></code>: Yukawa potential operator</li>
+<li><code><ERF(A*R)/R></code>: Error function potential operator</li>
+<li><code><ERFC(A*R)/R></code>: Complementary error function potential operator</li>
+<li><code><EXP(-A*R2)/R></code>: Gaussian potential operator</li>
+</ul><TR><TD WITDH="20%"><A NAME="OPERATOR_PARAMETER"><u>OPERATOR_PARAMETER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OPERATOR_PARAMETER 4.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Range parameter for ERI operator.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     8.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="PERIODICITY"><u>PERIODICITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PERIODICITY {1 1 1}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Periodicity used for operators in ERI calclulation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  1 1 1
+<TR><TD WITDH="20%"><A NAME="CUTOFF_RADIUS"><u>CUTOFF_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CUTOFF_RADIUS 20
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Radius of operator interactions in non-periodic cases.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="EPS_INTEGRAL"><u>EPS_INTEGRAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_FILTER 1.0E-10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Accuracy of ERIs that will be stored.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999998E-13
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

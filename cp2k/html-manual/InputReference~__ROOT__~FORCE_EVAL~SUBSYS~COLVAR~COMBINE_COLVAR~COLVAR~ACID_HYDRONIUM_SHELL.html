@@ -1,0 +1,110 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ACID_HYDRONIUM_SHELL                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ACID_HYDRONIUM_SHELL                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR.html">COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~COMBINE_COLVAR.html">COMBINE_COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~COMBINE_COLVAR~COLVAR.html">COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~COMBINE_COLVAR~COLVAR~ACID_HYDRONIUM_SHELL.html">ACID_HYDRONIUM_SHELL</A>.
+<BR><BR>Section to define the dissociation of a carboxylic acid in water. Number of oxygens in the 1st shell of the hydronium. Equation (3) in Supplementary Info of J. Am. Chem. Soc.,128,  2006, 11318. Similar to the HYDRONIUM colvar, but with modification for the acid. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#OXYGENS_WATER">OXYGENS_WATER </A>
+<LI><A HREF="#OXYGENS_ACID">OXYGENS_ACID </A>
+<LI><A HREF="#HYDROGENS">HYDROGENS </A>
+<LI><A HREF="#PWOH">PWOH </A>
+<LI><A HREF="#QWOH">QWOH </A>
+<LI><A HREF="#RWOH">RWOH </A>
+<LI><A HREF="#PAOH">PAOH </A>
+<LI><A HREF="#QAOH">QAOH </A>
+<LI><A HREF="#RAOH">RAOH </A>
+<LI><A HREF="#POO">POO </A>
+<LI><A HREF="#QOO">QOO </A>
+<LI><A HREF="#ROO">ROO </A>
+<LI><A HREF="#PM">PM </A>
+<LI><A HREF="#QM">QM </A>
+<LI><A HREF="#NH">NH </A>
+<LI><A HREF="#PCUT">PCUT </A>
+<LI><A HREF="#QCUT">QCUT </A>
+<LI><A HREF="#NC">NC </A>
+<LI><A HREF="#LAMBDA">LAMBDA </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="OXYGENS_WATER"><u>OXYGENS_WATER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OXYGENS {integer} {integer} ..
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies indexes of atoms building the coordination variable. Oxygens of the water molecules.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="OXYGENS_ACID"><u>OXYGENS_ACID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OXYGENS {integer} {integer} ..
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies indexes of atoms building the coordination variable. Oxygens of the carboxyl groups.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="HYDROGENS"><u>HYDROGENS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">HYDROGENS {integer} {integer} ..
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies indexes of atoms building the coordination variable.  Hydrogens of the water molecules and of the carboxyl groups.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="PWOH"><u>PWOH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">pWOH {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the numerator of the exponential factor in the coordination function: number of hydrogens per water molecule.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  8
+<TR><TD WITDH="20%"><A NAME="QWOH"><u>QWOH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">qWOH {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the denominator of the exponential factor in the coordination function: number of hydrogens per water molecule.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  16
+<TR><TD WITDH="20%"><A NAME="RWOH"><u>RWOH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RWOH {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the rc parameter in the coordination function:  number of hydrogens per water molecule.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     2.3999999999999999E+00
+bohr<TR><TD WITDH="20%"><A NAME="PAOH"><u>PAOH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">pAOH {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the numerator of the exponential factor in the coordination function: number of hydrogens per carboxyl group.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+<TR><TD WITDH="20%"><A NAME="QAOH"><u>QAOH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">qAOH {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the denominator of the exponential factor in the coordination function: number of hydrogens per carboxyl group.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  14
+<TR><TD WITDH="20%"><A NAME="RAOH"><u>RAOH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RAOH {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the rc parameter in the coordination function: number of hydrogens per carboxyl group.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     2.3999999999999999E+00
+bohr<TR><TD WITDH="20%"><A NAME="POO"><u>POO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">pOO {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the numerator of the exponential factor in the coordination function: number of oxygens per water oxygen.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+<TR><TD WITDH="20%"><A NAME="QOO"><u>QOO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">qOO {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the denominator of the exponential factor in the coordination function: number of oxygens per water oxygen.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  12
+<TR><TD WITDH="20%"><A NAME="ROO"><u>ROO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ROO {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the rc parameter in the coordination function: number of oxygens per water oxygen.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     5.5000000000000000E+00
+bohr<TR><TD WITDH="20%"><A NAME="PM"><u>PM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">pM {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the numerator of the exponential factor in the M function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  8
+<TR><TD WITDH="20%"><A NAME="QM"><u>QM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">qM {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the denominator of the exponential factor in the M function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  16
+<TR><TD WITDH="20%"><A NAME="NH"><u>NH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NH {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the NH parameter in the M function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.2000000000000002E+00
+<TR><TD WITDH="20%"><A NAME="PCUT"><u>PCUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">pCUT {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the numerator of the exponential factorin the cutoff function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+<TR><TD WITDH="20%"><A NAME="QCUT"><u>QCUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">qCUT {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the value of the denominator of the exponential factorin the cutoff function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  12
+<TR><TD WITDH="20%"><A NAME="NC"><u>NC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NC {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the NC parameter in the cutoff function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.0000000000000002E-01
+<TR><TD WITDH="20%"><A NAME="LAMBDA"><u>LAMBDA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LAMBDA {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the LAMBDA parameter carboxylic acid function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+01
+<TR><TD WIDTH="10%"><TD>variants: LAMBDA</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

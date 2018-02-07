@@ -1,0 +1,87 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FORCE_MATCHING                                                                  </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FORCE_MATCHING                                                                   </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~OPTIMIZE_INPUT.html">OPTIMIZE_INPUT</A>%<A HREF="InputReference~__ROOT__~OPTIMIZE_INPUT~FORCE_MATCHING.html">FORCE_MATCHING</A>.
+<BR><BR>Specify the force matching input. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~OPTIMIZE_INPUT~FORCE_MATCHING~COMPARE_ENERGIES.html">COMPARE_ENERGIES </A>
+<LI><A HREF="InputReference~__ROOT__~OPTIMIZE_INPUT~FORCE_MATCHING~COMPARE_FORCES.html">COMPARE_FORCES </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#OPTIMIZE_FILE_NAME">OPTIMIZE_FILE_NAME </A>
+<LI><A HREF="#REF_TRAJ_FILE_NAME">REF_TRAJ_FILE_NAME </A>
+<LI><A HREF="#REF_FORCE_FILE_NAME">REF_FORCE_FILE_NAME </A>
+<LI><A HREF="#REF_CELL_FILE_NAME">REF_CELL_FILE_NAME </A>
+<LI><A HREF="#GROUP_SIZE">GROUP_SIZE </A>
+<LI><A HREF="#FRAME_START">FRAME_START </A>
+<LI><A HREF="#FRAME_STOP">FRAME_STOP </A>
+<LI><A HREF="#FRAME_STRIDE">FRAME_STRIDE </A>
+<LI><A HREF="#FRAME_COUNT">FRAME_COUNT </A>
+<LI><A HREF="#ENERGY_WEIGHT">ENERGY_WEIGHT </A>
+<LI><A HREF="#SHIFT_AVERAGE">SHIFT_AVERAGE </A>
+<LI><A HREF="#SHIFT_QM">SHIFT_QM </A>
+<LI><A HREF="#SHIFT_MM">SHIFT_MM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="OPTIMIZE_FILE_NAME"><u>OPTIMIZE_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OPTIMIZE_FILE_NAME my_input.inp
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the filename of the input file which contains the parameters to be optimized</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="REF_TRAJ_FILE_NAME"><u>REF_TRAJ_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REF_TRAJ_FILE_NAME pos.xyz
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the filename of the reference coordinates.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="REF_FORCE_FILE_NAME"><u>REF_FORCE_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REF_FORCE_FILE_NAME frc.xyz
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the filename of the reference forces, should also contain the energy</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="REF_CELL_FILE_NAME"><u>REF_CELL_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REF_CELL_FILE_NAME project.cell
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the filename of the reference cell</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="GROUP_SIZE"><u>GROUP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">group_size 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Gives the preferred size of a working group, groups will always be equal or larger than this size.Usually this should take the number of cores per socket into account for good performance.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+<TR><TD WITDH="20%"><A NAME="FRAME_START"><u>FRAME_START</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FRAME_START 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>starting frame to be used from the reference trajectory</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="FRAME_STOP"><u>FRAME_STOP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FRAME_STOP -1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>final frame to be used from the reference trajectory (all=-1)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="FRAME_STRIDE"><u>FRAME_STRIDE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FRAME_STRIDE 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>stride when using the reference trajectory</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="FRAME_COUNT"><u>FRAME_COUNT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FRAME_COUNT 100
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use at most FRAME_COUNT frames from the reference trajectory, adjusting the stride to have them as fas apart as possible (all=-1).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="ENERGY_WEIGHT"><u>ENERGY_WEIGHT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ENERGY_WEIGHT 0.1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Relative weight of the energy RMSD vs the force RMSD</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="SHIFT_AVERAGE"><u>SHIFT_AVERAGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SHIFT_AVERAGE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Shift averages of the energies before computing energy RMSD.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="SHIFT_QM"><u>SHIFT_QM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SHIFT_QM -17.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Shift of the reference energies applied before computing energy RMSD.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="SHIFT_MM"><u>SHIFT_MM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SHIFT_MM 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Shift of the fit energies applied before computing energy RMSD.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

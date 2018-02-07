@@ -1,0 +1,52 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DDAPC_RESTRAINT                                                                 </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DDAPC_RESTRAINT                                                                  </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS.html">QS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DDAPC_RESTRAINT.html">DDAPC_RESTRAINT</A>.
+<BR><BR>Use DDAPC charges in a restraint (check code for details). This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DDAPC_RESTRAINT~PROGRAM_RUN_INFO.html">PROGRAM_RUN_INFO </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TYPE_OF_DENSITY">TYPE_OF_DENSITY </A>
+<LI><A HREF="#STRENGTH">STRENGTH </A>
+<LI><A HREF="#TARGET">TARGET </A>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#COEFF">COEFF </A>
+<LI><A HREF="#FUNCTIONAL_FORM">FUNCTIONAL_FORM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TYPE_OF_DENSITY"><u>TYPE_OF_DENSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TYPE_OF_DENSITY (FULL|SPIN)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the type of density used for the fitting</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FULL
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>FULL</code>: Full density</li>
+<li><code>SPIN</code>: Spin density</li>
+</ul><TR><TD WITDH="20%"><A NAME="STRENGTH"><u>STRENGTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STRENGTH {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>force constant of the restraint</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="TARGET"><u>TARGET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TARGET {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>target value of the restraint</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the list of atoms that is summed in the restraint</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="COEFF"><u>COEFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COEFF 1.0 -1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the the coefficient of the atom in the atom list (default is one)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals<TR><TD WITDH="20%"><A NAME="FUNCTIONAL_FORM"><u>FUNCTIONAL_FORM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FUNCTIONAL_FORM RESTRAINT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the functional form of the term added</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  RESTRAINT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>RESTRAINT</code>: Harmonic potential: s*(q-t)**2</li>
+<li><code>CONSTRAINT</code>: Constraint form: s*(q-t)</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,358 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section QS                                                                              </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section QS                                                                               </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS.html">QS</A>.
+<BR><BR>parameters needed to set up the Quickstep framework. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DISTRIBUTION.html">DISTRIBUTION </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DFTB.html">DFTB </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SCPTB.html">SCPTB </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE.html">SE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~MULLIKEN_RESTRAINT.html">MULLIKEN_RESTRAINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DDAPC_RESTRAINT.html">DDAPC_RESTRAINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~BECKE_CONSTRAINT.html">BECKE_CONSTRAINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~CDFT.html">CDFT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~S2_RESTRAINT.html">S2_RESTRAINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~LRIGPW.html">LRIGPW </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~OPTIMIZE_LRI_BASIS.html">OPTIMIZE_LRI_BASIS </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#EPS_DEFAULT">EPS_DEFAULT </A>
+<LI><A HREF="#EPS_CORE_CHARGE">EPS_CORE_CHARGE </A>
+<LI><A HREF="#EPS_GVG_RSPACE">EPS_GVG_RSPACE </A>
+<LI><A HREF="#EPS_PGF_ORB">EPS_PGF_ORB </A>
+<LI><A HREF="#EPS_KG_ORB">EPS_KG_ORB </A>
+<LI><A HREF="#EPS_PPL">EPS_PPL </A>
+<LI><A HREF="#EPS_PPNL">EPS_PPNL </A>
+<LI><A HREF="#EPS_CPC">EPS_CPC </A>
+<LI><A HREF="#EPS_RHO">EPS_RHO </A>
+<LI><A HREF="#EPS_RHO_RSPACE">EPS_RHO_RSPACE </A>
+<LI><A HREF="#EPS_RHO_GSPACE">EPS_RHO_GSPACE </A>
+<LI><A HREF="#EPS_FILTER_MATRIX">EPS_FILTER_MATRIX </A>
+<LI><A HREF="#EPSFIT">EPSFIT </A>
+<LI><A HREF="#EPSISO">EPSISO </A>
+<LI><A HREF="#EPSSVD">EPSSVD </A>
+<LI><A HREF="#EPSRHO0">EPSRHO0 </A>
+<LI><A HREF="#ALPHA0_HARD">ALPHA0_HARD </A>
+<LI><A HREF="#FORCE_PAW">FORCE_PAW </A>
+<LI><A HREF="#MAX_RAD_LOCAL">MAX_RAD_LOCAL </A>
+<LI><A HREF="#LS_SCF">LS_SCF </A>
+<LI><A HREF="#ALMO_SCF">ALMO_SCF </A>
+<LI><A HREF="#TRANSPORT">TRANSPORT </A>
+<LI><A HREF="#KG_METHOD">KG_METHOD </A>
+<LI><A HREF="#MAP_CONSISTENT">MAP_CONSISTENT </A>
+<LI><A HREF="#LMAXN1">LMAXN1 </A>
+<LI><A HREF="#LMAXN0">LMAXN0 </A>
+<LI><A HREF="#LADDN0">LADDN0 </A>
+<LI><A HREF="#QUADRATURE">QUADRATURE </A>
+<LI><A HREF="#PW_GRID">PW_GRID </A>
+<LI><A HREF="#PW_GRID_LAYOUT">PW_GRID_LAYOUT </A>
+<LI><A HREF="#PW_GRID_BLOCKED">PW_GRID_BLOCKED </A>
+<LI><A HREF="#EXTRAPOLATION">EXTRAPOLATION </A>
+<LI><A HREF="#EXTRAPOLATION_ORDER">EXTRAPOLATION_ORDER </A>
+<LI><A HREF="#METHOD">METHOD </A>
+<LI><A HREF="#CORE_PPL">CORE_PPL </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="EPS_DEFAULT"><u>EPS_DEFAULT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_DEFAULT real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Try setting all EPS_xxx to values leading to an energy correct up to EPS_DEFAULT</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-10
+<TR><TD WITDH="20%"><A NAME="EPS_CORE_CHARGE"><u>EPS_CORE_CHARGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_CORE_CHARGE real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Precision for mapping the core charges.Overrides EPS_DEFAULT/100.0 value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_GVG_RSPACE"><u>EPS_GVG_RSPACE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_GVG_RSPACE real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision of the realspace KS matrix element integration. Overrides SQRT(EPS_DEFAULT) value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WIDTH="10%"><TD>variants: EPS_GVG<TR><TD WITDH="20%"><A NAME="EPS_PGF_ORB"><u>EPS_PGF_ORB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_PGF_ORB real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision of the overlap matrix elements. Overrides SQRT(EPS_DEFAULT) value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_KG_ORB"><u>EPS_KG_ORB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_KG_ORB 1.0E-8
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision used in coloring the subsets for the Kim-Gordon method. Overrides SQRT(EPS_DEFAULT) value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_PPL"><u>EPS_PPL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_PPL real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Adjusts the precision for the local part of the pseudo potential.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-02
+<TR><TD WITDH="20%"><A NAME="EPS_PPNL"><u>EPS_PPNL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_PPNL real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision of the non-local part of the pseudo potential. Overrides sqrt(EPS_DEFAULT) value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_CPC"><u>EPS_CPC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_CPC real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision of the GAPW projection. Overrides EPS_DEFAULT value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_RHO"><u>EPS_RHO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_RHO real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision of the density mapping on the grids.Overrides EPS_DEFAULT value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_RHO_RSPACE"><u>EPS_RHO_RSPACE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_RHO_RSPACE real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision of the density mapping in rspace.Overrides EPS_DEFAULT value..Overrides EPS_RHO value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_RHO_GSPACE"><u>EPS_RHO_GSPACE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_RHO_GSPACE real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets precision of the density mapping in gspace.Overrides EPS_DEFAULT value..Overrides EPS_RHO value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="EPS_FILTER_MATRIX"><u>EPS_FILTER_MATRIX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_FILTER_MATRIX 1.0E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the threshold for filtering matrix elements.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="EPSFIT"><u>EPSFIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPSFIT real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW: precision to give the extention of a hard gaussian</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-04
+<TR><TD WIDTH="10%"><TD>variants: EPS_FIT<TR><TD WITDH="20%"><A NAME="EPSISO"><u>EPSISO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPSISO real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW: precision to determine an isolated projector</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999998E-13
+<TR><TD WIDTH="10%"><TD>variants: EPS_ISO<TR><TD WITDH="20%"><A NAME="EPSSVD"><u>EPSSVD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_SVD real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW: tolerance used in the singular value decomposition of the projector matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-08
+<TR><TD WIDTH="10%"><TD>variants: EPS_SVD<TR><TD WITDH="20%"><A NAME="EPSRHO0"><u>EPSRHO0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPSRHO0 real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW : precision to determine the range of V(rho0-rho0soft)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WIDTH="10%"><TD>variants: EPSVRHO0, EPS_VRHO0<TR><TD WITDH="20%"><A NAME="ALPHA0_HARD"><u>ALPHA0_HARD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALPHA0_HARD real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW: Exponent for hard compensation charge</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WIDTH="10%"><TD>variants: ALPHA0_H, ALPHA0<TR><TD WITDH="20%"><A NAME="FORCE_PAW"><u>FORCE_PAW</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FORCE_PAW
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use the GAPW scheme also for atoms with soft basis sets, i.e.  the local densities are computed even if hard and soft should be equal. If this keyword is not set to true, those atoms with soft basis sets are treated by a GPW scheme, i.e. the corresponding density contribution goes on the global grid and is expanded in PW.  This option nullifies the effect of the GPW_TYPE in the atomic KIND</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="MAX_RAD_LOCAL"><u>MAX_RAD_LOCAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_RAD_LOCAL real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW : maximum radius of gaussian functions included in the generation of projectors</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.5000000000000000E+01
+<TR><TD WITDH="20%"><A NAME="LS_SCF"><u>LS_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LS_SCF
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Perform a linear scaling SCF</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ALMO_SCF"><u>ALMO_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALMO_SCF
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Perform ALMO SCF</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TRANSPORT"><u>TRANSPORT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRANSPORT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Perform transport calculations (coupling CP2K and OMEN)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="KG_METHOD"><u>KG_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KG_METHOD
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use a Kim-Gordon-like scheme.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<BR> This keyword cites following references: 
+<A HREF="references.html#reference_50" TITLE="
+ Iannuzzi, M; Kirchner, B; Hutter, J. 
+ CHEMICAL PHYSICS LETTERS, 421 (1-3), 16-20 (2006). 
+ Density functional embedding for molecular systems.
+ http://dx.doi.org/10.1016/j.cplett.2005.08.155
+">[Iannuzzi2006]</A>
+<A HREF="references.html#reference_4" TITLE="
+ Brelaz, D. COMMUNICATIONS OF THE ACM, 22 (4), 251-256 (1979). 
+ New methods to color the vertices of a graph.
+ http://dx.doi.org/10.1145/359094.359101
+">[Brelaz1979]</A>
+<A HREF="references.html#reference_171" TITLE="
+ Andermatt, S; Cha, J; Schiffmann, F; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 12 (7), 3214-3227 (2016). 
+ Combining Linear-Scaling DFT with Subsystem DFT in Born Oppenheimer and
+ Ehrenfest Molecular Dynamics Simulations: From Molecules to a Virus in
+ Solution.
+ http://dx.doi.org/10.1021/acs.jctc.6b00398
+">[Andermatt2016]</A>
+<TR><TD WITDH="20%"><A NAME="MAP_CONSISTENT"><u>MAP_CONSISTENT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAP_CONSISTENT FALSE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Compute the exact derivative (Hks) of the energy with respect to the density matrix. This is slightly more expensive than using an approximate computation, but consistent mapping can improve the stability of the SCF procedure, especially for a tight EPS_SCF and a less tight EPS_DEFAULT.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="LMAXN1"><u>LMAXN1</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LMAXN1 integer
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW : max L number for expansion of the atomic densities in spherical gaussians</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WIDTH="10%"><TD>variants: LMAXRHO1<TR><TD WITDH="20%"><A NAME="LMAXN0"><u>LMAXN0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LMAXN0 integer
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW : max L number for the expansion compensation densities in spherical gaussians</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WIDTH="10%"><TD>variants: LMAXRHO0<TR><TD WITDH="20%"><A NAME="LADDN0"><u>LADDN0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LADDN0 integer
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW : integer added to the max L of the basis set, used to determine the maximum value of L for the compensation charge density.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  99
+<TR><TD WITDH="20%"><A NAME="QUADRATURE"><u>QUADRATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">QUADRATURE GC_SIMPLE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>GAPW: algorithm to construct the atomic radial grids</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  GC_LOG
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>GC_SIMPLE</code>: Gauss-Chebyshev quadrature</li>
+<li><code>GC_TRANSFORMED</code>: Transformed Gauss-Chebyshev quadrature</li>
+<li><code>GC_LOG</code>: Logarithmic transformed Gauss-Chebyshev quadrature</li>
+</ul><TR><TD WITDH="20%"><A NAME="PW_GRID"><u>PW_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PW_GRID NS-FULLSPACE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>What kind of PW_GRID should be employed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NS-FULLSPACE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SPHERICAL</code>: - not tested</li>
+<li><code>NS-FULLSPACE</code>:  tested</li>
+<li><code>NS-HALFSPACE</code>:  - not tested</li>
+</ul><TR><TD WITDH="20%"><A NAME="PW_GRID_LAYOUT"><u>PW_GRID_LAYOUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PW_GRID_LAYOUT 4 16
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Force a particular real-space layout for the plane waves grids. Numbers &le; 0 mean that this dimension is free, incorrect layouts will be ignored. The default (/-1,-1/) causes CP2K to select a good value, i.e. plane distributed for large grids, more general distribution for small grids.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers. Default value:  -1 -1
+<TR><TD WITDH="20%"><A NAME="PW_GRID_BLOCKED"><u>PW_GRID_BLOCKED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PW_GRID_BLOCKED FREE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Can be used to set the distribution in g-space for the pw grids and their FFT.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FREE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>FREE</code>: CP2K will select an appropriate value</li>
+<li><code>TRUE</code>: blocked</li>
+<li><code>FALSE</code>: not blocked</li>
+</ul><TR><TD WITDH="20%"><A NAME="EXTRAPOLATION"><u>EXTRAPOLATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXTRAPOLATION PS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Extrapolation strategy for the wavefunction during e.g. MD.PS and ASPC are recommended, see also EXTRAPOLATION_ORDER.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ASPC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>USE_GUESS</code>: Use the method specified with SCF_GUESS, i.e. no extrapolation</li>
+<li><code>USE_PREV_P</code>: Use the previous density matrix</li>
+<li><code>USE_PREV_RHO_R</code>: Use the previous density in real space</li>
+<li><code>LINEAR_WF</code>: Linear extrapolation of the wavefunction</li>
+<li><code>LINEAR_P</code>: Linear extrapolation of the density matrix</li>
+<li><code>LINEAR_PS</code>: Linear extrapolation of the density matrix times the overlap matrix</li>
+<li><code>USE_PREV_WF</code>: Use the previous wavefunction</li>
+<li><code>PS</code>: Higher order extrapolation of the density matrix times the overlap matrix</li>
+<li><code>FROZEN</code>: Frozen ...</li>
+<li><code>ASPC</code>: Always stable predictor corrector, similar to PS, but going for MD stability instead of intial guess accuracy.</li>
+</ul><TR><TD WIDTH="10%"><TD>variants: INTERPOLATION, WF_INTERPOLATION<BR> This keyword cites following references: 
+<A HREF="references.html#reference_98" TITLE="
+ Kolafa, J. 
+ JOURNAL OF COMPUTATIONAL CHEMISTRY, 25 (3), 335-342 (2004). 
+ Time-reversible always stable predictor-corrector method for molecular dynamics of polarizable molecules.
+ http://dx.doi.org/10.1002/jcc.10385
+">[Kolafa2004]</A>
+<A HREF="references.html#reference_38" TITLE="
+ VandeVondele, J; Krack, M; Mohamed, F; Parrinello, M; Chassaing, T;
+ Hutter, J. COMPUTER PHYSICS COMMUNICATIONS, 167 (2), 103-128 (2005). 
+ QUICKSTEP: Fast and accurate density functional calculations using a
+ mixed Gaussian and plane waves approach.
+ http://dx.doi.org/10.1016/j.cpc.2004.12.014
+">[VandeVondele2005]</A>
+<TR><TD WITDH="20%"><A NAME="EXTRAPOLATION_ORDER"><u>EXTRAPOLATION_ORDER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXTRAPOLATION_ORDER {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Order for the PS or ASPC extrapolation (typically 2-4). Higher order might bring more accuracy, but comes, for large systems, also at some cost. In some cases, a high order extrapolation is not stable, and the order needs to be reduced.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="METHOD"><u>METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">METHOD GAPW
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the electronic structure method that should be employed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  GPW
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>GAPW</code>: Gaussian and augmented plane waves method</li>
+<li><code>GAPW_XC</code>: Gaussian and augmented plane waves method only for XC</li>
+<li><code>GPW</code>: Gaussian and plane waves method</li>
+<li><code>LRIGPW</code>: Local resolution of identity method</li>
+<li><code>MNDO</code>: MNDO semiempirical</li>
+<li><code>MNDOD</code>: MNDO-d semiempirical</li>
+<li><code>AM1</code>: AM1 semiempirical</li>
+<li><code>PM3</code>: PM3 semiempirical</li>
+<li><code>PM6</code>: PM6 semiempirical</li>
+<li><code>PDG</code>: PDG semiempirical</li>
+<li><code>RM1</code>: RM1 semiempirical</li>
+<li><code>PNNL</code>: PNNL semiempirical</li>
+<li><code>DFTB</code>: DFTB Density Functional based Tight-Binding</li>
+<li><code>OFGPW</code>: OFGPW Orbital-free GPW method</li>
+<li><code>SCPTB</code>: SCPTB Self-Consistent-Polarization Tight-Binding</li>
+</ul><BR> This keyword cites following references: 
+<A HREF="references.html#reference_45" TITLE="
+ Lippert, G; Hutter, J; Parrinello, M. 
+ MOLECULAR PHYSICS, 92 (3), 477-487 (1997). 
+ A hybrid Gaussian and plane wave density functional scheme.
+ http://dx.doi.org/10.1080/002689797170220
+">[Lippert1997]</A>
+<A HREF="references.html#reference_46" TITLE="
+ Lippert, G; Hutter, J; Parrinello, M. 
+ THEORETICAL CHEMISTRY ACCOUNTS, 103 (2), 124-140 (1999). 
+ The Gaussian and augmented-plane-wave density functional method for ab
+ initio molecular dynamics simulations.
+ http://dx.doi.org/10.1007/s002140050523
+">[Lippert1999]</A>
+<A HREF="references.html#reference_48" TITLE="
+ Krack, M; Parrinello, M. 
+ PHYSICAL CHEMISTRY CHEMICAL PHYSICS, 2 (10), 2105-2112 (2000). 
+ All-electron ab-initio molecular dynamics.
+ http://dx.doi.org/10.1039/b001167n
+">[Krack2000]</A>
+<A HREF="references.html#reference_38" TITLE="
+ VandeVondele, J; Krack, M; Mohamed, F; Parrinello, M; Chassaing, T;
+ Hutter, J. COMPUTER PHYSICS COMMUNICATIONS, 167 (2), 103-128 (2005). 
+ QUICKSTEP: Fast and accurate density functional calculations using a
+ mixed Gaussian and plane waves approach.
+ http://dx.doi.org/10.1016/j.cpc.2004.12.014
+">[VandeVondele2005]</A>
+<A HREF="references.html#reference_88" TITLE="
+ VandeVondele, J; Iannuzzi, M; Hutter, J. 
+ Computer Simulations in Condensed Matter Systems: From Materials to Chemical Biology, Vol 1, 703, 287-314 (2006). 
+ Large scale condensed matter calculations using the gaussian and
+ augmented plane waves method.
+ http://dx.doi.org/10.1007/3-540-35273-2_8
+">[VandeVondele2006]</A>
+<A HREF="references.html#reference_27" TITLE="
+ DEWAR, MJS; THIEL, W. 
+ JOURNAL OF THE AMERICAN CHEMICAL SOCIETY, 99 (15), 4899-4907 (1977). 
+ GROUND-STATES OF MOLECULES .38. MNDO METHOD - APPROXIMATIONS AND
+ PARAMETERS.
+ http://dx.doi.org/10.1021/ja00457a004
+">[DEWAR1977]</A>
+<A HREF="references.html#reference_26" TITLE="
+ DEWAR, MJS; ZOEBISCH, EG; HEALY, EF; STEWART, JJP. 
+ JOURNAL OF THE AMERICAN CHEMICAL SOCIETY, 107 (13), 3902-3909 (1985). 
+ THE DEVELOPMENT AND USE OF QUANTUM-MECHANICAL MOLECULAR-MODELS .76. AM1
+ - A NEW GENERAL-PURPOSE QUANTUM-MECHANICAL MOLECULAR-MODEL.
+ http://dx.doi.org/10.1021/ja00299a024
+">[DEWAR1985]</A>
+<A HREF="references.html#reference_25" TITLE="
+ Rocha, GB; Freire, RO; Simas, AM; Stewart, JJP. 
+ JOURNAL OF COMPUTATIONAL CHEMISTRY, 27 (10), 1101-1111 (2006). 
+ RMI: A reparameterization of AM1 for H, C, N, O, P, S, F, Cl, Br, and I.
+ http://dx.doi.org/10.1002/jcc.20425
+">[Rocha2006]</A>
+<A HREF="references.html#reference_24" TITLE="
+ STEWART, JJP. 
+ JOURNAL OF COMPUTATIONAL CHEMISTRY, 10 (2), 209-220 (1989). 
+ OPTIMIZATION OF PARAMETERS FOR SEMIEMPIRICAL METHODS .1. METHOD.
+ http://dx.doi.org/10.1002/jcc.540100208
+">[STEWART1989]</A>
+<A HREF="references.html#reference_23" TITLE="
+ THIEL, W; VOITYUK, AA. 
+ THEORETICA CHIMICA ACTA, 81 (6), 391-404 (1992). 
+ EXTENSION OF THE MNDO FORMALISM TO D-ORBITALS - INTEGRAL APPROXIMATIONS
+ AND PRELIMINARY NUMERICAL RESULTS.
+ http://dx.doi.org/10.1007/BF01134863
+">[THIEL1992]</A>
+<A HREF="references.html#reference_22" TITLE="
+ Repasky, MP; Chandrasekhar, J; Jorgensen, WL. 
+ JOURNAL OF COMPUTATIONAL CHEMISTRY, 23 (16), 1601-1622 (2002). 
+ PDDG/PM3 and PDDG/MNDO: Improved semiempirical methods.
+ http://dx.doi.org/10.1002/jcc.10162
+">[Repasky2002]</A>
+<A HREF="references.html#reference_21" TITLE="
+ Stewart, JJP. 
+ JOURNAL OF MOLECULAR MODELING, 13 (12), 1173-1213 (2007). 
+ Optimization of parameters for semiempirical methods V: Modification of
+ NDDO approximations and application to 70 elements.
+ http://dx.doi.org/10.1007/s00894-007-0233-4
+">[Stewart2007]</A>
+<A HREF="references.html#reference_93" TITLE="
+ Chang, DT; Schenter, GK; Garrett, BC. 
+ JOURNAL OF CHEMICAL PHYSICS, 128 (16), 164111 (2008). 
+ Self-consistent polarization neglect of diatomic differential overlap: Applications to water clusters.
+ http://dx.doi.org/10.1063/1.2905230
+">[Chang2008]</A>
+<TR><TD WITDH="20%"><A NAME="CORE_PPL"><u>CORE_PPL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CORE_PPL ANALYTIC
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the method used to calculate the local pseudopotential contribution.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ANALYTIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ANALYTIC</code>: Analytic integration of integrals</li>
+<li><code>GRID</code>: Numerical integration on real space grid. Lumped together with core charge</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

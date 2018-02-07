@@ -1,0 +1,67 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MACHINE_LEARNING                                                                </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MACHINE_LEARNING                                                                 </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF.html">LS_SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PAO.html">PAO</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PAO~MACHINE_LEARNING.html">MACHINE_LEARNING</A>.
+<BR><BR>Machine learning section. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PAO~MACHINE_LEARNING~TRAINING_SET.html">TRAINING_SET </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#METHOD">METHOD </A>
+<LI><A HREF="#PRIOR">PRIOR </A>
+<LI><A HREF="#DESCRIPTOR">DESCRIPTOR </A>
+<LI><A HREF="#TOLERANCE">TOLERANCE </A>
+<LI><A HREF="#GP_NOISE_VAR">GP_NOISE_VAR </A>
+<LI><A HREF="#GP_SCALE">GP_SCALE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="METHOD"><u>METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Machine learning scheme used to predict PAO basis sets.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  GAUSSIAN_PROCESS
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>GAUSSIAN_PROCESS</code>: Gaussian Process</li>
+<li><code>NEURAL_NETWORK</code>: Neural Network</li>
+<li><code>LAZY</code>: Just rely on prior</li>
+</ul><TR><TD WITDH="20%"><A NAME="PRIOR"><u>PRIOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Prior used for predictions.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ZERO
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ZERO</code>: Simply use zero</li>
+<li><code>MEAN</code>: Use average of training-set</li>
+</ul><TR><TD WITDH="20%"><A NAME="DESCRIPTOR"><u>DESCRIPTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Descriptor used as input for machine learning.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  POTENTIAL
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>POTENTIAL</code>: Eigenvalues of local potential matrix</li>
+<li><code>OVERLAP</code>: Eigenvalues of local overlap matrix</li>
+<li><code>R12</code>: Distance between two atoms (just for testing)</li>
+</ul><BR> This keyword cites following reference: 
+<A HREF="references.html#reference_172" TITLE="
+ Zhu, L; Amsler, M; Fuhrer, T; Schaefer, B; Faraji, S; Rostami, S;
+ Ghasemi, SA; Sadeghi, A; Grauzinyte, M; Wolverton, C; Goedecker, S. 
+ JOURNAL OF CHEMICAL PHYSICS, 144 (3), 034203 (2016). 
+ A fingerprint based metric for measuring similarities of crystalline
+ structures.
+ http://dx.doi.org/10.1063/1.4940026
+">[Zhu2016]</A>
+<TR><TD WITDH="20%"><A NAME="TOLERANCE"><u>TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum variance tolerated when making predictions.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-02
+<TR><TD WITDH="20%"><A NAME="GP_NOISE_VAR"><u>GP_NOISE_VAR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Variance of noise used for Gaussian Process machine learning.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="GP_SCALE"><u>GP_SCALE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Length scale used for Gaussian Process machine learning.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.0000000000000003E-02
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

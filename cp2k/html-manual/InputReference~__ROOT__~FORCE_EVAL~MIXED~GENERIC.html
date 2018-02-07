@@ -1,0 +1,48 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section GENERIC                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section GENERIC                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED.html">MIXED</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~GENERIC.html">GENERIC</A>.
+<BR><BR>User driven coupling between two or more force_eval. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MIXING_FUNCTION">MIXING_FUNCTION </A>
+<LI><A HREF="#VARIABLES">VARIABLES </A>
+<LI><A HREF="#PARAMETERS">PARAMETERS </A>
+<LI><A HREF="#VALUES">VALUES </A>
+<LI><A HREF="#UNITS">UNITS </A>
+<LI><A HREF="#DX">DX </A>
+<LI><A HREF="#ERROR_LIMIT">ERROR_LIMIT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MIXING_FUNCTION"><u>MIXING_FUNCTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MIXING_FUNCTION (E1+E2-LOG(E1/E2))
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the mixing functional form in mathematical notation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string<TR><TD WITDH="20%"><A NAME="VARIABLES"><u>VARIABLES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VARIABLES x
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the variables of the functional form. To allow an efficient mapping the order of the energy variables will be considered identical to the order of the force_eval in the force_eval_order list.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words<TR><TD WITDH="20%"><A NAME="PARAMETERS"><u>PARAMETERS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARAMETERS a b D
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the parameters of the functional form</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words, and may repeat<TR><TD WITDH="20%"><A NAME="VALUES"><u>VALUES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VALUES
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the values of parameter of the functional form</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals, and may repeat. Default unit: [internal_cp2k].<TR><TD WITDH="20%"><A NAME="UNITS"><u>UNITS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">UNITS angstrom eV*angstrom^-1 angstrom^1 K
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Optionally, allows to define valid CP2K unit strings for each parameter value. It is assumed that the corresponding parameter value is specified in this unit.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words, and may repeat<TR><TD WITDH="20%"><A NAME="DX"><u>DX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DX <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Parameter used for computing the derivative with the Ridders' method.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     1.0000000000000001E-01
+bohr<TR><TD WITDH="20%"><A NAME="ERROR_LIMIT"><u>ERROR_LIMIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ERROR_LIMIT <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Checks that the error in computing the derivative is not larger than the value set; in case error is larger a warning message is printed.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999998E-13
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

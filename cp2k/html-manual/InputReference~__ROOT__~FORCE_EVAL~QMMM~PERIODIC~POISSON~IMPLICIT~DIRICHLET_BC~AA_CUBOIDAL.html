@@ -1,0 +1,65 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section AA_CUBOIDAL                                                                     </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section AA_CUBOIDAL                                                                      </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC.html">PERIODIC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON.html">POISSON</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~IMPLICIT.html">IMPLICIT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~IMPLICIT~DIRICHLET_BC.html">DIRICHLET_BC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~PERIODIC~POISSON~IMPLICIT~DIRICHLET_BC~AA_CUBOIDAL.html">AA_CUBOIDAL</A>.
+<BR><BR>Parameters for creating axis-aligned cuboidal Dirichlet regions. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#V_D">V_D </A>
+<LI><A HREF="#OSCILLATING_FRACTION">OSCILLATING_FRACTION </A>
+<LI><A HREF="#FREQUENCY">FREQUENCY </A>
+<LI><A HREF="#PHASE">PHASE </A>
+<LI><A HREF="#X_XTNT">X_XTNT </A>
+<LI><A HREF="#Y_XTNT">Y_XTNT </A>
+<LI><A HREF="#Z_XTNT">Z_XTNT </A>
+<LI><A HREF="#N_PRTN">N_PRTN </A>
+<LI><A HREF="#SMOOTHING_WIDTH">SMOOTHING_WIDTH </A>
+<LI><A HREF="#PERIODIC_REGION">PERIODIC_REGION </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="V_D"><u>V_D</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">v_D <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The value of the fixed potential to be imposed at the region.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [volt].<TR><TD WITDH="20%"><A NAME="OSCILLATING_FRACTION"><u>OSCILLATING_FRACTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OSCILLATING_FRACTION <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>A fraction of the field can be set to oscilate over time.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="FREQUENCY"><u>FREQUENCY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FREQUENCY <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The frequency with which the oscillating fraction oscillates.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [s^-1], default value:     0.0000000000000000E+00
+s^-1<TR><TD WITDH="20%"><A NAME="PHASE"><u>PHASE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PHASE <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The phase of the oscillattion. A phase of zero corresponds to a cosine function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="X_XTNT"><u>X_XTNT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">X_xtnt <xmin(real)> <xmax(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The X extents of the cuboid.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="Y_XTNT"><u>Y_XTNT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">Y_xtnt <ymin(real)> <ymax(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The Y extents of the cuboid.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="Z_XTNT"><u>Z_XTNT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">Z_xtnt <zmin(real)> <zmax(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The Z extents of the cuboid.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="N_PRTN"><u>N_PRTN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_PRTN <integer> <integer> <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of partitions in the x, y and z directions for partitioning the cuboid.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers. Default value:  1 1 1
+<TR><TD WITDH="20%"><A NAME="SMOOTHING_WIDTH"><u>SMOOTHING_WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SMOOTHING_WIDTH <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The width of the transition region between the Dirichlet subdomain and its surrounding.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.0583544171800002E-01
+angstrom<TR><TD WIDTH="10%"><TD>variants: SIGMA<TR><TD WITDH="20%"><A NAME="PERIODIC_REGION"><u>PERIODIC_REGION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PERIODIC_REGION <logical>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether or not to take into consideration the effects of the periodicity of the simulation cell (MIXED_PERIODIC bc) for regions defined sufficiently close to the boundaries.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

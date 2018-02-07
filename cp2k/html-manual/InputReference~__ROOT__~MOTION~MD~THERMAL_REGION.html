@@ -1,0 +1,47 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section THERMAL_REGION                                                                  </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section THERMAL_REGION                                                                   </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~THERMAL_REGION.html">THERMAL_REGION</A>.
+<BR><BR>Define regions where different initialization and control of the temperature is used. When MOTION%MD%ENSEMBLE is set to LANGEVIN, this section controls if the atoms defined inside and outside the thermal regions should undergo Langevin MD or NVE Born-Oppenheimer MD. The theory behind Langevin MD using different regions can be found in articles by Kantorovitch et al. listed below. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_140" TITLE="
+ Kantorovich, L. PHYSICAL REVIEW B, 78 (9), 094304 (2008). 
+ Generalized Langevin equation for solids. I.
+ Rigorous derivation and main properties.
+ http://dx.doi.org/10.1103/PhysRevB.78.094304
+">[Kantorovich2008]</A>
+<A HREF="references.html#reference_141" TITLE="
+ Kantorovich, L; Rompotis, N. 
+ PHYSICAL REVIEW B, 78 (9), 094305 (2008). 
+ Generalized Langevin equation for solids. II.
+ Stochastic boundary conditions for nonequilibrium molecular dynamics simulations.
+ http://dx.doi.org/10.1103/PhysRevB.78.094305
+">[Kantorovich2008b]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~THERMAL_REGION~DEFINE_REGION.html">DEFINE_REGION </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~THERMAL_REGION~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#FORCE_RESCALING">FORCE_RESCALING </A>
+<LI><A HREF="#DO_LANGEVIN_DEFAULT">DO_LANGEVIN_DEFAULT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="FORCE_RESCALING"><u>FORCE_RESCALING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Control the rescaling ot the velocities in all the regions, according to the temperature assigned to each reagion, when RESTART_VELOCITY in EXT_RESTART is active.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DO_LANGEVIN_DEFAULT"><u>DO_LANGEVIN_DEFAULT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">do_langevin_default .FALSE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If ENSEMBLE is set to LANGEVIN, controls whether the atoms NOT defined in the thermal regions to undergo langevin MD or not. If not, then the atoms will undergo NVE Born-Oppenheimer MD.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

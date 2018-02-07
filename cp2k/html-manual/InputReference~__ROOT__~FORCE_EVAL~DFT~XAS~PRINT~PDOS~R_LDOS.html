@@ -1,0 +1,38 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section R_LDOS                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section R_LDOS                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS.html">XAS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~PRINT~PDOS.html">PDOS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XAS~PRINT~PDOS~R_LDOS.html">R_LDOS</A>.
+<BR><BR>Controls the printing of local PDOS, projected on 3D volume in real space, the volume is defined in terms of position with respect to atoms in the lists. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#LIST">LIST </A>
+<LI><A HREF="#XRANGE">XRANGE </A>
+<LI><A HREF="#YRANGE">YRANGE </A>
+<LI><A HREF="#ZRANGE">ZRANGE </A>
+<LI><A HREF="#ERANGE">ERANGE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="LIST"><u>LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LIST {integer}  {integer} ..  {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies a list of indexes of atoms used to define the real space volume</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="XRANGE"><u>XRANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">XRANGE -10.0 10.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>range of positions in Cartesian direction x: all grid points within  this range from at least one atom of the list are considered</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="YRANGE"><u>YRANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">YRANGE -10.0 10.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>range of positions in Cartesian direction y: all grid points within  this range from at least one atom of the list are considered</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="ZRANGE"><u>ZRANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ZRANGE -10.0 10.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>range of positions in Cartesian direction z: all grid points within  this range from at least one atom of the list are considered</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="ERANGE"><u>ERANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ERANGE -1.0 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>only project states with the eigenvalues in the given interval. Default is all states.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [hartree].</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

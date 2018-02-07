@@ -1,0 +1,106 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CURRENT                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CURRENT                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES.html">LINRES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~CURRENT.html">CURRENT</A>.
+<BR><BR>The induced current density is calculated by DFPT. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_127" TITLE="
+ Sebastiani, D; Parrinello, M. 
+ THE JOURNAL OF PHYSICAL CHEMISTRY A, 105 (10), 1951-1958 (2001). 
+ A New Ab Initio Approach for NMR Chemical Shifts in Periodic Systems.
+ http://dx.doi.org/10.1021/jp002807j
+">[Sebastiani2001]</A>
+<A HREF="references.html#reference_128" TITLE="
+ Weber, V; Iannuzzi, M; Giani, S; Hutter, J; Declerck, R; Waroduier, M. 
+ THE JOURNAL OF CHEMICAL PHYSICS, 131 (1), 014106 (2009). 
+ Magnetic Linear Response Properties Calculations with the
+ Gaussian and Augmanted-Plane-Wave Method.
+ http://dx.doi.org/10.1063/1.3156803
+">[Weber2009]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~CURRENT~PRINT.html">PRINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~CURRENT~INTERPOLATOR.html">INTERPOLATOR </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#GAUGE">GAUGE </A>
+<LI><A HREF="#GAUGE_ATOM_RADIUS">GAUGE_ATOM_RADIUS </A>
+<LI><A HREF="#USE_OLD_GAUGE_ATOM">USE_OLD_GAUGE_ATOM </A>
+<LI><A HREF="#ORBITAL_CENTER">ORBITAL_CENTER </A>
+<LI><A HREF="#COMMON_CENTER">COMMON_CENTER </A>
+<LI><A HREF="#NBOX">NBOX </A>
+<LI><A HREF="#CHI_PBC">CHI_PBC </A>
+<LI><A HREF="#FORCE_NO_FULL">FORCE_NO_FULL </A>
+<LI><A HREF="#SELECTED_STATES_ON_ATOM_LIST">SELECTED_STATES_ON_ATOM_LIST </A>
+<LI><A HREF="#SELECTED_STATES_ATOM_RADIUS">SELECTED_STATES_ATOM_RADIUS </A>
+<LI><A HREF="#RESTART_CURRENT">RESTART_CURRENT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&CURRENT T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>controls the activation of the induced current calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="GAUGE"><u>GAUGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GAUGE R
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The gauge used to compute the induced current within GAPW.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  R_AND_STEP_FUNCTION
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>R</code>: Position gauge (doesnt work well).</li>
+<li><code>R_AND_STEP_FUNCTION</code>: Position and step function for the soft and the local parts, respectively.</li>
+<li><code>ATOM</code>: Atoms.</li>
+</ul><TR><TD WITDH="20%"><A NAME="GAUGE_ATOM_RADIUS"><u>GAUGE_ATOM_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GAUGE_ATOM_RADIUS 10.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Build the gauge=atom using only the atoms within this radius.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     4.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="USE_OLD_GAUGE_ATOM"><u>USE_OLD_GAUGE_ATOM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">USE_OLD_GAUGE_ATOM T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use the old way to compute the gauge.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="ORBITAL_CENTER"><u>ORBITAL_CENTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ORBITAL_CENTER WANNIER
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The orbital center.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  WANNIER
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>WANNIER</code>: Use the Wannier centers.</li>
+<li><code>COMMON</code>: Use a common center (works only for an isolate molecule).</li>
+<li><code>ATOM</code>: Use the atoms as center.</li>
+<li><code>BOX</code>: Boxing.</li>
+</ul><TR><TD WITDH="20%"><A NAME="COMMON_CENTER"><u>COMMON_CENTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COMMON_CENTER 0.0 1.0 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The common center</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom], default value:     0.0000000000000000E+00    0.0000000000000000E+00    0.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="NBOX"><u>NBOX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NBOX 6 6 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>How many boxes along each directions</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers. Default value:  4 4 4
+<TR><TD WITDH="20%"><A NAME="CHI_PBC"><u>CHI_PBC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CHI_PBC T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Calculate the succeptibility correction to the shift with PBC</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="FORCE_NO_FULL"><u>FORCE_NO_FULL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FORCE_NO_FULL T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Avoid the calculation of the state dependent perturbation term, even if the orbital centers are set at Wannier centers or at Atom centers</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="SELECTED_STATES_ON_ATOM_LIST"><u>SELECTED_STATES_ON_ATOM_LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SELECTED_STATES_ON_ATOM_LIST 1 2 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Indexes of the atoms for selecting the states to be used for the response calculations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="SELECTED_STATES_ATOM_RADIUS"><u>SELECTED_STATES_ATOM_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SELECTED_STATES_ATOM_RADIUS 2.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Select all the states included in the given radius arround each atoms in SELECTED_STATES_ON_ATOM_LIST.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     4.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="RESTART_CURRENT"><u>RESTART_CURRENT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_CURRENT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Restart the induced current density calculation from a previous run (not working yet).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

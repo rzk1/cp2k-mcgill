@@ -1,0 +1,98 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ALMO_SCF                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ALMO_SCF                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF.html">ALMO_SCF</A>.
+<BR><BR>Settings for a class of efficient linear scaling methods based on absolutely localized orbitals (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_138" TITLE="
+ Khaliullin, RZ; VandeVondele, J; Hutter, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 9 (10), 4421-4427 (2013). 
+ Efficient Linear-Scaling Density Functional Theory for Molecular Systems.
+ http://dx.doi.org/10.1021/ct400595k
+">[Khaliullin2013]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~ALMO_OPTIMIZER_DIIS.html">ALMO_OPTIMIZER_DIIS </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~ALMO_OPTIMIZER_PCG.html">ALMO_OPTIMIZER_PCG </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~XALMO_OPTIMIZER_PCG.html">XALMO_OPTIMIZER_PCG </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~MATRIX_ITERATE.html">MATRIX_ITERATE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~ANALYSIS.html">ANALYSIS </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#EPS_FILTER">EPS_FILTER </A>
+<LI><A HREF="#ALMO_SCF_GUESS">ALMO_SCF_GUESS </A>
+<LI><A HREF="#MO_OVERLAP_INV_ALG">MO_OVERLAP_INV_ALG </A>
+<LI><A HREF="#ALMO_EXTRAPOLATION_ORDER">ALMO_EXTRAPOLATION_ORDER </A>
+<LI><A HREF="#XALMO_EXTRAPOLATION_ORDER">XALMO_EXTRAPOLATION_ORDER </A>
+<LI><A HREF="#ALMO_ALGORITHM">ALMO_ALGORITHM </A>
+<LI><A HREF="#XALMO_TRIAL_WF">XALMO_TRIAL_WF </A>
+<LI><A HREF="#DELOCALIZE_METHOD">DELOCALIZE_METHOD </A>
+<LI><A HREF="#XALMO_R_CUTOFF_FACTOR">XALMO_R_CUTOFF_FACTOR </A>
+<LI><A HREF="#RETURN_ORTHOGONALIZED_MOS">RETURN_ORTHOGONALIZED_MOS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="EPS_FILTER"><u>EPS_FILTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_FILTER 1.e-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold for the matrix sparsity filter</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-08
+<TR><TD WITDH="20%"><A NAME="ALMO_SCF_GUESS"><u>ALMO_SCF_GUESS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALMO_SCF_GUESS MOLECULAR
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The method to generate initial ALMOs.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ATOMIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>MOLECULAR</code>: SCF calculations on single molecules controled by the regular SCF keywords outside ALMO options. This kind of calculation is expensive and only recommended if ALMO SCF does not converge from the ATOMIC guess.</li>
+<li><code>ATOMIC</code>: Superposition of atomic densities.</li>
+</ul><TR><TD WITDH="20%"><A NAME="MO_OVERLAP_INV_ALG"><u>MO_OVERLAP_INV_ALG</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MO_OVERLAP_INV_ALG HOTELLING
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Algorithm to invert MO overlap matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  LS_HOTELLING
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>LS_HOTELLING</code>: Linear scaling iterative Hotelling algorithm. Fast for large sparse matrices.</li>
+<li><code>DENSE_CHOLESKY</code>: Stable but dense Cholesky algorithm. Cubically scaling.</li>
+</ul><TR><TD WITDH="20%"><A NAME="ALMO_EXTRAPOLATION_ORDER"><u>ALMO_EXTRAPOLATION_ORDER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALMO_EXTRAPOLATION_ORDER 3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of previous states used for the ASPC extrapolation of the ALMO initial guess. 0 implies that the guess is given by ALMO_SCF_GUESS at each step.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="XALMO_EXTRAPOLATION_ORDER"><u>XALMO_EXTRAPOLATION_ORDER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">XALMO_EXTRAPOLATION_ORDER 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of previous states used for the ASPC extrapolation of the initial guess for the delocalization correction.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="ALMO_ALGORITHM"><u>ALMO_ALGORITHM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALMO_ALGORITHM DIAG
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the algorithm to update block-diagonal ALMOs during the SCF procedure.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  DIAG
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>DIAG</code>: DIIS-accelerated diagonalization controlled by ALMO_OPTIMIZER_DIIS. Recommended for large systems containing small fragments.</li>
+<li><code>PCG</code>: Energy minimization with a PCG algorithm controlled by ALMO_OPTIMIZER_PCG.</li>
+<li><code>SKIP</code>: Skip optimization of block-diagonal ALMOs.</li>
+</ul><TR><TD WITDH="20%"><A NAME="XALMO_TRIAL_WF"><u>XALMO_TRIAL_WF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">XALMO_TRIAL_WF SIMPLE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines the form of the trial XALMOs.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  PROJECT_R0_OUT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SIMPLE</code>: Straightforward AO-basis expansion.</li>
+<li><code>PROJECT_R0_OUT</code>: Block-diagonal ALMOs plus the XALMO term projected onto the unoccupied ALMO-subspace.</li>
+</ul><TR><TD WITDH="20%"><A NAME="DELOCALIZE_METHOD"><u>DELOCALIZE_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DELOCALIZE_METHOD XALMO_X
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Methods to reintroduce electron delocalization, which is excluded with the block-diagonal ALMO reference. Electron delocalization can be computed using either fully delocalized MOs or spatially restricted ALMOs (called extended ALMOs or XALMOs). All methods below use a PCG optimizer controlled by XALMO_OPTIMIZER_PCG. The only exception is the non-iterative XALMO_1DIAG.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  XALMO_X
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: Neglect electron delocalization</li>
+<li><code>XALMO_1DIAG</code>: Correction based on one diagonalization of the spatially projected Hamiltonian (XALMO)</li>
+<li><code>XALMO_X</code>: Single excitation correction (no Hamiltonian re-build) with spatial restrictions (XALMO)</li>
+<li><code>XALMO_SCF</code>: Self-consistent treatment of delocalization with spatial restrictions (XALMO)</li>
+<li><code>FULL_X</code>: Single excitation correction (no Hamiltonian re-build) without spatial restrictions</li>
+<li><code>FULL_SCF</code>: Self-consistent treatment of delocalization without spatial restrictions</li>
+<li><code>FULL_X_THEN_SCF</code>: Single excitation correction followed by full SCF procedure, both without spatial restrictions</li>
+</ul><TR><TD WITDH="20%"><A NAME="XALMO_R_CUTOFF_FACTOR"><u>XALMO_R_CUTOFF_FACTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">XALMO_R_CUTOFF_FACTOR 1.6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the localization radius of XALMOs: R_cutoff = XALMO_R_CUTOFF_FACTOR*(radius(at1)+radius(at2))</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.5000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="RETURN_ORTHOGONALIZED_MOS"><u>RETURN_ORTHOGONALIZED_MOS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RETURN_ORTHOGONALIZED_MOS .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Orthogonalize final ALMOs before they are returnedto Quickstep (i.e. for calculation of properties)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

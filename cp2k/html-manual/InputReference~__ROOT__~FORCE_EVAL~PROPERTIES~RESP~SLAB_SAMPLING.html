@@ -1,0 +1,42 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SLAB_SAMPLING                                                                   </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SLAB_SAMPLING                                                                    </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP.html">RESP</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~RESP~SLAB_SAMPLING.html">SLAB_SAMPLING</A>.
+<BR><BR>Specifies the parameter for sampling the RESP fitting points for slab-like periodic systems, i.e. systems that involve surfaces. This section can only be used with periodic  Poisson solver and cell. To see, which grid points were used, switch on COORD_FIT_POINTS in the PRINT section. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOM_LIST">ATOM_LIST </A>
+<LI><A HREF="#RANGE">RANGE </A>
+<LI><A HREF="#LENGTH">LENGTH </A>
+<LI><A HREF="#SURF_DIRECTION">SURF_DIRECTION </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOM_LIST"><u>ATOM_LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOM_LIST 1 2 3 or 1..3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the list of indexes of atoms used to define the region for the RESP fitting. The list should contain indexes of atoms of the first surface layer.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="RANGE"><u>RANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RANGE <real> <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Range where the fitting points are sampled. A range of 3 to 5 Angstroms means that the fitting points are sampled in the region of 3 to 5 Angstroms above the surface which is defined by atom indexes given in ATOM_LIST.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="LENGTH"><u>LENGTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LENGTH <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Length of the sampling box, i.e. a box of this length and the height specified by RANGE is defined above each surface atom given in ATOM_LIST. The grid points in the boxes are accepted as fitting point. Should be in the range of the nearest neighbour distance (a bit larger to be on the safe side). Allows for a refined sampling of grid points in case of corrugated surfaces.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     3.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="SURF_DIRECTION"><u>SURF_DIRECTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SURF_DIRECTION Z
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies what above the surface means. Defines the direction.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  Z
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>X</code>: surface layers are piled up in x-direction</li>
+<li><code>Y</code>: surface layers are piled up in y-direction</li>
+<li><code>Z</code>: surface layers are piled up in z-direction</li>
+<li><code>-X</code>: surface layers are piled up in -x-direction</li>
+<li><code>-Y</code>: surface layers are piled up in -y-direction</li>
+<li><code>-Z</code>: surface layers are piled up in -z-direction</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

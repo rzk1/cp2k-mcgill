@@ -1,0 +1,68 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FIXED_ATOMS                                                                     </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FIXED_ATOMS                                                                      </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT.html">CONSTRAINT</A>%<A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~FIXED_ATOMS.html">FIXED_ATOMS</A>.
+<BR><BR>This section is used to constraint the overall atomic position (X,Y,Z). In case a restraint is specified the value of the TARGET is considered to be the value of the coordinates at the beginning of the run or alternatively the corresponding value in the section: FIX_ATOM_RESTART. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~FIXED_ATOMS~RESTRAINT.html">RESTRAINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#COMPONENTS_TO_FIX">COMPONENTS_TO_FIX </A>
+<LI><A HREF="#LIST">LIST </A>
+<LI><A HREF="#MOLNAME">MOLNAME </A>
+<LI><A HREF="#MM_SUBSYS">MM_SUBSYS </A>
+<LI><A HREF="#QM_SUBSYS">QM_SUBSYS </A>
+<LI><A HREF="#EXCLUDE_QM">EXCLUDE_QM </A>
+<LI><A HREF="#EXCLUDE_MM">EXCLUDE_MM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="COMPONENTS_TO_FIX"><u>COMPONENTS_TO_FIX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COMPONENTS_TO_FIX (x|y|z|xy|xz|yz|xyz)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify which components (X,Y,Z or combinations) of the atoms specified in the section will be constrained/restrained.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  XYZ
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>X</code>: Fix only X component</li>
+<li><code>Y</code>: Fix only Y component</li>
+<li><code>Z</code>: Fix only Z component</li>
+<li><code>XY</code>: Fix X-Y components</li>
+<li><code>XZ</code>: Fix X-Z components</li>
+<li><code>YZ</code>: Fix Y-Z components</li>
+<li><code>XYZ</code>: Fix the full components of the atomic position.</li>
+</ul><TR><TD WITDH="20%"><A NAME="LIST"><u>LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LIST {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies a list of atoms to freeze.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="MOLNAME"><u>MOLNAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MOLNAME WAT MEOH
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the name of the molecule to fix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words, and may repeat<TR><TD WIDTH="10%"><TD>variants: SEGNAME<TR><TD WITDH="20%"><A NAME="MM_SUBSYS"><u>MM_SUBSYS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MM_SUBSYS (NONE|ATOMIC|MOLECULAR)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>In a QM/MM run all  MM atoms are fixed according to the argument.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: fix nothing</li>
+<li><code>ATOMIC</code>: only the MM atoms itself</li>
+<li><code>MOLECULAR</code>: the full molecule/residue that contains a MM atom (i.e. some QM atoms might be fixed as well)</li>
+</ul><TR><TD WIDTH="10%"><TD>variants: PROTEIN<TR><TD WITDH="20%"><A NAME="QM_SUBSYS"><u>QM_SUBSYS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">QM_SUBSYS (NONE|ATOMIC|MOLECULAR)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>In a QM/MM run all QM atoms are fixed according to the argument.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: fix nothing</li>
+<li><code>ATOMIC</code>: only the QM atoms itself</li>
+<li><code>MOLECULAR</code>: the full molecule/residue that contains a QM atom (i.e. some MM atoms might be fixed as well)</li>
+</ul><TR><TD WITDH="20%"><A NAME="EXCLUDE_QM"><u>EXCLUDE_QM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXCLUDE_QM <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Does not apply the constraint to the QM region within a QM/MM calculation. This keyword is active only together with MOLNAME</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="EXCLUDE_MM"><u>EXCLUDE_MM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXCLUDE_MM <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Does not apply the constraint to the MM region within a QM/MM calculation. This keyword is active only together with MOLNAME</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

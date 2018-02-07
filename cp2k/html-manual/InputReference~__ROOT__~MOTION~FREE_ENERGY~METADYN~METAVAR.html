@@ -1,0 +1,48 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section METAVAR                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section METAVAR                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY.html">FREE_ENERGY</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~METADYN.html">METADYN</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~METADYN~METAVAR.html">METAVAR</A>.
+<BR><BR>This section specify the nature of the collective variables. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~METADYN~METAVAR~WALL.html">WALL </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#LAMBDA">LAMBDA </A>
+<LI><A HREF="#MASS">MASS </A>
+<LI><A HREF="#GAMMA">GAMMA </A>
+<LI><A HREF="#SCALE">SCALE </A>
+<LI><A HREF="#COLVAR">COLVAR </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="LAMBDA"><u>LAMBDA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LAMBDA <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the lambda parameter of the collective variable in the extended lagrangian scheme.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [internal_cp2k].<TR><TD WITDH="20%"><A NAME="MASS"><u>MASS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MASS <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the mass parameter of the collective variable in the extended lagrangian scheme.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [amu].<TR><TD WITDH="20%"><A NAME="GAMMA"><u>GAMMA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GAMMA {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the friction term in Langevin integration of the collective variable in the extended lagrangian scheme.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [fs^-1].<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_8" TITLE="
+ Vanden-Eijnden, E; Ciccotti, G. 
+ CHEMICAL PHYSICS LETTERS, 429 (1-3), 310-316 (2006). 
+ Second-order integrators for Langevin equations with holonomic
+ constraints.
+ http://dx.doi.org/10.1016/j.cplett.2006.07.086
+">[VandenEijnden2006]</A>
+<TR><TD WITDH="20%"><A NAME="SCALE"><u>SCALE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SCALE <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the scale factor for the following collective variable. The history dependent term has the expression: WW * Sum_{j=1}^{nhills} Prod_{k=1}^{ncolvar} [EXP[-0.5*((ss-ss0(k,j))/SCALE(k))^2]], where ncolvar is the number of defined METAVAR and nhills is the number of spawned hills.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [internal_cp2k].<TR><TD WIDTH="10%"><TD>variants: WIDTH<TR><TD WITDH="20%"><A NAME="COLVAR"><u>COLVAR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COLVAR {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the colvar on which to apply metadynamics.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,49 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DEFINE_REGION                                                                   </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DEFINE_REGION                                                                    </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~THERMAL_REGION.html">THERMAL_REGION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~THERMAL_REGION~DEFINE_REGION.html">DEFINE_REGION</A>.
+<BR><BR>This section provides the possibility to define arbitrary region. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#LIST">LIST </A>
+<LI><A HREF="#TEMPERATURE">TEMPERATURE </A>
+<LI><A HREF="#TEMP_TOL">TEMP_TOL </A>
+<LI><A HREF="#DO_LANGEVIN">DO_LANGEVIN </A>
+<LI><A HREF="#NOISY_GAMMA_REGION">NOISY_GAMMA_REGION </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="LIST"><u>LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LIST {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies a list of atoms belonging to the region.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="TEMPERATURE"><u>TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">temperature 5.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The temperature in K used to initialize the velocities of the atoms in this region</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     0.0000000000000000E+00
+K<TR><TD WITDH="20%"><A NAME="TEMP_TOL"><u>TEMP_TOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">temp_tol 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum accepted temperature deviation from the expected value for this region. If temp_tol=0 no rescaling is performed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     0.0000000000000000E+00
+K<TR><TD WITDH="20%"><A NAME="DO_LANGEVIN"><u>DO_LANGEVIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">do_langevin .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>When ENSEMBLE is set to LANGEVIN, Controls whether the atoms in the thermal region should undergo Langevin MD. If not, then they will undergo NVE Born-Oppenheimer MD.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="NOISY_GAMMA_REGION"><u>NOISY_GAMMA_REGION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">noisy_gamma_region 4.0E-5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Special imaginary Langevin Friction term for Langevin Dynamics with noisy forces for the atoms in this region.When set, overrides the general value set by NOISY_GAMMA in the MOTION%MD%LANGEVIN section.When unset for a defined region, the general NOISY_GAMMA value applies.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [fs^-1].<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_99" TITLE="
+ Kuhne, TD; Krack, M; Mohamed, FR; Parrinello, M. 
+ PHYSICAL REVIEW LETTERS, 98 (6), 066401 (2007). 
+ Efficient and accurate Car-Parrinello-like approach to Born-Oppenheimer molecular dynamics.
+ http://dx.doi.org/10.1103/PhysRevLett.98.066401
+">[Kuhne2007]</A>
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

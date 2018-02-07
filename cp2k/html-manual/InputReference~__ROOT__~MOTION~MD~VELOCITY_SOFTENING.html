@@ -1,0 +1,33 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section VELOCITY_SOFTENING                                                              </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section VELOCITY_SOFTENING                                                               </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~VELOCITY_SOFTENING.html">VELOCITY_SOFTENING</A>.
+<BR><BR>A method to initialize the velocities along low-curvature directions in order to favors MD trajectories to cross rapidly over small energy barriers into neighboring basins. In each iteration the forces are calculated at a point y, which is slightly displaced from the current positions x in the direction of the original velocities v. The velocities are then updated with the force component F_t, which is perpendicular to N. N = v / |v|;  y = x + delta * N;  F_t = F(y) - &lang; F(y) | N &rang; * N; v' = v + alpha * F_t. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#STEPS">STEPS </A>
+<LI><A HREF="#DELTA">DELTA </A>
+<LI><A HREF="#ALPHA">ALPHA </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="STEPS"><u>STEPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of softening iterations performed. Typical values are around 40 steps.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="DELTA"><u>DELTA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Displacement used to obtain y.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="ALPHA"><u>ALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixing factor used for updating velocities.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.4999999999999999E-01
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,52 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section XALMO_NEWTON_PCG_SOLVER                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section XALMO_NEWTON_PCG_SOLVER                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF.html">ALMO_SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~XALMO_OPTIMIZER_PCG.html">XALMO_OPTIMIZER_PCG</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~XALMO_OPTIMIZER_PCG~XALMO_NEWTON_PCG_SOLVER.html">XALMO_NEWTON_PCG_SOLVER</A>.
+<BR><BR>Controls an iterative solver of the Newton-Raphson linear equation. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MAX_ITER">MAX_ITER </A>
+<LI><A HREF="#EPS_ERROR">EPS_ERROR </A>
+<LI><A HREF="#MAX_ITER_EARLY">MAX_ITER_EARLY </A>
+<LI><A HREF="#EPS_ERROR_EARLY">EPS_ERROR_EARLY </A>
+<LI><A HREF="#MAX_ITER_OUTER_LOOP">MAX_ITER_OUTER_LOOP </A>
+<LI><A HREF="#PRECONDITIONER">PRECONDITIONER </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MAX_ITER"><u>MAX_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER 100
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of iterations</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  20
+<TR><TD WITDH="20%"><A NAME="EPS_ERROR"><u>EPS_ERROR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_ERROR 1.E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Target value of the MAX norm of the error</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WITDH="20%"><A NAME="MAX_ITER_EARLY"><u>MAX_ITER_EARLY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER_EARLY 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of iterations for truncated SCF (e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="EPS_ERROR_EARLY"><u>EPS_ERROR_EARLY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_ERROR_EARLY 1.E-2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Target value of the MAX norm of the error for truncated SCF (e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="MAX_ITER_OUTER_LOOP"><u>MAX_ITER_OUTER_LOOP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of iterations in the outer loop. Use the outer loop to update the preconditioner and reset the conjugator. This can speed up convergence significantly.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="PRECONDITIONER"><u>PRECONDITIONER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRECONDITIONER DOMAIN
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Select a preconditioner for the conjugate gradient optimization</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  DEFAULT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: Do not use preconditioner</li>
+<li><code>DEFAULT</code>: Same as DOMAIN preconditioner</li>
+<li><code>DOMAIN</code>: Invert preconditioner domain-by-domain. The main component of the linear scaling algorithm</li>
+<li><code>FULL</code>: Solve linear equations step=-H.grad on the entire space</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,45 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CONSTRAINT                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CONSTRAINT                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT.html">CONSTRAINT</A>.
+<BR><BR>Section specifying information regarding how to impose constraints on the system. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~HBONDS.html">HBONDS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~G3X3.html">G3X3 </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~G4X6.html">G4X6 </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~VIRTUAL_SITE.html">VIRTUAL_SITE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~COLLECTIVE.html">COLLECTIVE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~FIXED_ATOMS.html">FIXED_ATOMS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~FIX_ATOM_RESTART.html">FIX_ATOM_RESTART </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~COLVAR_RESTART.html">COLVAR_RESTART </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~CONSTRAINT_INFO.html">CONSTRAINT_INFO </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CONSTRAINT~LAGRANGE_MULTIPLIERS.html">LAGRANGE_MULTIPLIERS </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#SHAKE_TOLERANCE">SHAKE_TOLERANCE </A>
+<LI><A HREF="#ROLL_TOLERANCE">ROLL_TOLERANCE </A>
+<LI><A HREF="#CONSTRAINT_INIT">CONSTRAINT_INIT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="SHAKE_TOLERANCE"><u>SHAKE_TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SHAKE_TOLERANCE <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the tolerance for the shake/rattle constraint algorithm.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [internal_cp2k], default value:     9.9999999999999995E-07
+internal_cp2k<TR><TD WIDTH="10%"><TD>variants: SHAKE_TOL, SHAKE<TR><TD WITDH="20%"><A NAME="ROLL_TOLERANCE"><u>ROLL_TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ROLL_TOLERANCE <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the tolerance for the roll constraint algorithm.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [internal_cp2k], default value:     1.0000000000000000E-10
+internal_cp2k<TR><TD WIDTH="10%"><TD>variants: ROLL_TOL, ROLL<TR><TD WITDH="20%"><A NAME="CONSTRAINT_INIT"><u>CONSTRAINT_INIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CONSTRAINT_INIT <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Apply constraints to the initial position and velocities. Default is to apply constraints only after the first MD step.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

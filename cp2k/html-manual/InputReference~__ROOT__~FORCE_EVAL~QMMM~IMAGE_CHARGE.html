@@ -1,0 +1,66 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section IMAGE_CHARGE                                                                    </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section IMAGE_CHARGE                                                                     </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~IMAGE_CHARGE.html">IMAGE_CHARGE</A>.
+<BR><BR>Inclusion of polarization effects within the image charge approach for systems where QM molecules are physisorbed on e.g. metal surfaces described by MM. This correction introduces only a very small overhead. QM box size has to be equal to MM box size. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_129" TITLE="
+ Golze, D; Iannuzzi, M; Nguyen, M-T; Passerone, D; Hutter, J. 
+ Journal of Chemical Theory and Computation, 9 (11), 5086-5097 (2013). 
+ Simulation of Adsorption Processes at Metallic Interfaces:
+ An Image Charge Augmented QM/MM Approach.
+ http://dx.doi.org/10.1021/ct400698y
+">[Golze2013]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~IMAGE_CHARGE~ERI_MME.html">ERI_MME </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MM_ATOM_LIST">MM_ATOM_LIST </A>
+<LI><A HREF="#WIDTH">WIDTH </A>
+<LI><A HREF="#EXT_POTENTIAL">EXT_POTENTIAL </A>
+<LI><A HREF="#DETERM_COEFF">DETERM_COEFF </A>
+<LI><A HREF="#RESTART_IMAGE_MATRIX">RESTART_IMAGE_MATRIX </A>
+<LI><A HREF="#IMAGE_RESTART_FILE_NAME">IMAGE_RESTART_FILE_NAME </A>
+<LI><A HREF="#IMAGE_MATRIX_METHOD">IMAGE_MATRIX_METHOD </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MM_ATOM_LIST"><u>MM_ATOM_LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MM_ATOM_LIST 1 2 3 or 1..3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>List of MM atoms carrying an induced Gaussian charge. If this keyword is not given, all MM atoms will carry an image charge.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="WIDTH"><u>WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WIDTH <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the value of the width of the (induced) Gaussian charge distribution carried by each MM atom.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-2], default value:     3.0000000000000000E+00
+angstrom^-2<TR><TD WITDH="20%"><A NAME="EXT_POTENTIAL"><u>EXT_POTENTIAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXT_POTENTIAL <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>External potential applied to the metal electrode</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [volt], default value:     0.0000000000000000E+00
+volt<TR><TD WITDH="20%"><A NAME="DETERM_COEFF"><u>DETERM_COEFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DETERM_COEFF ITERATIVE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies how the coefficients are determined.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CALC_MATRIX
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>CALC_MATRIX</code>: Calculates image matrix and solves linear set of equations</li>
+<li><code>ITERATIVE</code>: Uses an iterative scheme to calculate the coefficients</li>
+</ul><TR><TD WITDH="20%"><A NAME="RESTART_IMAGE_MATRIX"><u>RESTART_IMAGE_MATRIX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_IMAGE_MATRIX
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Restart the image matrix. Useful when calculating coefficients iteratively (the image matrix is used as preconditioner in that case)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="IMAGE_RESTART_FILE_NAME"><u>IMAGE_RESTART_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">IMAGE_RESTART_FILE_NAME <FILENAME>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>File name where to read the image matrix used as preconditioner in the iterative scheme</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string<TR><TD WITDH="20%"><A NAME="IMAGE_MATRIX_METHOD"><u>IMAGE_MATRIX_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">IMAGE_MATRIX_METHOD MME
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method for calculating the image matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  MME
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>GPW</code>: Uses Gaussian Plane Wave method [Golze2013]</li>
+<li><code>MME</code>: Uses MiniMax-Ewald method (ERI_MME subsection)</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

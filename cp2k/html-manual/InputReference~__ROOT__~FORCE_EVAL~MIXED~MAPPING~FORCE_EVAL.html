@@ -1,0 +1,28 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FORCE_EVAL                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FORCE_EVAL                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED.html">MIXED</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~MAPPING.html">MAPPING</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~MAPPING~FORCE_EVAL.html">FORCE_EVAL</A>.
+<BR><BR>Defines the fragments and the mapping for each force_eval (an integer index (ID) needs to be provided as parameter). This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~MAPPING~FORCE_EVAL~FRAGMENT.html">FRAGMENT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#DEFINE_FRAGMENTS">DEFINE_FRAGMENTS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the index of the force_eval for which fragments and mappings are provided</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WITDH="20%"><A NAME="DEFINE_FRAGMENTS"><u>DEFINE_FRAGMENTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DEFINE_FRAGMENTS <INTEGER> .. <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the fragments definition of the force_eval through the fragments of the force_eval_mixed. This avoids the pedantic definition of the fragments for the force_eval, assuming the order of the fragments for the specified force_eval is the same as the sequence  of integers provided. Easier to USE should be preferred to the specification of the single fragments.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

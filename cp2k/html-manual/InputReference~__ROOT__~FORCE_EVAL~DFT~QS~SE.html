@@ -1,0 +1,98 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SE                                                                              </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SE                                                                               </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS.html">QS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE.html">SE</A>.
+<BR><BR>Parameters needed to set up the Semi-empirical methods. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~COULOMB.html">COULOMB </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~EXCHANGE.html">EXCHANGE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~SCREENING.html">SCREENING </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~LR_CORRECTION.html">LR_CORRECTION </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~NEIGHBOR_LISTS.html">NEIGHBOR_LISTS </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~MEMORY.html">MEMORY </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~PRINT.html">PRINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~GA.html">GA </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ORTHOGONAL_BASIS">ORTHOGONAL_BASIS </A>
+<LI><A HREF="#STO_NG">STO_NG </A>
+<LI><A HREF="#ANALYTICAL_GRADIENTS">ANALYTICAL_GRADIENTS </A>
+<LI><A HREF="#DELTA">DELTA </A>
+<LI><A HREF="#INTEGRAL_SCREENING">INTEGRAL_SCREENING </A>
+<LI><A HREF="#PERIODIC">PERIODIC </A>
+<LI><A HREF="#FORCE_KDSO-D_EXCHANGE">FORCE_KDSO-D_EXCHANGE </A>
+<LI><A HREF="#DISPERSION">DISPERSION </A>
+<LI><A HREF="#DISPERSION_PARAMETER_FILE">DISPERSION_PARAMETER_FILE </A>
+<LI><A HREF="#DISPERSION_RADIUS">DISPERSION_RADIUS </A>
+<LI><A HREF="#COORDINATION_CUTOFF">COORDINATION_CUTOFF </A>
+<LI><A HREF="#D3_SCALING">D3_SCALING </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ORTHOGONAL_BASIS"><u>ORTHOGONAL_BASIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ORTHOGONAL_BASIS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Assume orthogonal basis set. This flag is overwritten by methods with fixed orthogonal/non-orthogonal basis set.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="STO_NG"><u>STO_NG</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STO_NG
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Provides the order of the Slater orbital expansion of Gaussian-Type Orbitals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+<TR><TD WITDH="20%"><A NAME="ANALYTICAL_GRADIENTS"><u>ANALYTICAL_GRADIENTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ANALYTICAL_GRADIENTS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Nuclear Gradients are computed analytically or numerically</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DELTA"><u>DELTA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DELTA {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Step size in finite difference force calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="INTEGRAL_SCREENING"><u>INTEGRAL_SCREENING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INTEGRAL_SCREENING (KDSO|KDSO-D|SLATER)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the functional form for the</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  KDSO
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>KDSO</code>: Uses the standard NDDO Klopman-Dewar-Sabelli-Ohno equation for the screening of the Coulomb interactions.</li>
+<li><code>KDSO-D</code>: Uses a modified Klopman-Dewar-Sabelli-Ohno equation, dumping the screening parameter for the Coulomb interactions.</li>
+<li><code>SLATER</code>: Uses an exponential Slater-type function for modelling the Coulomb interactions.</li>
+</ul><TR><TD WITDH="20%"><A NAME="PERIODIC"><u>PERIODIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PERIODIC (NONE|EWALD|EWALD_R3|EWALD_GKS)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the type of treatment for the electrostatic long-range part in semi-empirical calculations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: The long-range part is not explicitly treaten. The interaction depends uniquely on the Cutoffs used for the calculation.</li>
+<li><code>EWALD</code>: Enables the usage of Multipoles Ewald summation schemes. The short-range part is tapered according the value of RC_COULOMB.</li>
+<li><code>EWALD_R3</code>: Enables the usage of Multipoles Ewald summation schemes together with a long-range treatment for the 1/R^3 term, deriving from the short-range component. This option is active only for K-DSO integral screening type.</li>
+<li><code>EWALD_GKS</code>: Use Ewald directly in Coulomb integral evaluation, works only with Slater screening</li>
+</ul><TR><TD WITDH="20%"><A NAME="FORCE_KDSO-D_EXCHANGE"><u>FORCE_KDSO-D_EXCHANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keywords forces the usage of the KDSO-D integral screening for the Exchange integrals (default is to apply the screening only to the Coulomb integrals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DISPERSION"><u>DISPERSION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPERSION
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use dispersion correction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DISPERSION_PARAMETER_FILE"><u>DISPERSION_PARAMETER_FILE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPERSION_PARAMETER_FILE filename
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify file that contains the atomic dispersion parameters</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WITDH="20%"><A NAME="DISPERSION_RADIUS"><u>DISPERSION_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPERSION_RADIUS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define radius of dispersion interaction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.5000000000000000E+01
+<TR><TD WITDH="20%"><A NAME="COORDINATION_CUTOFF"><u>COORDINATION_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COORDINATION_CUTOFF
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define cutoff for coordination number calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="D3_SCALING"><u>D3_SCALING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">D3_SCALING 1.0 1.0 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scaling parameters (s6,sr6,s8) for the D3 dispersion method,</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default value:     0.0000000000000000E+00    0.0000000000000000E+00    0.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,40 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section XYZ_OUTERDIAG                                                                   </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section XYZ_OUTERDIAG                                                                    </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR.html">COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH.html">DISTANCE_FROM_PATH</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH~COLVAR.html">COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH~COLVAR~XYZ_OUTERDIAG.html">XYZ_OUTERDIAG</A>.
+<BR><BR>Section to define the cross term (XA-XA(0))*(XB-XB(0))+(XA-XA(0))*(YB-YB(0)) or part of its components as a collective variable. The final term is given by the product  of the components of A with the components of B. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH~COLVAR~XYZ_OUTERDIAG~POINT.html">POINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#COMPONENT_A">COMPONENT_A </A>
+<LI><A HREF="#COMPONENT_B">COMPONENT_B </A>
+<LI><A HREF="#PBC">PBC </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {integer} {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the index of the atoms/points A and B.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers<TR><TD WIDTH="10%"><TD>variants: POINTS<TR><TD WITDH="20%"><A NAME="COMPONENT_A"><u>COMPONENT_A</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AXIS (XYZ | X | Y | Z | XY| XZ | YZ)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define the component of the position vector which will be used as a colvar for atom A.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  XYZ
+<TR><TD WIDTH="10%"><TD>  valid keywords: XYZ, X, Y, Z, XY, XZ, YZ<TR><TD WITDH="20%"><A NAME="COMPONENT_B"><u>COMPONENT_B</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AXIS (XYZ | X | Y | Z | XY| XZ | YZ)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define the component of the position vector which will be used as a colvar for atom B.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  XYZ
+<TR><TD WIDTH="10%"><TD>  valid keywords: XYZ, X, Y, Z, XY, XZ, YZ<TR><TD WITDH="20%"><A NAME="PBC"><u>PBC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PBC
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether periodic boundary conditions should be applied on the atomic position before computing the colvar or not.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

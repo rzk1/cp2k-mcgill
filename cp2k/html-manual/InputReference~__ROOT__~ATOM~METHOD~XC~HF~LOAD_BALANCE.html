@@ -1,0 +1,42 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section LOAD_BALANCE                                                                    </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section LOAD_BALANCE                                                                     </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~ATOM.html">ATOM</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD.html">METHOD</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~HF.html">HF</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~HF~LOAD_BALANCE.html">LOAD_BALANCE</A>.
+<BR><BR>Parameters influencing the load balancing of the HF. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_85" TITLE="
+ Guidon, M; Schiffmann, F; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL PHYSICS, 128 (21), 214104 (2008). 
+ Ab initio molecular dynamics using hybrid density functionals.
+ http://dx.doi.org/10.1063/1.2931945
+">[Guidon2008]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~HF~LOAD_BALANCE~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#NBINS">NBINS </A>
+<LI><A HREF="#BLOCK_SIZE">BLOCK_SIZE </A>
+<LI><A HREF="#RANDOMIZE">RANDOMIZE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="NBINS"><u>NBINS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NBINS 32
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of bins per process used to group atom quartets.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  64
+<TR><TD WITDH="20%"><A NAME="BLOCK_SIZE"><u>BLOCK_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BLOCK_SIZE 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines the blocking used for the atomic quartet loops. A proper choice can speedup the calculation. The default (-1) is automatic.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="RANDOMIZE"><u>RANDOMIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RANDOMIZE TRUE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This flag controls the randomization of the bin assignment to processes. For highly ordered input structures with a bad load balance, setting this flag to TRUE might improve.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

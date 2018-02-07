@@ -1,0 +1,52 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DENSITY_FITTING                                                                 </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DENSITY_FITTING                                                                  </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~DENSITY_FITTING.html">DENSITY_FITTING</A>.
+<BR><BR>Setup parameters for density fitting (Bloechl charges or density derived  atomic point charges (DDAPC) charges). This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_12" TITLE="
+ BLOCHL, PE. 
+ JOURNAL OF CHEMICAL PHYSICS, 103 (17), 7422-7428 (1995). 
+ ELECTROSTATIC DECOUPLING OF PERIODIC IMAGES OF PLANE-WAVE-EXPANDED
+ DENSITIES AND DERIVED ATOMIC POINT CHARGES.
+ http://dx.doi.org/10.1063/1.470314
+">[BLOCHL1995]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~DENSITY_FITTING~PROGRAM_RUN_INFO.html">PROGRAM_RUN_INFO </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#NUM_GAUSS">NUM_GAUSS </A>
+<LI><A HREF="#PFACTOR">PFACTOR </A>
+<LI><A HREF="#MIN_RADIUS">MIN_RADIUS </A>
+<LI><A HREF="#RADII">RADII </A>
+<LI><A HREF="#GCUT">GCUT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="NUM_GAUSS"><u>NUM_GAUSS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUM_GAUSS {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the numbers of gaussian used to fit the QM density for each atomic site.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="PFACTOR"><u>PFACTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PFACTOR {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the progression factor for the gaussian exponent for each atomic site.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.5000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="MIN_RADIUS"><u>MIN_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MIN_RADIUS {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the smallest radius of the gaussian used in the fit. All other radius are obtained with the progression factor.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     2.6458860429500003E-01
+angstrom<TR><TD WITDH="20%"><A NAME="RADII"><u>RADII</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RADII {real} {real} .. {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies all the radius of the gaussian used in the fit for each atomic site. The use of this keyword disables all other keywords of this section.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="GCUT"><u>GCUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GCUT {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Cutoff for charge fit in G-space.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.4494897427831779E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

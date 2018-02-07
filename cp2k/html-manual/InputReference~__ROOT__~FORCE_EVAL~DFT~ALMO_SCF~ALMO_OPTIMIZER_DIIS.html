@@ -1,0 +1,43 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ALMO_OPTIMIZER_DIIS                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ALMO_OPTIMIZER_DIIS                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF.html">ALMO_SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~ALMO_SCF~ALMO_OPTIMIZER_DIIS.html">ALMO_OPTIMIZER_DIIS</A>.
+<BR><BR>Controls the iterative DIIS-accelerated optimization of block-diagonal ALMOs. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MAX_ITER">MAX_ITER </A>
+<LI><A HREF="#EPS_ERROR">EPS_ERROR </A>
+<LI><A HREF="#MAX_ITER_EARLY">MAX_ITER_EARLY </A>
+<LI><A HREF="#EPS_ERROR_EARLY">EPS_ERROR_EARLY </A>
+<LI><A HREF="#N_DIIS">N_DIIS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MAX_ITER"><u>MAX_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER 100
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of iterations</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  20
+<TR><TD WITDH="20%"><A NAME="EPS_ERROR"><u>EPS_ERROR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_ERROR 1.E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Target value of the MAX norm of the error</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WITDH="20%"><A NAME="MAX_ITER_EARLY"><u>MAX_ITER_EARLY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER_EARLY 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of iterations for truncated SCF (e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="EPS_ERROR_EARLY"><u>EPS_ERROR_EARLY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_ERROR_EARLY 1.E-2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Target value of the MAX norm of the error for truncated SCF (e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="N_DIIS"><u>N_DIIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_DIIS 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of error vectors to be used in the DIIS optimization procedure</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

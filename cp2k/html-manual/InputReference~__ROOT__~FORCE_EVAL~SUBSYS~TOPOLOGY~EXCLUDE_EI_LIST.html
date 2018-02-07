@@ -1,0 +1,22 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section EXCLUDE_EI_LIST                                                                 </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section EXCLUDE_EI_LIST                                                                  </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~TOPOLOGY.html">TOPOLOGY</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~TOPOLOGY~EXCLUDE_EI_LIST.html">EXCLUDE_EI_LIST</A>.
+<BR><BR>Speficy bonds (via atom kinds) for fine tuning of 1-2 exclusion lists. If this section is not present the 1-2 exclusion is applied to all bond kinds. When this section is present the 1-2 exclusion is applied ONLY to the bonds defined herein. This section allows ONLY fine tuning of 1-2 interactions. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#BOND">BOND </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="BOND"><u>BOND</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BOND {KIND1} {KIND2}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the atom kinds involved in the bond for which 1-2 exclusion holds.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 words</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

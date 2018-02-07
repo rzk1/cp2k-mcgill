@@ -1,0 +1,45 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section TORSION                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section TORSION                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD.html">FORCEFIELD</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~TORSION.html">TORSION</A>.
+<BR><BR>Specifies the torsion potential of the MM system. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#KIND">KIND </A>
+<LI><A HREF="#K">K </A>
+<LI><A HREF="#PHI0">PHI0 </A>
+<LI><A HREF="#M">M </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {KIND1} {KIND2} {KIND3} {KIND4}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the atomic kinds involved in the tors.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     4 words<TR><TD WITDH="20%"><A NAME="KIND"><u>KIND</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KIND CHARMM
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define the kind of torsion potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CHARMM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>CHARMM</code>: Functional Form (CHARMM|G87|G96|AMBER): K * [ 1 +  cos[M*PHI - PHI0]]</li>
+<li><code>G87</code>: Functional Form (CHARMM|G87|G96|AMBER): K * [ 1 +  cos[M*PHI - PHI0]]</li>
+<li><code>G96</code>: Functional Form (CHARMM|G87|G96|AMBER): K * [ 1 +  cos[M*PHI - PHI0]]</li>
+<li><code>AMBER</code>: Functional Form (CHARMM|G87|G96|AMBER): K * [ 1 +  cos[M*PHI - PHI0]]</li>
+<li><code>OPLS</code>: Functional Form: K / 2 * [ 1 + (-1)^(M-1) * cos[M*PHI]]</li>
+</ul><TR><TD WITDH="20%"><A NAME="K"><u>K</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">K {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the force constant of the potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree].<TR><TD WITDH="20%"><A NAME="PHI0"><u>PHI0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PHI0 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the phase of the potential.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [rad], default value:     0.0000000000000000E+00
+rad<TR><TD WITDH="20%"><A NAME="M"><u>M</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">M {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the multiplicity of the potential.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,203 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section KIND                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section KIND                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND.html">KIND</A>.
+<BR><BR>The description of the kind of the atoms (mostly for QM). This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~PAO_POTENTIAL.html">PAO_POTENTIAL </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~PAO_DESCRIPTOR.html">PAO_DESCRIPTOR </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~BASIS.html">BASIS </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~POTENTIAL.html">POTENTIAL </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~KG_POTENTIAL.html">KG_POTENTIAL </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~DFT_PLUS_U.html">DFT_PLUS_U </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~KIND~BS.html">BS </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#BASIS_SET">BASIS_SET </A>
+<LI><A HREF="#AUX_BASIS_SET">AUX_BASIS_SET </A>
+<LI><A HREF="#RI_AUX_BASIS_SET">RI_AUX_BASIS_SET </A>
+<LI><A HREF="#LRI_BASIS_SET">LRI_BASIS_SET </A>
+<LI><A HREF="#AUX_FIT_BASIS_SET">AUX_FIT_BASIS_SET </A>
+<LI><A HREF="#ELEC_CONF">ELEC_CONF </A>
+<LI><A HREF="#CORE_CORRECTION">CORE_CORRECTION </A>
+<LI><A HREF="#ELEMENT">ELEMENT </A>
+<LI><A HREF="#MASS">MASS </A>
+<LI><A HREF="#POTENTIAL">POTENTIAL </A>
+<LI><A HREF="#KG_POTENTIAL">KG_POTENTIAL </A>
+<LI><A HREF="#HARD_EXP_RADIUS">HARD_EXP_RADIUS </A>
+<LI><A HREF="#MAX_RAD_LOCAL">MAX_RAD_LOCAL </A>
+<LI><A HREF="#RHO0_EXP_RADIUS">RHO0_EXP_RADIUS </A>
+<LI><A HREF="#LEBEDEV_GRID">LEBEDEV_GRID </A>
+<LI><A HREF="#RADIAL_GRID">RADIAL_GRID </A>
+<LI><A HREF="#MM_RADIUS">MM_RADIUS </A>
+<LI><A HREF="#DFTB3_PARAM">DFTB3_PARAM </A>
+<LI><A HREF="#LMAX_DFTB">LMAX_DFTB </A>
+<LI><A HREF="#MAO">MAO </A>
+<LI><A HREF="#SE_P_ORBITALS_ON_H">SE_P_ORBITALS_ON_H </A>
+<LI><A HREF="#GPW_TYPE">GPW_TYPE </A>
+<LI><A HREF="#GHOST">GHOST </A>
+<LI><A HREF="#FLOATING_BASIS_CENTER">FLOATING_BASIS_CENTER </A>
+<LI><A HREF="#NO_OPTIMIZE">NO_OPTIMIZE </A>
+<LI><A HREF="#PAO_BASIS_SIZE">PAO_BASIS_SIZE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">H
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The name of the kind described in this section.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: DEFAULT
+<TR><TD WITDH="20%"><A NAME="BASIS_SET"><u>BASIS_SET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BASIS_SET [type] DZVP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The primary Gaussian basis set (NONE implies no basis used, meaningful with GHOST)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words, and may repeat. Default value: " " " "
+<BR> This keyword cites following references: 
+<A HREF="references.html#reference_38" TITLE="
+ VandeVondele, J; Krack, M; Mohamed, F; Parrinello, M; Chassaing, T;
+ Hutter, J. COMPUTER PHYSICS COMMUNICATIONS, 167 (2), 103-128 (2005). 
+ QUICKSTEP: Fast and accurate density functional calculations using a
+ mixed Gaussian and plane waves approach.
+ http://dx.doi.org/10.1016/j.cpc.2004.12.014
+">[VandeVondele2005]</A>
+<A HREF="references.html#reference_67" TITLE="
+ VandeVondele, J; Hutter, J. 
+ JOURNAL OF CHEMICAL PHYSICS, 127 (11), 114105 (2007). 
+ Gaussian basis sets for accurate calculations on molecular systems in
+ gas and condensed phases.
+ http://dx.doi.org/10.1063/1.2770708
+">[VandeVondele2007]</A>
+<TR><TD WITDH="20%"><A NAME="AUX_BASIS_SET"><u>AUX_BASIS_SET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AUX_BASIS_SET DZVP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>DEPRECATED (use BASIS_SET): The auxliliary basis set (GTO type)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WIDTH="10%"><TD>variants: AUXILIARY_BASIS_SET, AUX_BASIS<TR><TD WITDH="20%"><A NAME="RI_AUX_BASIS_SET"><u>RI_AUX_BASIS_SET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RI_AUX_BASIS_SET DZVP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>DEPRECATED (use BASIS_SET): The RI auxliliary basis set used in WF_CORRELATION (GTO type)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WIDTH="10%"><TD>variants: RI_MP2_BASIS_SET, RI_RPA_BASIS_SET, RI_AUX_BASIS<TR><TD WITDH="20%"><A NAME="LRI_BASIS_SET"><u>LRI_BASIS_SET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LRI_BASIS_SET DZVP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>DEPRECATED (use BASIS_SET): The local resolution of identity basis set (GTO type)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WIDTH="10%"><TD>variants: LRI_BASIS<TR><TD WITDH="20%"><A NAME="AUX_FIT_BASIS_SET"><u>AUX_FIT_BASIS_SET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AUX_FIT_BASIS_SET DZVP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>DEPRECATED (use BASIS_SET): The auxliliary basis set (GTO type) for auxiliary density matrix method</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WIDTH="10%"><TD>variants: AUXILIARY_FIT_BASIS_SET, AUX_FIT_BASIS<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_105" TITLE="
+ Guidon, M; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 6 (8), 2348-2364 (2010). 
+ Auxiliary Density Matrix Methods for Hartree-Fock Exchange Calculations.
+ http://dx.doi.org/10.1021/ct1002225
+">[Guidon2010]</A>
+<TR><TD WITDH="20%"><A NAME="ELEC_CONF"><u>ELEC_CONF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ELEC_COND n_elec(s)  n_elec(p)  n_elec(d)  ...
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the electronic configration used in construction the atomic initial guess (see the pseudo potential file for the default values.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="CORE_CORRECTION"><u>CORE_CORRECTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CORE_CORRECTION 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Corrects the effective nuclear charge</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="ELEMENT"><u>ELEMENT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ELEMENT O
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The element of the actual kind (if not given it is inferred from the kind name)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word<TR><TD WIDTH="10%"><TD>variants: ELEMENT_SYMBOL<TR><TD WITDH="20%"><A NAME="MASS"><u>MASS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MASS 2.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The mass of the atom (if negative or non present it is inferred from the element symbol)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WIDTH="10%"><TD>variants: ATOMIC_MASS, ATOMIC_WEIGHT, WEIGHT<TR><TD WITDH="20%"><A NAME="POTENTIAL"><u>POTENTIAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">POTENTIAL <PSEUDO-POTENTIAL-NAME>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The name of the pseudopotential for the defined kind.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: GTH
+<TR><TD WIDTH="10%"><TD>variants: POT<BR> This keyword cites following references: 
+<A HREF="references.html#reference_42" TITLE="
+ Goedecker, S; Teter, M; Hutter, J. 
+ PHYSICAL REVIEW B, 54 (3), 1703-1710 (1996). 
+ Separable dual-space Gaussian pseudopotentials.
+ http://dx.doi.org/10.1103/PhysRevB.54.1703
+">[Goedecker1996]</A>
+<A HREF="references.html#reference_43" TITLE="
+ Hartwigsen, C; Goedecker, S; Hutter, J. 
+ PHYSICAL REVIEW B, 58 (7), 3641-3662 (1998). 
+ Relativistic separable dual-space Gaussian pseudopotentials from H to Rn.
+ http://dx.doi.org/10.1103/PhysRevB.58.3641
+">[Hartwigsen1998]</A>
+<A HREF="references.html#reference_44" TITLE="
+ Krack, M. 
+ THEORETICAL CHEMISTRY ACCOUNTS, 114 (1-3), 145-152 (2005). 
+ Pseudopotentials for H to Kr optimized for gradient-corrected
+ exchange-correlation functionals.
+ http://dx.doi.org/10.1007/s00214-005-0655-y
+">[Krack2005]</A>
+<TR><TD WITDH="20%"><A NAME="KG_POTENTIAL"><u>KG_POTENTIAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KG_POTENTIAL <TNADD-POTENTIAL-NAME>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The name of the non-additive atomic kinetic energy potential.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: NONE
+<TR><TD WIDTH="10%"><TD>variants: KG_POT<TR><TD WITDH="20%"><A NAME="HARD_EXP_RADIUS"><u>HARD_EXP_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">HARD_EXP_RADIUS 0.9
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The region where the hard density is supposed to be confined(GAPW)(in Bohr, default is 1.2 for H and 1.512 otherwise)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="MAX_RAD_LOCAL"><u>MAX_RAD_LOCAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_RAD_LOCAL 15.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Max radius for the basis functions used to generate the local projectors in GAPW [Bohr]</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.4566439727513359E+01
+<TR><TD WITDH="20%"><A NAME="RHO0_EXP_RADIUS"><u>RHO0_EXP_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RHO_EXP_RADIUS 0.9
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the radius which defines the atomic region where the hard compensation density is confined.should be less than HARD_EXP_RADIUS (GAPW)(Bohr, default equals HARD_EXP_RADIUS)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="LEBEDEV_GRID"><u>LEBEDEV_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LEBEDEV_GRID 40
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of points for the angular part of the local grid (GAPW)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  50
+<TR><TD WITDH="20%"><A NAME="RADIAL_GRID"><u>RADIAL_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RADIAL_GRID 70
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of points for the radial part of the local grid (GAPW)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  50
+<TR><TD WITDH="20%"><A NAME="MM_RADIUS"><u>MM_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MM_RADIUS {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the radius of the electrostatic multipole of the atom in Fist. This radius applies to the charge, the dipole and the quadrupole. When zero, the atom is treated as a point multipole, otherwise it is treated as a Gaussian charge distribution with the given radius: p(x,y,z)*N*exp(-(x**2+y**2+z**2)/(2*MM_RADIUS**2)), where N is a normalization constant. In the core-shell model, only the shell is treated as a Gaussian and the core is always a point charge.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     0.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="DFTB3_PARAM"><u>DFTB3_PARAM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DFTB3_PARAM 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The third order parameter (derivative of hardness) used in diagonal DFTB3 correction.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="LMAX_DFTB"><u>LMAX_DFTB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LMAX_DFTB 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The maximum l-quantum number of the DFTB basis for this kind.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="MAO"><u>MAO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAO 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of MAOs (Modified Atomic Orbitals) for this kind.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="SE_P_ORBITALS_ON_H"><u>SE_P_ORBITALS_ON_H</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SE_P_ORBITALS_ON_H
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Forces the usage of p-orbitals on H for SEMI-EMPIRICAL calculations.  This keyword applies only when the KIND is specifying an Hydrogen element. In all  other cases is simply ignored.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="GPW_TYPE"><u>GPW_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GPW_TYPE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Force one type to be treated by the GPW scheme, whatever are its primitives, even if the GAPW method is used</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="GHOST"><u>GHOST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GHOST
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword makes all atoms of this kind ghost atoms, i.e. without pseudo or nuclear charge. Useful to just have the basis set at that position (e.g. BSSE calculations), or to have a non-interacting particle with BASIS_SET NONE</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="FLOATING_BASIS_CENTER"><u>FLOATING_BASIS_CENTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FLOATING_BASIS_CENTER
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword makes all atoms of this kind floating functions, i.e. without pseudo or nuclear chargewhich are subject to a geometry optimization in the outer SCF.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="NO_OPTIMIZE"><u>NO_OPTIMIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NO_OPTIMIZE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Skip optimization of this type (used in specific basis set or potential optimization schemes</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PAO_BASIS_SIZE"><u>PAO_BASIS_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The block size used for the polarized atomic orbital basis. Setting PAO_BASIS_SIZE to the size of the primary basis or to a value below one will disables the PAO method for the given atomic kind. By default PAO is disbabled.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

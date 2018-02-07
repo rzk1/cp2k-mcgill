@@ -1,0 +1,55 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section NOSE                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section NOSE                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~ADIABATIC_DYNAMICS.html">ADIABATIC_DYNAMICS</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~ADIABATIC_DYNAMICS~THERMOSTAT_SLOW.html">THERMOSTAT_SLOW</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~ADIABATIC_DYNAMICS~THERMOSTAT_SLOW~NOSE.html">NOSE</A>.
+<BR><BR>paramameters of the Nose Hoover thermostat chain. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_36" TITLE="
+ NOSE, S. JOURNAL OF CHEMICAL PHYSICS, 81 (1), 511-519 (1984). 
+ A UNIFIED FORMULATION OF THE CONSTANT TEMPERATURE MOLECULAR-DYNAMICS
+ METHODS.
+ http://dx.doi.org/10.1063/1.447334
+">[NOSE1984]</A>
+<A HREF="references.html#reference_37" TITLE="
+ NOSE, S. MOLECULAR PHYSICS, 52 (2), 255-268 (1984). 
+ A MOLECULAR-DYNAMICS METHOD FOR SIMULATIONS IN THE CANONICAL ENSEMBLE.
+ http://dx.doi.org/10.1080/00268978400101201
+">[NOSE1984b]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~ADIABATIC_DYNAMICS~THERMOSTAT_SLOW~NOSE~COORD.html">COORD </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~ADIABATIC_DYNAMICS~THERMOSTAT_SLOW~NOSE~VELOCITY.html">VELOCITY </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~ADIABATIC_DYNAMICS~THERMOSTAT_SLOW~NOSE~MASS.html">MASS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~ADIABATIC_DYNAMICS~THERMOSTAT_SLOW~NOSE~FORCE.html">FORCE </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#LENGTH">LENGTH </A>
+<LI><A HREF="#YOSHIDA">YOSHIDA </A>
+<LI><A HREF="#TIMECON">TIMECON </A>
+<LI><A HREF="#MTS">MTS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="LENGTH"><u>LENGTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">length integer
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>length of the Nose-Hoover chain</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="YOSHIDA"><u>YOSHIDA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">Yoshida integer
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>order of the yoshida integretor used for the thermostat</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="TIMECON"><u>TIMECON</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">timecon <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>timeconstant of the thermostat chain</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [fs], default value:     9.9999999999999989E+02
+fs<TR><TD WITDH="20%"><A NAME="MTS"><u>MTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">mts integer
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>number of multiple timesteps to be used for the NoseHoover chain</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WIDTH="10%"><TD>variants: MULTIPLE_TIME_STEPS, MULT_T_STEPS</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

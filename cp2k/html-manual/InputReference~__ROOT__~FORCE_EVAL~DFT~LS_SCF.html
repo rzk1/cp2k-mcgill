@@ -1,0 +1,203 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section LS_SCF                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section LS_SCF                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF.html">LS_SCF</A>.
+<BR><BR>Specifies the parameters of the linear scaling SCF routines. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_113" TITLE="
+ VandeVondele, J; Borstnik, U; Hutter, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 8 (10), 3565-3573 (2012). 
+ Linear Scaling Self-Consistent Field Calculations with Millions of Atoms
+ in the Condensed Phase.
+ http://dx.doi.org/10.1021/ct200897x
+">[VandeVondele2012]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~CURVY_STEPS.html">CURVY_STEPS </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~CHEBYSHEV.html">CHEBYSHEV </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~RHO_MIXING.html">RHO_MIXING </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PEXSI.html">PEXSI </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PAO.html">PAO </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#LS_DIIS">LS_DIIS </A>
+<LI><A HREF="#INI_DIIS">INI_DIIS </A>
+<LI><A HREF="#MAX_DIIS">MAX_DIIS </A>
+<LI><A HREF="#NMIXING">NMIXING </A>
+<LI><A HREF="#EPS_DIIS">EPS_DIIS </A>
+<LI><A HREF="#MAX_SCF">MAX_SCF </A>
+<LI><A HREF="#EPS_SCF">EPS_SCF </A>
+<LI><A HREF="#MIXING_FRACTION">MIXING_FRACTION </A>
+<LI><A HREF="#EPS_FILTER">EPS_FILTER </A>
+<LI><A HREF="#EPS_LANCZOS">EPS_LANCZOS </A>
+<LI><A HREF="#MAX_ITER_LANCZOS">MAX_ITER_LANCZOS </A>
+<LI><A HREF="#MU">MU </A>
+<LI><A HREF="#FIXED_MU">FIXED_MU </A>
+<LI><A HREF="#EXTRAPOLATION_ORDER">EXTRAPOLATION_ORDER </A>
+<LI><A HREF="#S_PRECONDITIONER">S_PRECONDITIONER </A>
+<LI><A HREF="#PURIFICATION_METHOD">PURIFICATION_METHOD </A>
+<LI><A HREF="#DYNAMIC_THRESHOLD">DYNAMIC_THRESHOLD </A>
+<LI><A HREF="#NON_MONOTONIC">NON_MONOTONIC </A>
+<LI><A HREF="#MATRIX_CLUSTER_TYPE">MATRIX_CLUSTER_TYPE </A>
+<LI><A HREF="#SINGLE_PRECISION_MATRICES">SINGLE_PRECISION_MATRICES </A>
+<LI><A HREF="#RESTART_WRITE">RESTART_WRITE </A>
+<LI><A HREF="#RESTART_READ">RESTART_READ </A>
+<LI><A HREF="#S_INVERSION">S_INVERSION </A>
+<LI><A HREF="#SIGN_SQRT_ORDER">SIGN_SQRT_ORDER </A>
+<LI><A HREF="#REPORT_ALL_SPARSITIES">REPORT_ALL_SPARSITIES </A>
+<LI><A HREF="#PERFORM_MU_SCAN">PERFORM_MU_SCAN </A>
+<LI><A HREF="#CHECK_S_INV">CHECK_S_INV </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="LS_DIIS"><u>LS_DIIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LS_DIIS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Perform DIIS within linear scaling SCF</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="INI_DIIS"><u>INI_DIIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INI_DIIS 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Iteration cycle to start DIIS Kohn-Sham matrix update</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WITDH="20%"><A NAME="MAX_DIIS"><u>MAX_DIIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_DIIS 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Size of LS_DIIS buffer</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  4
+<TR><TD WITDH="20%"><A NAME="NMIXING"><u>NMIXING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NMIXING 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Minimal number of density mixing before start DIIS</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WITDH="20%"><A NAME="EPS_DIIS"><u>EPS_DIIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_DIIS 1.e-1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold on the convergence to start using DIIS</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="MAX_SCF"><u>MAX_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_SCF 200
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of SCF iteration to be performed for one optimization</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  20
+<TR><TD WITDH="20%"><A NAME="EPS_SCF"><u>EPS_SCF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_SCF 1.e-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Target accuracy for the SCF convergence in terms of change of the total energy per electron.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-08
+<TR><TD WITDH="20%"><A NAME="MIXING_FRACTION"><u>MIXING_FRACTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MIXING_FRACTION 0.4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixing density matrices uses the specified fraction in the SCF procedure.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     4.5000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="EPS_FILTER"><u>EPS_FILTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_FILTER 1.0E-7
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold used for filtering matrix operations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="EPS_LANCZOS"><u>EPS_LANCZOS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_LANCZOS 1.0E-4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold used for lanczos estimates.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-03
+<TR><TD WITDH="20%"><A NAME="MAX_ITER_LANCZOS"><u>MAX_ITER_LANCZOS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER_LANCZOS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of lanczos iterations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  128
+<TR><TD WITDH="20%"><A NAME="MU"><u>MU</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MU 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Value (or initial guess) for the chemical potential, i.e. some suitable energy between HOMO and LUMO energy.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="FIXED_MU"><u>FIXED_MU</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FIXED_MU .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Should the calculation be performed at fixed chemical potential, or should it be found fixing the number of electrons</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="EXTRAPOLATION_ORDER"><u>EXTRAPOLATION_ORDER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXTRAPOLATION_ORDER 3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of previous matrices used for the ASPC extrapolation of the initial guess. 0 implies that an atomic guess is used at each step. low (1-2) will result in a drift of the constant of motion during MD. high (>5) might be somewhat unstable, leading to more SCF iterations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  4
+<TR><TD WITDH="20%"><A NAME="S_PRECONDITIONER"><u>S_PRECONDITIONER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">S_PRECONDITIONER MOLECULAR
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Preconditions S with some appropriate form.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ATOMIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: No preconditioner</li>
+<li><code>ATOMIC</code>: Using atomic blocks</li>
+<li><code>MOLECULAR</code>: Using molecular sub-blocks. Recommended if molecules are defined and not too large.</li>
+</ul><TR><TD WITDH="20%"><A NAME="PURIFICATION_METHOD"><u>PURIFICATION_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PURIFICATION_METHOD TRS4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scheme used to purify the Kohn-Sham matrix into the density matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SIGN_MATRIX
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SIGN_MATRIX</code>: Newton-Schulz sign matrix iteration.</li>
+<li><code>TRS4</code>: Trace resetting 4th order scheme</li>
+<li><code>TC2</code>: Trace conserving 2nd order scheme</li>
+<li><code>PEXSI</code>: PEXSI method</li>
+</ul><BR> This keyword cites following references: 
+<A HREF="references.html#reference_113" TITLE="
+ VandeVondele, J; Borstnik, U; Hutter, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 8 (10), 3565-3573 (2012). 
+ Linear Scaling Self-Consistent Field Calculations with Millions of Atoms
+ in the Condensed Phase.
+ http://dx.doi.org/10.1021/ct200897x
+">[VandeVondele2012]</A>
+<A HREF="references.html#reference_114" TITLE="
+ Niklasson, AMN; Tymczak, CJ; Challacombe, M. 
+ JOURNAL OF CHEMICAL PHYSICS, 118 (19), 8611-8620 (2003). 
+ Trace resetting density matrix purification in O(N)
+ self-consistent-field theory.
+ http://dx.doi.org/10.1063/1.1559913
+">[Niklasson2003]</A>
+<TR><TD WITDH="20%"><A NAME="DYNAMIC_THRESHOLD"><u>DYNAMIC_THRESHOLD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DYNAMIC_THRESHOLD .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Should the threshold for the purification be chosen dynamically</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="NON_MONOTONIC"><u>NON_MONOTONIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NON_MONOTONIC .TRUE.
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Should the purification be performed non-monotonically. Relevant for TC2 only.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="MATRIX_CLUSTER_TYPE"><u>MATRIX_CLUSTER_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MATRIX_CLUSTER_TYPE MOLECULAR
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify how atomic blocks should be clustered in the used matrices, in order to improve flop rate, and possibly speedup the matrix multiply. Note that the atomic s_preconditioner can not be used.Furthermore, since screening is on matrix blocks, slightly more accurate results can be expected with molecular.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ATOMIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ATOMIC</code>: Using atomic blocks</li>
+<li><code>MOLECULAR</code>: Using molecular blocks.</li>
+</ul><TR><TD WITDH="20%"><A NAME="SINGLE_PRECISION_MATRICES"><u>SINGLE_PRECISION_MATRICES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SINGLE_PRECISION_MATRICES
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Matrices used within the LS code can be either double or single precision.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RESTART_WRITE"><u>RESTART_WRITE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_READ
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Write the density matrix at the end of the SCF (currently requires EXTRAPOLATION_ORDER>0). Files might be rather large.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RESTART_READ"><u>RESTART_READ</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_READ
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Read the density matrix before the (first) SCF.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="S_INVERSION"><u>S_INVERSION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">S_PRECONDITIONER MOLECULAR
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method used to compute the inverse of S.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SIGN_SQRT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SIGN_SQRT</code>: Using the inverse sqrt as obtained from sign function iterations.</li>
+<li><code>HOTELLING</code>: Using the Hotellign iteration.</li>
+</ul><TR><TD WITDH="20%"><A NAME="SIGN_SQRT_ORDER"><u>SIGN_SQRT_ORDER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SIGN_SQRT_ORDER 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Order of the sqrt iteration, should be 2..5, 3 or 5 recommended</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="REPORT_ALL_SPARSITIES"><u>REPORT_ALL_SPARSITIES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REPORT_ALL_SPARSITIES
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Run the sparsity report at the end of the SCF</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="PERFORM_MU_SCAN"><u>PERFORM_MU_SCAN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PERFORM_MU_SCAN
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Do a scan of the chemical potential after the SCF</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="CHECK_S_INV"><u>CHECK_S_INV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CHECK_S_INV
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Perform an accuracy check on the inverse/sqrt of the s matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

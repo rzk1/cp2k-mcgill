@@ -1,0 +1,51 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section RS_GRID                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section RS_GRID                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>%<A HREF="InputReference~__ROOT__~TEST~RS_PW_TRANSFER.html">RS_PW_TRANSFER</A>%<A HREF="InputReference~__ROOT__~TEST~RS_PW_TRANSFER~RS_GRID.html">RS_GRID</A>.
+<BR><BR>Set options that influence how the realspace grids are being distributed in parallel runs. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#DISTRIBUTION_TYPE">DISTRIBUTION_TYPE </A>
+<LI><A HREF="#DISTRIBUTION_LAYOUT">DISTRIBUTION_LAYOUT </A>
+<LI><A HREF="#MAX_DISTRIBUTED_LEVEL">MAX_DISTRIBUTED_LEVEL </A>
+<LI><A HREF="#LOCK_DISTRIBUTION">LOCK_DISTRIBUTION </A>
+<LI><A HREF="#MEMORY_FACTOR">MEMORY_FACTOR </A>
+<LI><A HREF="#HALO_REDUCTION_FACTOR">HALO_REDUCTION_FACTOR </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="DISTRIBUTION_TYPE"><u>DISTRIBUTION_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISTRIBUTION_TYPE DISTRIBUTED
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Parallelization strategy.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  AUTOMATIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>AUTOMATIC</code>: Use heuristic rules to decide between distributed and replicated</li>
+<li><code>DISTRIBUTED</code>: Force a distributed setup if possible</li>
+<li><code>REPLICATED</code>: Force a replicated setup</li>
+</ul><TR><TD WITDH="20%"><A NAME="DISTRIBUTION_LAYOUT"><u>DISTRIBUTION_LAYOUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISTRIBUTION_LAYOUT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the number of slices in the x, y and z directions.-1 specifies that any number of slices is OK.If a given distribution can not be satisfied, a replicated grid will result.Also see LOCK_DISTRIBUTION.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers. Default value:  -1 -1 -1
+<TR><TD WITDH="20%"><A NAME="MAX_DISTRIBUTED_LEVEL"><u>MAX_DISTRIBUTED_LEVEL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_DISTRIBUTED_LEVEL 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If the multigrid-level of a grid is larger than the parameter, it will not be distributed in the automatic scheme.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WITDH="20%"><A NAME="LOCK_DISTRIBUTION"><u>LOCK_DISTRIBUTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LOCK_DISTRIBUTION TRUE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Expert use only, only basic QS deals correctly with a non-default value.If the distribution is locked, a grid will have the same distribution asthe next finer multigrid (provided it is distributed).If unlocked, all grids can be distributed freely.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  T
+<TR><TD WITDH="20%"><A NAME="MEMORY_FACTOR"><u>MEMORY_FACTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MEMORY_FACTOR 4.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>A grid will only be distributed if the memory usage for that grid (including halo) is smaller than a replicated grid by this parameter.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="HALO_REDUCTION_FACTOR"><u>HALO_REDUCTION_FACTOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">HALO_REDUCTION_FACTOR 0.5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Can be used to reduce the halo of the distributed grid (experimental features).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,30 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CONSTRAIN_EXPONENTS                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CONSTRAIN_EXPONENTS                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~OPTIMIZE_BASIS.html">OPTIMIZE_BASIS</A>%<A HREF="InputReference~__ROOT__~OPTIMIZE_BASIS~FIT_KIND.html">FIT_KIND</A>%<A HREF="InputReference~__ROOT__~OPTIMIZE_BASIS~FIT_KIND~CONSTRAIN_EXPONENTS.html">CONSTRAIN_EXPONENTS</A>.
+<BR><BR>specicifies contraints for the exponents to be fitted. Only a single constraint can be applied to an exponent. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#USE_EXP">USE_EXP </A>
+<LI><A HREF="#BOUNDARIES">BOUNDARIES </A>
+<LI><A HREF="#MAX_VAR_FRACTION">MAX_VAR_FRACTION </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="USE_EXP"><u>USE_EXP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">USE_EXP SET IEXP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the exponent to be constraint. The two integers indicate the set number and i'th exponent. The value -1 can be used to mark all sets/expoenents in a set.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers<TR><TD WITDH="20%"><A NAME="BOUNDARIES"><u>BOUNDARIES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BOUNDARIES LOWER UPPER
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the boundaries to which the optimization is restricted. First value is the lower bound, second value is the upper bound.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals<TR><TD WITDH="20%"><A NAME="MAX_VAR_FRACTION"><u>MAX_VAR_FRACTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_VAR_FRACTION REAL
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the maximum fractionr by which the exponent is allowed to vary. e.g. 0.5 allows the exp to vary by 0.5*exp in both directions.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

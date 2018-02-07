@@ -1,0 +1,52 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section BECKE_ROUSSEL                                                                   </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section BECKE_ROUSSEL                                                                    </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC~XC_FUNCTIONAL.html">XC_FUNCTIONAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC~XC_FUNCTIONAL~BECKE_ROUSSEL.html">BECKE_ROUSSEL</A>.
+<BR><BR>Becke Roussel exchange hole model. Can be usedas long range correction with a truncated coulomb potential. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_95" TITLE="
+ BECKE, AD; ROUSSEL, MR. 
+ PHYSICAL REVIEW A, 39 (8), 3761-3767 (1989). 
+ EXCHANGE HOLES IN INHOMOGENEOUS SYSTEMS - A COORDINATE-SPACE MODEL.
+ http://dx.doi.org/10.1103/PhysRevA.39.3761
+">[BECKE1989]</A>
+<A HREF="references.html#reference_94" TITLE="
+ Proynov, E; Gan, Z; Kong, J. 
+ CHEMICAL PHYSICS LETTERS, 455 (1-3), 103-109 (2008). 
+ Analytical representation of the Becke-Roussel exchange functional.
+ http://dx.doi.org/10.1016/j.cplett.2008.02.039
+">[Proynov2008]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#SCALE_X">SCALE_X </A>
+<LI><A HREF="#CUTOFF_RADIUS">CUTOFF_RADIUS </A>
+<LI><A HREF="#GAMMA">GAMMA </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>activates the functional</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="SCALE_X"><u>SCALE_X</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>scales the exchange part of the functional</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="CUTOFF_RADIUS"><u>CUTOFF_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CUTOFF_RADIUS 2.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the cutoff radius for the truncation. If put to zero, the standard full range potential will be used</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="GAMMA"><u>GAMMA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GAMMA 0.8
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Parameter in the exchange hole. Usually this is put to 1.0 or 0.8</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

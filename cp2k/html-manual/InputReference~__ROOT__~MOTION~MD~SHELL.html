@@ -1,0 +1,41 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SHELL                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SHELL                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~SHELL.html">SHELL</A>.
+<BR><BR>Parameters of shell model in adiabatic dynamics. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~SHELL~THERMOSTAT.html">THERMOSTAT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TEMPERATURE">TEMPERATURE </A>
+<LI><A HREF="#TEMP_TOL">TEMP_TOL </A>
+<LI><A HREF="#NOSE_PARTICLE">NOSE_PARTICLE </A>
+<LI><A HREF="#DISPLACEMENT_SHELL_TOL">DISPLACEMENT_SHELL_TOL </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TEMPERATURE"><u>TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">temperature 5.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Temperature in K used to control the internal velocities of the core-shell motion</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     0.0000000000000000E+00
+K<TR><TD WITDH="20%"><A NAME="TEMP_TOL"><u>TEMP_TOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">temp_tol 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum accepted temperature deviation from the expected value, for the internal core-shell motion.If 0, no rescaling is performed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     0.0000000000000000E+00
+K<TR><TD WITDH="20%"><A NAME="NOSE_PARTICLE"><u>NOSE_PARTICLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If nvt or npt, the core and shell velocities are controlled by the same thermostat used for the particle. This might favour heat exchange and additional rescaling of the internal core-shell velocity is needed (TEMP_TOL)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DISPLACEMENT_SHELL_TOL"><u>DISPLACEMENT_SHELL_TOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPLACEMENT_SHELL_TOL <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword sets a maximum variation of the shell core distance in each Cartesian direction.The maximum internal core-shell velocity is evaluated and if it is too large to remainwithin the assigned limit, the time step is rescaled accordingly,and the first half step of the velocity verlet is repeated.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     5.2917720859000006E+01
+angstrom</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

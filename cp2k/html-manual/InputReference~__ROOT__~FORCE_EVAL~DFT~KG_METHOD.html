@@ -1,0 +1,55 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section KG_METHOD                                                                       </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section KG_METHOD                                                                        </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD.html">KG_METHOD</A>.
+<BR><BR>Specifies the parameters for a Kim-Gordon-like partitioning into molecular subunits. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_50" TITLE="
+ Iannuzzi, M; Kirchner, B; Hutter, J. 
+ CHEMICAL PHYSICS LETTERS, 421 (1-3), 16-20 (2006). 
+ Density functional embedding for molecular systems.
+ http://dx.doi.org/10.1016/j.cplett.2005.08.155
+">[Iannuzzi2006]</A>
+<A HREF="references.html#reference_4" TITLE="
+ Brelaz, D. COMMUNICATIONS OF THE ACM, 22 (4), 251-256 (1979). 
+ New methods to color the vertices of a graph.
+ http://dx.doi.org/10.1145/359094.359101
+">[Brelaz1979]</A>
+<A HREF="references.html#reference_171" TITLE="
+ Andermatt, S; Cha, J; Schiffmann, F; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 12 (7), 3214-3227 (2016). 
+ Combining Linear-Scaling DFT with Subsystem DFT in Born Oppenheimer and
+ Ehrenfest Molecular Dynamics Simulations: From Molecules to a Virus in
+ Solution.
+ http://dx.doi.org/10.1021/acs.jctc.6b00398
+">[Andermatt2016]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD~PRINT.html">PRINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD~ENERGY_CORRECTION.html">ENERGY_CORRECTION </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#COLORING_METHOD">COLORING_METHOD </A>
+<LI><A HREF="#TNADD_METHOD">TNADD_METHOD </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="COLORING_METHOD"><u>COLORING_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COLORING_METHOD GREEDY
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which algorithm to use for coloring.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  DSATUR
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>DSATUR</code>: Maximum degree of saturation, relatively accurate</li>
+<li><code>GREEDY</code>: Greedy, fast coloring, less accurate</li>
+</ul><TR><TD WITDH="20%"><A NAME="TNADD_METHOD"><u>TNADD_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TNADD_METHOD ATOMIC
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Algorithm to use for the calculation of the nonadditive kinetic energy.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  EMBEDDING
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>EMBEDDING</code>: Use full embedding potential (see Iannuzzi et al)</li>
+<li><code>ATOMIC</code>: Use sum of atomic model potentials</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

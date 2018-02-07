@@ -1,0 +1,35 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section NEIGHBOR_LISTS                                                                  </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section NEIGHBOR_LISTS                                                                   </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~TOPOLOGY.html">TOPOLOGY</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~TOPOLOGY~GENERATE.html">GENERATE</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~TOPOLOGY~GENERATE~NEIGHBOR_LISTS.html">NEIGHBOR_LISTS</A>.
+<BR><BR>This section specifies the input parameters for the construction of neighbor lists. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#VERLET_SKIN">VERLET_SKIN </A>
+<LI><A HREF="#NEIGHBOR_LISTS_FROM_SCRATCH">NEIGHBOR_LISTS_FROM_SCRATCH </A>
+<LI><A HREF="#GEO_CHECK">GEO_CHECK </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="VERLET_SKIN"><u>VERLET_SKIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VERLET_SKIN {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the Verlet Skin for the generation of the neighbor lists</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="NEIGHBOR_LISTS_FROM_SCRATCH"><u>NEIGHBOR_LISTS_FROM_SCRATCH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">neighbor_lists_from_scratch logical
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword enables the building of the neighbouring list from scratch.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="GEO_CHECK"><u>GEO_CHECK</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GEO_CHECK
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>This keyword enables the check that two atoms are never below the minimum value used to construct the splines during the construction of the neighbouring list. Disabling this keyword avoids CP2K to abort in case two atoms are below the minimum  value of the radius used to generate the splines.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

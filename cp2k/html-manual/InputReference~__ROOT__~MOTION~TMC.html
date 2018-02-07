@@ -1,0 +1,201 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section TMC                                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section TMC                                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~TMC.html">TMC</A>.
+<BR><BR>A parallelized MC algorithm, presampling the configurations, espacially the Markov chain elements. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_162" TITLE="
+ Schonherr, M; Slater, B; Hutter, J; VandeVondele, J. 
+ JOURNAL OF PHYSICAL CHEMISTRY B, 118 (2), 590-596 (2014). 
+ Dielectric Properties of Water Ice, the Ice Ih/XI Phase Transition, and
+ an Assessment of Density Functional Theory.
+ http://dx.doi.org/10.1021/jp4103355
+">[Schonherr2014]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~TMC~MOVE_TYPE.html">MOVE_TYPE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~TMC~NMC_MOVES.html">NMC_MOVES </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~TMC~TMC_ANALYSIS.html">TMC_ANALYSIS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~TMC~TMC_ANALYSIS_FILES.html">TMC_ANALYSIS_FILES </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#GROUP_ENERGY_SIZE">GROUP_ENERGY_SIZE </A>
+<LI><A HREF="#GROUP_ENERGY_NR">GROUP_ENERGY_NR </A>
+<LI><A HREF="#GROUP_CC_SIZE">GROUP_CC_SIZE </A>
+<LI><A HREF="#GROUP_ANLYSIS_NR">GROUP_ANLYSIS_NR </A>
+<LI><A HREF="#NUM_MC_ELEM">NUM_MC_ELEM </A>
+<LI><A HREF="#RND_DETERMINISTIC">RND_DETERMINISTIC </A>
+<LI><A HREF="#TASK_TYPE">TASK_TYPE </A>
+<LI><A HREF="#NR_TEMPERATURE">NR_TEMPERATURE </A>
+<LI><A HREF="#TEMPERATURE">TEMPERATURE </A>
+<LI><A HREF="#NUM_MV_ELEM_IN_CELL">NUM_MV_ELEM_IN_CELL </A>
+<LI><A HREF="#SUB_BOX">SUB_BOX </A>
+<LI><A HREF="#PRESSURE">PRESSURE </A>
+<LI><A HREF="#VOLUME_ISOTROPIC">VOLUME_ISOTROPIC </A>
+<LI><A HREF="#MOVE_CENTER_OF_MASS">MOVE_CENTER_OF_MASS </A>
+<LI><A HREF="#ESIMATE_ACC_PROB">ESIMATE_ACC_PROB </A>
+<LI><A HREF="#SPECULATIVE_CANCELING">SPECULATIVE_CANCELING </A>
+<LI><A HREF="#USE_SCF_ENERGY_INFO">USE_SCF_ENERGY_INFO </A>
+<LI><A HREF="#RESULT_LIST_IN_MEMORY">RESULT_LIST_IN_MEMORY </A>
+<LI><A HREF="#INFO_OUT_STEP_SIZE">INFO_OUT_STEP_SIZE </A>
+<LI><A HREF="#RESTART_IN">RESTART_IN </A>
+<LI><A HREF="#RESTART_OUT">RESTART_OUT </A>
+<LI><A HREF="#ENERGY_FILE_NAME">ENERGY_FILE_NAME </A>
+<LI><A HREF="#PRINT_ONLY_ACC">PRINT_ONLY_ACC </A>
+<LI><A HREF="#PRINT_COORDS">PRINT_COORDS </A>
+<LI><A HREF="#PRINT_FORCES">PRINT_FORCES </A>
+<LI><A HREF="#PRINT_DIPOLE">PRINT_DIPOLE </A>
+<LI><A HREF="#PRINT_CELL">PRINT_CELL </A>
+<LI><A HREF="#PRINT_ENERGIES">PRINT_ENERGIES </A>
+<LI><A HREF="#DOT_TREE">DOT_TREE </A>
+<LI><A HREF="#ALL_CONF_FILE_NAME">ALL_CONF_FILE_NAME </A>
+<LI><A HREF="#PRINT_TEST_OUTPUT">PRINT_TEST_OUTPUT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="GROUP_ENERGY_SIZE"><u>GROUP_ENERGY_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GROUP_ENERGY_SIZE {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>amount of CPUs per group for energy calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="GROUP_ENERGY_NR"><u>GROUP_ENERGY_NR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GROUP_ENERGY_NR {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>amount of groups for exact energy calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="GROUP_CC_SIZE"><u>GROUP_CC_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GROUP_CC_SIZE {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>amount of of CPUs per group for configurational change</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="GROUP_ANLYSIS_NR"><u>GROUP_ANLYSIS_NR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GROUP_ANALYSIS_NR {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>amount of groups (cores) for analysing the configurations</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch 1
+. Default value:  1
+<TR><TD WITDH="20%"><A NAME="NUM_MC_ELEM"><u>NUM_MC_ELEM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUM_MC_ELEM {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the minimum Markov Chain elements, to be sampled</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="RND_DETERMINISTIC"><u>RND_DETERMINISTIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RND_INIT {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the initialisation number for the random number generator</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="TASK_TYPE"><u>TASK_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TASK_TYPE {OPTION}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Select specialized types. Selectable:IDEAL_GAS (constant configuration energy E=0.0),</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word<TR><TD WIDTH="10%"><TD>This keyword behaves as a switchxxx_unspecified_xxx
+. Default value: " "
+<TR><TD WITDH="20%"><A NAME="NR_TEMPERATURE"><u>NR_TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NR_TEMP {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the number of different temperature for parallel tempering</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="TEMPERATURE"><u>TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TEMPERATURE {REAL} |OR| TEMPERATURE {REAL} {REAL} ...
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>one temperatue OR for parallel tempering: Tmin Tmax or each temperature T1 T2 T3 ... If every single temperature is specified, do NOT use keyword NR_TEMPERATURE</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals. Default value:     3.3000000000000000E+02
+<TR><TD WITDH="20%"><A NAME="NUM_MV_ELEM_IN_CELL"><u>NUM_MV_ELEM_IN_CELL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUM_MV_ELEM_IN_CELL {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the number of elements (atoms or molecules) moves in cell or sub box.if 0 all elements are moved once in a MC move</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="SUB_BOX"><u>SUB_BOX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SUB_BOX {REAL} {REAL} {REAL} OR SUB_BOX {REAL} for cubic
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>specifies the size ot the sub box. Standard moves only within subbox of random position, to compensate the potential difference of the approximate potential.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="PRESSURE"><u>PRESSURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRESSURE {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>enables NPT calculation with specified constant pressure [bar]</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="VOLUME_ISOTROPIC"><u>VOLUME_ISOTROPIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VOLUME_ISOTROPIC {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>volume move is equal in each direction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="MOVE_CENTER_OF_MASS"><u>MOVE_CENTER_OF_MASS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MOVE_CENTER_OF_MASS {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Moves the center of mass of defined molecules (in volume moves)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ESIMATE_ACC_PROB"><u>ESIMATE_ACC_PROB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ESIMATE_ACC_PROB {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>set the estimation of the acceptance probability using run time information of the energy</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  T
+<TR><TD WITDH="20%"><A NAME="SPECULATIVE_CANCELING"><u>SPECULATIVE_CANCELING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SPECULATIVE_CANCELING {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>enables or disables the speculative canceling. If we have further knowledge of acceptance probabilities using parent acceptance or the estimated energy.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  T
+<TR><TD WITDH="20%"><A NAME="USE_SCF_ENERGY_INFO"><u>USE_SCF_ENERGY_INFO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">USE_SCF_ENERGY_INFO {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>enables or disables the usage of SCF energy information for  estimating the acceptance probability.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RESULT_LIST_IN_MEMORY"><u>RESULT_LIST_IN_MEMORY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESULT_LIST_IN_MEMORY {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>enables the storing of the whole Markov Chain</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+<TR><TD WITDH="20%"><A NAME="INFO_OUT_STEP_SIZE"><u>INFO_OUT_STEP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INFO_OUT_STEP_SIZE {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the number the amount of calculated configurations between to output printings.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="RESTART_IN"><u>RESTART_IN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART or RSTART {FILENAME}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>if existing use the last restart file</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word<TR><TD WIDTH="10%"><TD>This keyword behaves as a switchxxx_unspecified_xxx
+. Default value: " "
+<TR><TD WITDH="20%"><A NAME="RESTART_OUT"><u>RESTART_OUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART or RESTART {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the frequency to write restart files. If no frequency is specified (lone keyword) the restart file is written at the end (only). If the value is 0, no restart file is written at all. The frequency specifies is related to the calculated Markov chain elements</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch -9
+. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="ENERGY_FILE_NAME"><u>ENERGY_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ENERGY_FILE_NAME {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>input file name for the exact potential energy calculation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WITDH="20%"><A NAME="PRINT_ONLY_ACC"><u>PRINT_ONLY_ACC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_ONLY_ACC {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>printing only accepted elements of the Markov Chain.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="PRINT_COORDS"><u>PRINT_COORDS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_COORDS {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>printing coordinates of the Markov Chain elements</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="PRINT_FORCES"><u>PRINT_FORCES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_FORCES {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>printing forces of the Markov Chain elements</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PRINT_DIPOLE"><u>PRINT_DIPOLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_DIPOLE {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>enables the calculation and printing the exact cell dipoles (only for QS methods)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PRINT_CELL"><u>PRINT_CELL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_CELL {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>printing the cell vectors of the Markov Chain elements</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PRINT_ENERGIES"><u>PRINT_ENERGIES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_ENERGIES {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>printing the different calculated energies (approximated, scf and exact)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DOT_TREE"><u>DOT_TREE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DOT_TREE {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>file name for GrapgViz dot file</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word<TR><TD WIDTH="10%"><TD>This keyword behaves as a switchtmc_tree.dot
+. Default value: " "
+<TR><TD WITDH="20%"><A NAME="ALL_CONF_FILE_NAME"><u>ALL_CONF_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALL_CONF_FILE_NAME {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>file name for printing every single calculated configuration (e.g. for fitting).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="PRINT_TEST_OUTPUT"><u>PRINT_TEST_OUTPUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_TEST_OUTPUT {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>printing different values for regtest comparison</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

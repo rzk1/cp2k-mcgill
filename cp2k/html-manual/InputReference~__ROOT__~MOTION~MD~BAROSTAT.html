@@ -1,0 +1,47 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section BAROSTAT                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section BAROSTAT                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT.html">BAROSTAT</A>.
+<BR><BR>Parameters of barostat. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~VELOCITY.html">VELOCITY </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~MASS.html">MASS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~THERMOSTAT.html">THERMOSTAT </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~BAROSTAT~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#PRESSURE">PRESSURE </A>
+<LI><A HREF="#TIMECON">TIMECON </A>
+<LI><A HREF="#TEMPERATURE">TEMPERATURE </A>
+<LI><A HREF="#TEMP_TOL">TEMP_TOL </A>
+<LI><A HREF="#VIRIAL">VIRIAL </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="PRESSURE"><u>PRESSURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRESSURE real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial pressure</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bar], default value:     0.0000000000000000E+00
+bar<TR><TD WITDH="20%"><A NAME="TIMECON"><u>TIMECON</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TIMECON real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Barostat time constant</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [fs], default value:     9.9999999999999989E+02
+fs<TR><TD WITDH="20%"><A NAME="TEMPERATURE"><u>TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TEMPERATURE real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Barostat initial temperature. If not set, the ensemble temperature is used instead.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K].<TR><TD WITDH="20%"><A NAME="TEMP_TOL"><u>TEMP_TOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TEMP_TOL real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum oscillation of the Barostat temperature imposed by rescaling.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     0.0000000000000000E+00
+K<TR><TD WITDH="20%"><A NAME="VIRIAL"><u>VIRIAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VIRIAL (XYZ | X | Y | Z | XY| XZ | YZ)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>For NPT_F only: allows the screening of one or more components of the virial in order to relax the cell only along specific cartesian axis</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  XYZ
+<TR><TD WIDTH="10%"><TD>  valid keywords: XYZ, X, Y, Z, XY, XZ, YZ</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

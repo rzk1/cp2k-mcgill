@@ -1,0 +1,65 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section WFC_GPW                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section WFC_GPW                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES.html">LINRES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR.html">EPR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR.html">G_TENSOR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~WF_CORRELATION.html">WF_CORRELATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~WF_CORRELATION~WFC_GPW.html">WFC_GPW</A>.
+<BR><BR>Parameters for the GPW approach in Wavefunction-based Correlation methods. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#EPS_GRID">EPS_GRID </A>
+<LI><A HREF="#EPS_FILTER">EPS_FILTER </A>
+<LI><A HREF="#CUTOFF">CUTOFF </A>
+<LI><A HREF="#REL_CUTOFF">REL_CUTOFF </A>
+<LI><A HREF="#MULTIPOLE_TWO_CENT_INT">MULTIPOLE_TWO_CENT_INT </A>
+<LI><A HREF="#PRINT_LEVEL">PRINT_LEVEL </A>
+<LI><A HREF="#OBARA_SAIKA_OVERLAP">OBARA_SAIKA_OVERLAP </A>
+<LI><A HREF="#EPS_PGF_ORB_S">EPS_PGF_ORB_S </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="EPS_GRID"><u>EPS_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_GRID 1.0E-9
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines a threshold for the GPW based integration</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-08
+<TR><TD WITDH="20%"><A NAME="EPS_FILTER"><u>EPS_FILTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_FILTER 1.0E-10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines a threshold for the DBCSR based multiply (usually 10 times smaller than EPS_GRID).Normally, this EPS_FILTER determines accuracy and timing of cubic-scaling RPA calculation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-09
+<TR><TD WITDH="20%"><A NAME="CUTOFF"><u>CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CUTOFF 300
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The cutoff of the finest grid level in the MP2 gpw integration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     3.0000000000000000E+02
+<TR><TD WITDH="20%"><A NAME="REL_CUTOFF"><u>REL_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REL_CUTOFF 50
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines the grid at which a Gaussian is mapped.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.0000000000000000E+01
+<TR><TD WIDTH="10%"><TD>variants: RELATIVE_CUTOFF<TR><TD WITDH="20%"><A NAME="MULTIPOLE_TWO_CENT_INT"><u>MULTIPOLE_TWO_CENT_INT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MULTIPOLE_TWO_CENT_INT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use fast algorithm to calculate two-center RI integrals based on multipole expansion</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PRINT_LEVEL"><u>PRINT_LEVEL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_LEVEL HIGH
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>How much output is written by the individual groups.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SILENT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SILENT</code>: Almost no output</li>
+<li><code>LOW</code>: Little output</li>
+<li><code>MEDIUM</code>: Quite some output</li>
+<li><code>HIGH</code>: Lots of output</li>
+<li><code>DEBUG</code>: Everything is written out, useful for debugging purposes only</li>
+</ul><TR><TD WIDTH="10%"><TD>variants: IOLEVEL<TR><TD WITDH="20%"><A NAME="OBARA_SAIKA_OVERLAP"><u>OBARA_SAIKA_OVERLAP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OSO
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use Obara-Saika integrals for two- and three-center integrals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WIDTH="10%"><TD>variants: OSO<TR><TD WITDH="20%"><A NAME="EPS_PGF_ORB_S"><u>EPS_PGF_ORB_S</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_PGF_ORB_S 1.0E-10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Screening for overlap matrix in RI. Usually, it is best to choose this parameter to be very small since the inversion of overlap matrix might be ill-conditioned.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-10
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

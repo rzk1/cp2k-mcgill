@@ -1,0 +1,35 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section WALLS                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section WALLS                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~WALLS.html">WALLS</A>.
+<BR><BR>Enables Walls for the QM box. This can be used to avoid that QM  atoms move out of the QM box. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#WALL_SKIN">WALL_SKIN </A>
+<LI><A HREF="#TYPE">TYPE </A>
+<LI><A HREF="#K">K </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="WALL_SKIN"><u>WALL_SKIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WALL_SKIN <real> <real> <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the value of the skin of the Wall in each dimension. The wall's effect is felt when atoms fall within the skin of the Wall.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom], default value:     5.0000000000000000E-01    5.0000000000000000E-01    5.0000000000000000E-01
+angstrom<TR><TD WITDH="20%"><A NAME="TYPE"><u>TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TYPE REFLECTIVE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the type of wall</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  REFLECTIVE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: No Wall around QM box</li>
+<li><code>REFLECTIVE</code>: Reflective Wall around QM box</li>
+<li><code>QUADRATIC</code>: Quadratic Wall around QM box</li>
+</ul><TR><TD WITDH="20%"><A NAME="K"><u>K</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">K <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the value of the the force constant for the quadratic wall</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [internal_cp2k].</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

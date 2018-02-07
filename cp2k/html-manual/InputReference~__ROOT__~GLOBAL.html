@@ -1,0 +1,296 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section GLOBAL                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section GLOBAL                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~GLOBAL.html">GLOBAL</A>.
+<BR><BR>Section with general information regarding which kind of simulation to perform an parameters for the whole PROGRAM. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~GLOBAL~PRINT_ELPA.html">PRINT_ELPA </A>
+<LI><A HREF="InputReference~__ROOT__~GLOBAL~TIMINGS.html">TIMINGS </A>
+<LI><A HREF="InputReference~__ROOT__~GLOBAL~REFERENCES.html">REFERENCES </A>
+<LI><A HREF="InputReference~__ROOT__~GLOBAL~PROGRAM_RUN_INFO.html">PROGRAM_RUN_INFO </A>
+<LI><A HREF="InputReference~__ROOT__~GLOBAL~PRINT.html">PRINT </A>
+<LI><A HREF="InputReference~__ROOT__~GLOBAL~FM.html">FM </A>
+<LI><A HREF="InputReference~__ROOT__~GLOBAL~DBCSR.html">DBCSR </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#BLACS_GRID">BLACS_GRID </A>
+<LI><A HREF="#BLACS_REPEATABLE">BLACS_REPEATABLE </A>
+<LI><A HREF="#PREFERRED_DIAG_LIBRARY">PREFERRED_DIAG_LIBRARY </A>
+<LI><A HREF="#ELPA_KERNEL">ELPA_KERNEL </A>
+<LI><A HREF="#ELPA_QR">ELPA_QR </A>
+<LI><A HREF="#ELPA_QR_UNSAFE">ELPA_QR_UNSAFE </A>
+<LI><A HREF="#PREFERRED_FFT_LIBRARY">PREFERRED_FFT_LIBRARY </A>
+<LI><A HREF="#FFTW_WISDOM_FILE_NAME">FFTW_WISDOM_FILE_NAME </A>
+<LI><A HREF="#FFTW_PLAN_TYPE">FFTW_PLAN_TYPE </A>
+<LI><A HREF="#EXTENDED_FFT_LENGTHS">EXTENDED_FFT_LENGTHS </A>
+<LI><A HREF="#FFT_POOL_SCRATCH_LIMIT">FFT_POOL_SCRATCH_LIMIT </A>
+<LI><A HREF="#ALLTOALL_SGL">ALLTOALL_SGL </A>
+<LI><A HREF="#PRINT_LEVEL">PRINT_LEVEL </A>
+<LI><A HREF="#PROGRAM_NAME">PROGRAM_NAME </A>
+<LI><A HREF="#PROJECT_NAME">PROJECT_NAME </A>
+<LI><A HREF="#OUTPUT_FILE_NAME">OUTPUT_FILE_NAME </A>
+<LI><A HREF="#RUN_TYPE">RUN_TYPE </A>
+<LI><A HREF="#WALLTIME">WALLTIME </A>
+<LI><A HREF="#ECHO_INPUT">ECHO_INPUT </A>
+<LI><A HREF="#ECHO_ALL_HOSTS">ECHO_ALL_HOSTS </A>
+<LI><A HREF="#TRACE">TRACE </A>
+<LI><A HREF="#TRACE_MASTER">TRACE_MASTER </A>
+<LI><A HREF="#TRACE_MAX">TRACE_MAX </A>
+<LI><A HREF="#TRACE_ROUTINES">TRACE_ROUTINES </A>
+<LI><A HREF="#FLUSH_SHOULD_FLUSH">FLUSH_SHOULD_FLUSH </A>
+<LI><A HREF="#CALLGRAPH">CALLGRAPH </A>
+<LI><A HREF="#CALLGRAPH_FILE_NAME">CALLGRAPH_FILE_NAME </A>
+<LI><A HREF="#SEED">SEED </A>
+<LI><A HREF="#SAVE_MEM">SAVE_MEM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="BLACS_GRID"><u>BLACS_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BLACS_GRID SQUARE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>how to distribute the processors on the 2d grid needed by BLACS (and thus SCALAPACK)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SQUARE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SQUARE</code>: Distribution by matrix blocks</li>
+<li><code>ROW</code>: Distribution by matrix rows</li>
+<li><code>COLUMN</code>: Distribution by matrix columns</li>
+</ul><TR><TD WITDH="20%"><A NAME="BLACS_REPEATABLE"><u>BLACS_REPEATABLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">BLACS_REPEATABLE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use a topology for BLACS collectives that is guaranteed to be repeatable on homegeneous architectures</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PREFERRED_DIAG_LIBRARY"><u>PREFERRED_DIAG_LIBRARY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PREFERRED_DIAG_LIBRARY ELPA
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the DIAGONALIZATION library to be used. If not availabe, the standard scalapack is used</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SL
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SL</code>: Standard scalapack: syevd</li>
+<li><code>SL2</code>: Scalapack 2.0: syevr</li>
+<li><code>ELPA</code>: ELPA</li>
+</ul><BR> This keyword cites following reference: 
+<A HREF="references.html#reference_179" TITLE="
+ Marek, A; Blum, V; Johanni, R; Havu, V; Lang, B; Auckenthaler, T;
+ Heinecke, A; Bungartz, H; Lederer, H. 
+ Journal of Physics: Condensed Matter, 26 (21), (2014). 
+ The ELPA library: scalable parallel eigenvalue solutions for electronic structure
+ theory and computational science.
+ http://dx.doi.org/10.1088/0953-8984/26/21/213201
+">[Marek2014]</A>
+<TR><TD WITDH="20%"><A NAME="ELPA_KERNEL"><u>ELPA_KERNEL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the kernel to be used when ELPA is in use</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  AUTO
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>AUTO</code>: Automatically selected kernel</li>
+<li><code>GENERIC</code>: Generic kernel</li>
+<li><code>GENERIC_SIMPLE</code>: Simplified generic kernel</li>
+<li><code>BGP</code>: Kernel optimized for IBM BGP</li>
+<li><code>BGQ</code>: Kernel optimized for IBM BGQ</li>
+<li><code>SSE</code>: Kernel optimized for x86_64/SSE</li>
+<li><code>SSE_BLOCK2</code>: Kernel optimized for x86_64/SSE (block=2)</li>
+<li><code>SSE_BLOCK4</code>: Kernel optimized for x86_64/SSE (block=4)</li>
+<li><code>SSE_BLOCK6</code>: Kernel optimized for x86_64/SSE (block=6)</li>
+<li><code>AVX_BLOCK2</code>: Kernel optimized for Intel AVX (block=2)</li>
+<li><code>AVX_BLOCK4</code>: Kernel optimized for Intel AVX (block=4)</li>
+<li><code>AVX_BLOCK6</code>: Kernel optimized for Intel AVX (block=6)</li>
+<li><code>AVX2_BLOCK2</code>: Kernel optimized for Intel AVX2 (block=2)</li>
+<li><code>AVX2_BLOCK4</code>: Kernel optimized for Intel AVX2 (block=4)</li>
+<li><code>AVX2_BLOCK6</code>: Kernel optimized for Intel AVX2 (block=6)</li>
+<li><code>AVX512_BLOCK2</code>: Kernel optimized for Intel AVX-512 (block=2)</li>
+<li><code>AVX512_BLOCK4</code>: Kernel optimized for Intel AVX-512 (block=4)</li>
+<li><code>AVX512_BLOCK6</code>: Kernel optimized for Intel AVX-512 (block=6)</li>
+<li><code>GPU</code>: Kernel targeting GPUs</li>
+</ul><TR><TD WITDH="20%"><A NAME="ELPA_QR"><u>ELPA_QR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ELPA_QR
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>For ELPA, enable a blocked QR step when reducing the input matrix to banded form in preparation for the actual diagonalization step. See implementation paper for more details. Requires ELPA version 201505 or newer, automatically deactivated otherwise. If true, QR is activated only when the the size of the diagonalized matrix is suitable. Print key PRINT_ELPA is useful in determining which matrices are suitable for QR. Might accelerate the diagonalization of suitable matrices.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ELPA_QR_UNSAFE"><u>ELPA_QR_UNSAFE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ELPA_QR
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>For ELPA, disable block size limitations when used together with ELPA_QR. Keyword relevant only with ELPA versions 201605 or newer. Use keyword with caution, as it might result in wrong eigenvalues with some matrix orders/block sizes when the number of MPI processes is varied. If the print key PRINT_ELPA is active the validity of the eigenvalues is checked against values calculated without ELPA QR.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PREFERRED_FFT_LIBRARY"><u>PREFERRED_FFT_LIBRARY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PREFERRED_FFT_LIBRARY FFTW3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the FFT library which should be preferred. If it is not available, use FFTW3 if this is linked in, if FFTW3 is not available use FFTSG. Improved performance with FFTW3 can be obtained specifying a proper value for FFTW_PLAN_TYPE. Contrary to earlier CP2K versions, all libraries will result in the same grids, i.e. the subset of grids which all FFT libraries can transform. See EXTENDED_FFT_LENGTHS if larger FFTs or grids that more precisely match a given cutoff are needed, or older results need to be reproduced. FFTW3 is often (close to) optimal, and well tested with CP2K.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FFTW3
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>FFTSG</code>: Stefan Goedecker's FFT (FFTSG), always available, will be used in case a FFT library is specified and not available.</li>
+<li><code>FFTW3</code>: a fast portable FFT library. Recommended.See also the FFTW_PLAN_TYPE, and FFTW_WISDOM_FILE_NAME keywords.</li>
+<li><code>FFTW</code>: Same as FFTW3 (for compatability with CP2K 2.3)</li>
+</ul><BR> This keyword cites following reference: 
+<A HREF="references.html#reference_61" TITLE="
+ Frigo, M; Johnson, SG. 
+ PROCEEDINGS OF THE IEEE, 93 (2), 216-231 (2005). 
+ The design and implementation of FFTW3.
+ http://dx.doi.org/10.1109/JPROC.2004.840301
+">[Frigo2005]</A>
+<TR><TD WITDH="20%"><A NAME="FFTW_WISDOM_FILE_NAME"><u>FFTW_WISDOM_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FFTW_WISDOM_FILE_NAME wisdom.dat
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The name of the file that contains wisdom (pre-planned FFTs) for use with FFTW3. Using wisdom can significantly speed up the FFTs (see the FFTW homepage for details). Note that wisdom is not transferable between different computer (architectures). Wisdom can be generated using the fftw-wisdom tool that is part of the fftw installation. cp2k/tools/cp2k-wisdom is a script that contains some additional info, and can help to generate a useful default for /etc/fftw/wisdom or particular values for a given simulation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: /etc/fftw/wisdom
+<TR><TD WITDH="20%"><A NAME="FFTW_PLAN_TYPE"><u>FFTW_PLAN_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FFTW_PLAN_TYPE PATIENT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>FFTW can have improved performance if it is allowed to plan with explicit measurements which strategy is best for a given FFT. While a plan based on measurements is generally faster, differences in machine load will lead to different plans for the same input file, and thus numerics for the FFTs will be slightly different from run to run.PATIENT planning is recommended for long ab initio MD runs.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ESTIMATE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ESTIMATE</code>: Quick estimate, no runtime measurements.</li>
+<li><code>MEASURE</code>: Quick measurement, somewhat faster FFTs.</li>
+<li><code>PATIENT</code>: Measurements trying a wider range of possibilities.</li>
+<li><code>EXHAUSTIVE</code>: Measurements trying all possibilities - use with caution.</li>
+</ul><BR> This keyword cites following reference: 
+<A HREF="references.html#reference_61" TITLE="
+ Frigo, M; Johnson, SG. 
+ PROCEEDINGS OF THE IEEE, 93 (2), 216-231 (2005). 
+ The design and implementation of FFTW3.
+ http://dx.doi.org/10.1109/JPROC.2004.840301
+">[Frigo2005]</A>
+<TR><TD WITDH="20%"><A NAME="EXTENDED_FFT_LENGTHS"><u>EXTENDED_FFT_LENGTHS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXTENDED_FFT_LENGTHS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use fft library specific values for the allows number of points in FFTs. The default is to use the internal FFT lengths. For external fft libraries this may create an error at the external library level, because the length provided by cp2k is not supported by the external library. In this case switch on this keyword to obtain, with certain fft libraries, lengths matching the external fft library lengths, or larger allowed grids, or grids that more precisely match a given cutoff. IMPORTANT NOTE: in this case, the actual grids used in CP2K depends on the FFT library. A change of FFT library must therefore be considered equivalent to a change of basis, which implies a change of total energy.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="FFT_POOL_SCRATCH_LIMIT"><u>FFT_POOL_SCRATCH_LIMIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FFT_POOL_SCRATCH_LIMIT {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Limits the memory usage of the FFT scratch pool, potentially reducing efficiency a bit</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  15
+<TR><TD WITDH="20%"><A NAME="ALLTOALL_SGL"><u>ALLTOALL_SGL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALLTOALL_SGL YES
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>All-to-all communication (FFT) should use single precision</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PRINT_LEVEL"><u>PRINT_LEVEL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRINT_LEVEL HIGH
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>How much output is written out.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  MEDIUM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SILENT</code>: Almost no output</li>
+<li><code>LOW</code>: Little output</li>
+<li><code>MEDIUM</code>: Quite some output</li>
+<li><code>HIGH</code>: Lots of output</li>
+<li><code>DEBUG</code>: Everything is written out, useful for debugging purposes only</li>
+</ul><TR><TD WIDTH="10%"><TD>variants: IOLEVEL<TR><TD WITDH="20%"><A NAME="PROGRAM_NAME"><u>PROGRAM_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PROGRAM_NAME {STRING}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which program should be run</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CP2K
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ATOM</code>: Runs single atom calculations</li>
+<li><code>FARMING</code>: Runs N independent jobs in a single run</li>
+<li><code>TEST</code>: Do some benchmarking and testing</li>
+<li><code>CP2K</code>: Runs one of the CP2K package</li>
+<li><code>OPTIMIZE_INPUT</code>: A tool to optimize parameters in a CP2K input</li>
+<li><code>OPTIMIZE_BASIS</code>: A tool to create a MOLOPT or ADMM basis for a given set of training structures</li>
+<li><code>TMC</code>: Runs Tree Monte Carlo algorithm using additional input file(s)</li>
+<li><code>MC_ANALYSIS</code>: Runs (Tree) Monte Carlo trajectory file analysis</li>
+<li><code>SWARM</code>: Runs swarm based calculation</li>
+</ul><TR><TD WIDTH="10%"><TD>variants: PROGRAM<TR><TD WITDH="20%"><A NAME="PROJECT_NAME"><u>PROJECT_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PROJECT_NAME {STRING}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Name of the project (used to build the name of the trajectory, and other files generated by the program)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: PROJECT
+<TR><TD WIDTH="10%"><TD>variants: PROJECT<TR><TD WITDH="20%"><A NAME="OUTPUT_FILE_NAME"><u>OUTPUT_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OUTPUT_FILE_NAME {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Name of the output file. Relevant only if automatically started (through farming for example). If empty uses the project name as basis for it.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="RUN_TYPE"><u>RUN_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RUN_TYPE MD
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Type of run that you want to perform Geometry optimization, md, montecarlo,...</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ENERGY_FORCE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: Perform no tasks</li>
+<li><code>ENERGY</code>: Computes energy</li>
+<li><code>ENERGY_FORCE</code>: Computes energy and forces</li>
+<li><code>MD</code>: Molecular Dynamics</li>
+<li><code>GEO_OPT</code>: Geometry Optimization</li>
+<li><code>MC</code>: Monte Carlo</li>
+<li><code>SPECTRA</code>: Computes absorption Spectra</li>
+<li><code>DEBUG</code>: Performs a Debug analysis</li>
+<li><code>BSSE</code>: Basis set superposition error</li>
+<li><code>LR</code>: Linear Response</li>
+<li><code>PINT</code>: Path integral</li>
+<li><code>VIBRATIONAL_ANALYSIS</code>: Vibrational analysis</li>
+<li><code>BAND</code>: Band methods</li>
+<li><code>CELL_OPT</code>: Cell optimization. Both cell vectors and atomic positions are optimised.</li>
+<li><code>WFN_OPT</code>: Alias for ENERGY</li>
+<li><code>WAVEFUNCTION_OPTIMIZATION</code>: Alias for ENERGY</li>
+<li><code>MOLECULAR_DYNAMICS</code>: Alias for MD</li>
+<li><code>GEOMETRY_OPTIMIZATION</code>: Alias for GEO_OPT</li>
+<li><code>MONTECARLO</code>: Alias for MC</li>
+<li><code>ELECTRONIC_SPECTRA</code>: Alias for SPECTRA</li>
+<li><code>LINEAR_RESPONSE</code>: Alias for LR</li>
+<li><code>NORMAL_MODES</code>: Alias for VIBRATIONAL_ANALYSIS</li>
+<li><code>RT_PROPAGATION</code>: Real Time propagation run (fixed ionic positions)</li>
+<li><code>EHRENFEST_DYN</code>: Ehrenfest dynamics (using real time propagation of the wavefunction)</li>
+<li><code>TAMC</code>: Temperature Accelerated Monte Carlo (TAMC)</li>
+<li><code>TMC</code>: Tree Monte Carlo (TMC), a pre-sampling MC algorithm</li>
+<li><code>DRIVER</code>: i-PI driver mode</li>
+</ul><BR> This keyword cites following references: 
+<A HREF="references.html#reference_163" TITLE="
+ Ceriotti, M; More, J; Manolopoulos, DE. 
+ COMPUTER PHYSICS COMMUNICATIONS, 185 (3), 1019-1026 (2014). 
+ i-PI: A Python interface for ab initio path integral molecular dynamics
+ simulations.
+ http://dx.doi.org/10.1016/j.cpc.2013.10.027
+">[Ceriotti2014]</A>
+<A HREF="references.html#reference_162" TITLE="
+ Schonherr, M; Slater, B; Hutter, J; VandeVondele, J. 
+ JOURNAL OF PHYSICAL CHEMISTRY B, 118 (2), 590-596 (2014). 
+ Dielectric Properties of Water Ice, the Ice Ih/XI Phase Transition, and
+ an Assessment of Density Functional Theory.
+ http://dx.doi.org/10.1021/jp4103355
+">[Schonherr2014]</A>
+<TR><TD WITDH="20%"><A NAME="WALLTIME"><u>WALLTIME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WALLTIME {real} or {HH:MM:SS}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum execution time for this run. Time in seconds or in HH:MM:SS.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WIDTH="10%"><TD>variants: WALLTI<TR><TD WITDH="20%"><A NAME="ECHO_INPUT"><u>ECHO_INPUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ECHO_INPUT NO
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If the input should be echoed to the output with all the defaults made explicit</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ECHO_ALL_HOSTS"><u>ECHO_ALL_HOSTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ECHO_ALL_HOSTS NO
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Echo a list of hostname and pid for all MPI processes.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TRACE"><u>TRACE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRACE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If a debug trace of the execution of the program should be written</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="TRACE_MASTER"><u>TRACE_MASTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRACE_MASTER
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>For parallel TRACEd runs: only the master node writes output.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="TRACE_MAX"><u>TRACE_MAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRACE_MAX 100
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Limit the total number a given subroutine is printed in the trace. Accounting is not influenced.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2147483647
+<TR><TD WITDH="20%"><A NAME="TRACE_ROUTINES"><u>TRACE_ROUTINES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRACE_ROUTINES {routine_name1} {routine_name2} ...
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>A list of routines to trace. If left empty all routines are traced. Accounting is not influenced.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words<TR><TD WITDH="20%"><A NAME="FLUSH_SHOULD_FLUSH"><u>FLUSH_SHOULD_FLUSH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FLUSH_SHOULD_FLUSH
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Flush output regularly, enabling this option might degrade performance significantly on certain machines.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="CALLGRAPH"><u>CALLGRAPH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CALLGRAPH {NONE|MASTER|ALL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>At the end of the run write a callgraph to file, which contains detailed timing informations. This callgraph can be viewed e.g. with the open-source program kcachegrind.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch MASTER
+. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: No callgraph gets written</li>
+<li><code>MASTER</code>: Only the master process writes his callgraph</li>
+<li><code>ALL</code>: All processes write their callgraph (into a separate files).</li>
+</ul><TR><TD WITDH="20%"><A NAME="CALLGRAPH_FILE_NAME"><u>CALLGRAPH_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CALLGRAPH_FILE_NAME {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Name of the callgraph file, which is writte a the end of the run. If not specified the project name will be used as filename.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="SEED"><u>SEED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SEED {INTEGER} .. {INTEGER}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial seed for the global (pseudo)random number generator to create a stream of normally Gaussian distributed random numbers. Exactly 1 or 6 positive integer values are expected. A single value is replicated to fill up the full seed array with 6 numbers.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  2000
+<TR><TD WITDH="20%"><A NAME="SAVE_MEM"><u>SAVE_MEM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SAVE_MEM
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Some sections of the input structure are deallocated when not needed, and reallocated only when used. This reduces the required maximum memory</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

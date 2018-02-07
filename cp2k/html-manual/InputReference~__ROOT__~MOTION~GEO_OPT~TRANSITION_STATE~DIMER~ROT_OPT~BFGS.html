@@ -1,0 +1,48 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section BFGS                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section BFGS                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~GEO_OPT.html">GEO_OPT</A>%<A HREF="InputReference~__ROOT__~MOTION~GEO_OPT~TRANSITION_STATE.html">TRANSITION_STATE</A>%<A HREF="InputReference~__ROOT__~MOTION~GEO_OPT~TRANSITION_STATE~DIMER.html">DIMER</A>%<A HREF="InputReference~__ROOT__~MOTION~GEO_OPT~TRANSITION_STATE~DIMER~ROT_OPT.html">ROT_OPT</A>%<A HREF="InputReference~__ROOT__~MOTION~GEO_OPT~TRANSITION_STATE~DIMER~ROT_OPT~BFGS.html">BFGS</A>.
+<BR><BR>Provides parameters to tune the BFGS optimization. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~GEO_OPT~TRANSITION_STATE~DIMER~ROT_OPT~BFGS~RESTART.html">RESTART </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TRUST_RADIUS">TRUST_RADIUS </A>
+<LI><A HREF="#USE_MODEL_HESSIAN">USE_MODEL_HESSIAN </A>
+<LI><A HREF="#USE_RAT_FUN_OPT">USE_RAT_FUN_OPT </A>
+<LI><A HREF="#RESTART_HESSIAN">RESTART_HESSIAN </A>
+<LI><A HREF="#RESTART_FILE_NAME">RESTART_FILE_NAME </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TRUST_RADIUS"><u>TRUST_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRUST_RADIUS {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Trust radius used in BFGS. Previously set to 0.1. Large values can lead to instabilities</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     2.5000000000000000E-01
+angstrom<TR><TD WITDH="20%"><A NAME="USE_MODEL_HESSIAN"><u>USE_MODEL_HESSIAN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">USE_MODEL_HESSIAN
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Uses a model Hessian as initial guess instead of a unit matrix. Should lead in general to improved convergence might be switched off for exotic cases</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="USE_RAT_FUN_OPT"><u>USE_RAT_FUN_OPT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">USE_RAT_FUN_OPT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Includes a rational function optimization to determine the step. Previously default but did not improve convergence in many cases</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RESTART_HESSIAN"><u>RESTART_HESSIAN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_HESSIAN
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the reading of the initial Hessian from file.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RESTART_FILE_NAME"><u>RESTART_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_FILE_NAME {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the name of the file used to read the initial Hessian.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

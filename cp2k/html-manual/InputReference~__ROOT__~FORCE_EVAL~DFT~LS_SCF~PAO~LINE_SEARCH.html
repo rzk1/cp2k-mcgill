@@ -1,0 +1,50 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section LINE_SEARCH                                                                     </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section LINE_SEARCH                                                                      </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF.html">LS_SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PAO.html">PAO</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PAO~LINE_SEARCH.html">LINE_SEARCH</A>.
+<BR><BR>Detail settings or linesearch method. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PAO~LINE_SEARCH~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#METHOD">METHOD </A>
+<LI><A HREF="#INITIAL_STEP_SIZE">INITIAL_STEP_SIZE </A>
+<LI><A HREF="#MAX_STEP_SIZE">MAX_STEP_SIZE </A>
+<LI><A HREF="#TINY_STEP_SIZE">TINY_STEP_SIZE </A>
+<LI><A HREF="#EPS_STEP_SIZE">EPS_STEP_SIZE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="METHOD"><u>METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Linesearch method.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ADAPT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ADAPT</code>: extrapolates usually based on 3 points, uses additional points on demand, very robust.</li>
+<li><code>3PNT</code>: extrapolate based on 3 points</li>
+<li><code>2PNT</code>: extrapolate based on 2 points and the slope (super fast, but might get stuck at saddle points)</li>
+<li><code>GOLD</code>: perform 1D golden section search of the minimum (very expensive)</li>
+<li><code>NONE</code>: always take steps of fixed INITIAL_STEP_SIZE</li>
+</ul><TR><TD WITDH="20%"><A NAME="INITIAL_STEP_SIZE"><u>INITIAL_STEP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial step length</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="MAX_STEP_SIZE"><u>MAX_STEP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum step length</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     3.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="TINY_STEP_SIZE"><u>TINY_STEP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Step length taken if negative step is suggested.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.0000000000000000E-03
+<TR><TD WITDH="20%"><A NAME="EPS_STEP_SIZE"><u>EPS_STEP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion of GOLD method.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

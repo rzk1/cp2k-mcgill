@@ -1,0 +1,61 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SPINSPIN                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SPINSPIN                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES.html">LINRES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~SPINSPIN.html">SPINSPIN</A>.
+<BR><BR>Compute indirect spin-spin coupling constants. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~SPINSPIN~PRINT.html">PRINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~SPINSPIN~INTERPOLATOR.html">INTERPOLATOR </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#RESTART_SPINSPIN">RESTART_SPINSPIN </A>
+<LI><A HREF="#ISSC_ON_ATOM_LIST">ISSC_ON_ATOM_LIST </A>
+<LI><A HREF="#DO_FC">DO_FC </A>
+<LI><A HREF="#DO_SD">DO_SD </A>
+<LI><A HREF="#DO_PSO">DO_PSO </A>
+<LI><A HREF="#DO_DSO">DO_DSO </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&SPINSPIN T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>controls the activation of the nmr calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RESTART_SPINSPIN"><u>RESTART_SPINSPIN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_SPINSPIN
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Restart the spin-spin calculation from a previous run (NOT WORKING YET)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ISSC_ON_ATOM_LIST"><u>ISSC_ON_ATOM_LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ISSC_ON_ATOM_LIST 1 2 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Atoms for which the issc is computed.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WITDH="20%"><A NAME="DO_FC"><u>DO_FC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DO_FC F
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Compute the Fermi contact contribution</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DO_SD"><u>DO_SD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DO_SD F
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Compute the spin-dipolar contribution</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DO_PSO"><u>DO_PSO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DO_PSO F
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Compute the paramagnetic spin-orbit contribution</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DO_DSO"><u>DO_DSO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DO_DSO F
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Compute the diamagnetic spin-orbit contribution (NOT YET IMPLEMENTED)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

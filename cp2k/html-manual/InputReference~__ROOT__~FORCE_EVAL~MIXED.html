@@ -1,0 +1,43 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MIXED                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MIXED                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED.html">MIXED</A>.
+<BR><BR>This section contains all information to run with a hamiltonian defined by a mixing of force_evals. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~LINEAR.html">LINEAR </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~COUPLING.html">COUPLING </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~RESTRAINT.html">RESTRAINT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~GENERIC.html">GENERIC </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~MAPPING.html">MAPPING </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MIXED~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MIXING_TYPE">MIXING_TYPE </A>
+<LI><A HREF="#GROUP_PARTITION">GROUP_PARTITION </A>
+<LI><A HREF="#NGROUPS">NGROUPS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MIXING_TYPE"><u>MIXING_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MIXING_TYPE LINEAR_COMBINATION
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The type of mixing to be employed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  LINEAR_COMBINATION
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>LINEAR_COMBINATION</code>: Linear combination of force envs (support only 2 force_evals)</li>
+<li><code>MINIMUM</code>: Use the force env with the minimum energy (support only 2 force_evals)</li>
+<li><code>COUPLED</code>: Consider the force envs as a two state system with a given coupling matrix element (support only 2 force_evals)</li>
+<li><code>RESTRAINT</code>: Use the difference between the energy of the force envs as a restraint on the first (support only 2 force_evals)</li>
+<li><code>GENMIX</code>: Defines a user-driven generica coupling (support for an unlimited number of force_eval)</li>
+</ul><TR><TD WITDH="20%"><A NAME="GROUP_PARTITION"><u>GROUP_PARTITION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">group_partition  2 2 4 2 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>gives the exact number of processors for each group. If not specified processors allocated will be equally distributed for the specified subforce_eval, trying to build a number of groups equal to the number of subforce_eval specified.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="NGROUPS"><u>NGROUPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ngroups 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Gives the wanted number of groups. If not specified the number of groups is set to the number of subforce_eval defined.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WIDTH="10%"><TD>variants: NGROUP</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

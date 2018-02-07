@@ -1,0 +1,81 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section BEND                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section BEND                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD.html">FORCEFIELD</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~BEND.html">BEND</A>.
+<BR><BR>Specifies the bend potential of the MM system. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~BEND~UB.html">UB </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#KIND">KIND </A>
+<LI><A HREF="#K">K </A>
+<LI><A HREF="#CB">CB </A>
+<LI><A HREF="#R012">R012 </A>
+<LI><A HREF="#R032">R032 </A>
+<LI><A HREF="#KBS12">KBS12 </A>
+<LI><A HREF="#KBS32">KBS32 </A>
+<LI><A HREF="#KSS">KSS </A>
+<LI><A HREF="#THETA0">THETA0 </A>
+<LI><A HREF="#LEGENDRE">LEGENDRE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {KIND1} {KIND2} {KIND3}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the atomic kinds involved in the bend.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 words<TR><TD WITDH="20%"><A NAME="KIND"><u>KIND</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KIND HARMONIC
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define the kind of bend potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CHARMM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>HARMONIC</code>: Functional Form (HARMONIC|G87): 1/2*K*(THETA-THETA0)^2</li>
+<li><code>CHARMM</code>: Functional Form (CHARMM|AMBER): K*(THETA-THETA0)^2</li>
+<li><code>AMBER</code>: Functional Form (CHARMM|AMBER): K*(THETA-THETA0)^2</li>
+<li><code>G87</code>: Functional Form (HARMONIC|G87): 1/2*K*(THETA-THETA0)^2</li>
+<li><code>G96</code>: Functional Form (G96): 1/2*K*(COS(THETA)-THETA0)^2</li>
+<li><code>CUBIC</code>: Functional Form (CUBIC): K*(THETA-THETA0)**2*(1+CB*(THETA-THETA0))</li>
+<li><code>MIXED_BEND_STRETCH</code>: Functional Form (MIXED_BEND_STRETCH): K*(THETA-THETA0)**2*(1+CB*(THETA-THETA0))+ KSS*(R12-R012)*(R32-R032)+KBS12*(R12-R012)*(THETA-THETA0)+KBS32*(R32-R032)*(THETA-THETA0)</li>
+<li><code>MM3</code>: Functional Form (MM3): 1/2*K*(THETA-THETA0)**2*(1-0.014*(THETA-THETA0)+5.6E-5*(THETA-THETA0)**2 -7.0E-7*(THETA-THETA0)**3+9.0E-10*(THETA-THETA0)**4)+KBS12*(R12-R012)*(THETA-THETA0)+ KBS32*(R32-R032)*(THETA-THETA0)</li>
+<li><code>LEGENDRE</code>: Functional Form (LEGENDRE): sum_{i=0}^N c_i*P_i(COS(THETA))</li>
+</ul><TR><TD WITDH="20%"><A NAME="K"><u>K</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">K {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the force constant of the potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [rad^-2*hartree].<TR><TD WITDH="20%"><A NAME="CB"><u>CB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CB {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the the cubic force constant of the bend</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [rad^-1], default value:     0.0000000000000000E+00
+rad^-1<TR><TD WITDH="20%"><A NAME="R012"><u>R012</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">R012 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixed bend stretch parameter</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     0.0000000000000000E+00
+bohr<TR><TD WITDH="20%"><A NAME="R032"><u>R032</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">R032 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixed bend stretch parameter</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     0.0000000000000000E+00
+bohr<TR><TD WITDH="20%"><A NAME="KBS12"><u>KBS12</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KBS12 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixed bend stretch parameter</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [rad^-1*bohr^-1*hartree], default value:     0.0000000000000000E+00
+rad^-1*bohr^-1*hartree<TR><TD WITDH="20%"><A NAME="KBS32"><u>KBS32</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KBS32 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixed bend stretch parameter</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [rad^-1*bohr^-1*hartree], default value:     0.0000000000000000E+00
+rad^-1*bohr^-1*hartree<TR><TD WITDH="20%"><A NAME="KSS"><u>KSS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KSS {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Mixed bend stretch parameter</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr^-2*hartree], default value:     0.0000000000000000E+00
+bohr^-2*hartree<TR><TD WITDH="20%"><A NAME="THETA0"><u>THETA0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">THETA0 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the equilibrium angle.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [rad].<TR><TD WITDH="20%"><A NAME="LEGENDRE"><u>LEGENDRE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LEGENDRE {REAL} {REAL} ...
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the coefficients for the legendre expansion of the bending potential.'THETA0' and 'K' are not used, but need to be specified.Use an arbitrary value.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals. Default unit: [hartree], default value:     0.0000000000000000E+00
+hartree</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

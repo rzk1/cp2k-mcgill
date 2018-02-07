@@ -1,0 +1,54 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SPLINE                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SPLINE                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD.html">FORCEFIELD</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~SPLINE.html">SPLINE</A>.
+<BR><BR>specifies parameters to set up the splines used in the nonboned interactions (both pair body potential and many body potential). This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#R0_NB">R0_NB </A>
+<LI><A HREF="#RCUT_NB">RCUT_NB </A>
+<LI><A HREF="#EMAX_SPLINE">EMAX_SPLINE </A>
+<LI><A HREF="#EMAX_ACCURACY">EMAX_ACCURACY </A>
+<LI><A HREF="#EPS_SPLINE">EPS_SPLINE </A>
+<LI><A HREF="#NPOINTS">NPOINTS </A>
+<LI><A HREF="#UNIQUE_SPLINE">UNIQUE_SPLINE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="R0_NB"><u>R0_NB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">R0_NB <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the minimum value of the distance interval  that brackets the value of emax_spline.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     4.7625948773100008E-01
+angstrom<TR><TD WITDH="20%"><A NAME="RCUT_NB"><u>RCUT_NB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RCUT_NB {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Cutoff radius for nonbonded interactions. This value overrides  the value specified in the potential definition and is global for all potentials.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:    -1.0000000000000000E+00
+angstrom<TR><TD WITDH="20%"><A NAME="EMAX_SPLINE"><u>EMAX_SPLINE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EMAX_SPLINE <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the maximum value of the potential up to which splines will be constructed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     5.0000000000000000E-01
+hartree<TR><TD WITDH="20%"><A NAME="EMAX_ACCURACY"><u>EMAX_ACCURACY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EMAX_ACCURACY <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the maximum value of energy used to check the accuracy requested through EPS_SPLINE. Energy values larger than EMAX_ACCURACY generally do not  satisfy the requested accuracy</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     2.0000000000000000E-02
+hartree<TR><TD WITDH="20%"><A NAME="EPS_SPLINE"><u>EPS_SPLINE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_SPLINE <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the threshold for the choice of the number of points used in the splines (comparing the splined value with the  analytically evaluated one)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     9.9999999999999995E-08
+hartree<TR><TD WITDH="20%"><A NAME="NPOINTS"><u>NPOINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NPOINTS 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Override the default search for an accurate spline by specifying a fixed number of spline points.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="UNIQUE_SPLINE"><u>UNIQUE_SPLINE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">UNIQUE_SPLINE <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>For few potentials (Lennard-Jones) one global optimal spline is generated instead of different optimal splines for each kind of potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

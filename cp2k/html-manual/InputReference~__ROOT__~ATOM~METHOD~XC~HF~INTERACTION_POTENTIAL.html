@@ -1,0 +1,75 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section INTERACTION_POTENTIAL                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section INTERACTION_POTENTIAL                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~ATOM.html">ATOM</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD.html">METHOD</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~HF.html">HF</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~XC~HF~INTERACTION_POTENTIAL.html">INTERACTION_POTENTIAL</A>.
+<BR><BR>Sets up interaction potential if requested. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_85" TITLE="
+ Guidon, M; Schiffmann, F; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL PHYSICS, 128 (21), 214104 (2008). 
+ Ab initio molecular dynamics using hybrid density functionals.
+ http://dx.doi.org/10.1063/1.2931945
+">[Guidon2008]</A>
+<A HREF="references.html#reference_103" TITLE="
+ Guidon, M; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 5 (11), 3010-3021 (2009). 
+ Robust Periodic Hartree-Fock Exchange for Large-Scale Simulations Using
+ Gaussian Basis Sets.
+ http://dx.doi.org/10.1021/ct900494g
+">[Guidon2009]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#POTENTIAL_TYPE">POTENTIAL_TYPE </A>
+<LI><A HREF="#OMEGA">OMEGA </A>
+<LI><A HREF="#SCALE_COULOMB">SCALE_COULOMB </A>
+<LI><A HREF="#SCALE_LONGRANGE">SCALE_LONGRANGE </A>
+<LI><A HREF="#SCALE_GAUSSIAN">SCALE_GAUSSIAN </A>
+<LI><A HREF="#CUTOFF_RADIUS">CUTOFF_RADIUS </A>
+<LI><A HREF="#T_C_G_DATA">T_C_G_DATA </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="POTENTIAL_TYPE"><u>POTENTIAL_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">POTENTIAL_TYPE SHORTRANGE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which interaction potential should be used (Coulomb, longrange or shortrange).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  COULOMB
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>COULOMB</code>: Coulomb potential: 1/r</li>
+<li><code>SHORTRANGE</code>: Shortrange potential: erfc(omega*r)/r</li>
+<li><code>LONGRANGE</code>: Longrange potential: erf(omega*r)/r</li>
+<li><code>MIX_CL</code>: Mix coulomb and longrange potential: 1/r + erf(omega*r)/r</li>
+<li><code>GAUSSIAN</code>: Damped Gaussian potential: exp(-omega^2*r^2)</li>
+<li><code>MIX_LG</code>: Mix Gaussian and longrange potential: erf(omega*r)/r + exp(-omega^2*r^2)</li>
+<li><code>IDENTITY</code>: Overlap</li>
+<li><code>TRUNCATED</code>: Truncated coulomb potential: if (r &lt; R_c) 1/r else 0</li>
+<li><code>MIX_CL_TRUNC</code>: Truncated Mix coulomb and longrange potential, assumes/requires that the erf has fully decayed at R_c</li>
+</ul><TR><TD WITDH="20%"><A NAME="OMEGA"><u>OMEGA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OMEGA 0.5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Parameter for short/longrange interaction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="SCALE_COULOMB"><u>SCALE_COULOMB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SCALE_COULOMB 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scales Hartree-Fock contribution arising from a coulomb potential. Only valid when doing a mixed potential calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="SCALE_LONGRANGE"><u>SCALE_LONGRANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SCALE_LONGRANGE 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scales Hartree-Fock contribution arising from a longrange potential. Only valid when doing a mixed potential calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="SCALE_GAUSSIAN"><u>SCALE_GAUSSIAN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SCALE_GAUSSIAN 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scales Hartree-Fock contribution arising from a gaussian potential. Only valid when doing a mixed potential calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="CUTOFF_RADIUS"><u>CUTOFF_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CUTOFF_RADIUS 10.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines cutoff radius for the truncated 1/r potential. Only valid when doing truncated calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="T_C_G_DATA"><u>T_C_G_DATA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">T_C_G_DATA /data/t_c_g.dat
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Location of the file t_c_g.dat that contains the data for the evaluation of the truncated gamma function</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: t_c_g.dat
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

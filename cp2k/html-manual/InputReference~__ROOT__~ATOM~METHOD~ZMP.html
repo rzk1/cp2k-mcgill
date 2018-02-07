@@ -1,0 +1,40 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ZMP                                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ZMP                                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~ATOM.html">ATOM</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD.html">METHOD</A>%<A HREF="InputReference~__ROOT__~ATOM~METHOD~ZMP.html">ZMP</A>.
+<BR><BR>Section used to specify ZMP Potentials. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~ATOM~METHOD~ZMP~RESTART.html">RESTART </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#FILE_DENSITY">FILE_DENSITY </A>
+<LI><A HREF="#GRID_TOL">GRID_TOL </A>
+<LI><A HREF="#LAMBDA">LAMBDA </A>
+<LI><A HREF="#DM">DM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="FILE_DENSITY"><u>FILE_DENSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FILE_DENSITY <FILENAME>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the filename containing the target density</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words. Default value: RHO_O.dat
+<TR><TD WITDH="20%"><A NAME="GRID_TOL"><u>GRID_TOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GRID_TOL <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tolerance in the equivalence of read-grid in ZMP method</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999998E-13
+<TR><TD WITDH="20%"><A NAME="LAMBDA"><u>LAMBDA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LAMBDA <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Parameter used for the constraint in ZMP method</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+01
+<TR><TD WITDH="20%"><A NAME="DM"><u>DM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DM <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>read external density from density matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2018  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -36,8 +36,8 @@ MODULE qs_force
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
-   USE kinds,                           ONLY: dp,&
-                                              int_size
+   USE kinds,                           ONLY: dp
+   USE lri_environment_types,           ONLY: lri_environment_type
    USE message_passing,                 ONLY: mp_sum
    USE mulliken,                        ONLY: mulliken_restraint
    USE particle_types,                  ONLY: particle_type
@@ -71,13 +71,11 @@ MODULE qs_force
    USE qs_scf_post_scf,                 ONLY: qs_scf_compute_properties
    USE qs_subsys_types,                 ONLY: qs_subsys_set,&
                                               qs_subsys_type
+   USE ri_environment_methods,          ONLY: build_ri_matrices
    USE rt_propagation_forces,           ONLY: calc_c_mat_force,&
                                               rt_admm_force
-   USE scptb_core_interactions,         ONLY: scptb_core_interaction
-   USE scptb_core_matrix,               ONLY: build_scptb_core_matrix
    USE se_core_core,                    ONLY: se_core_core_interaction
    USE se_core_matrix,                  ONLY: build_se_core_matrix
-   USE termination,                     ONLY: stop_memory
    USE virial_types,                    ONLY: virial_type
 #include "./base/base_uses.f90"
 
@@ -147,6 +145,7 @@ CONTAINS
          matrix_s_aux_fit, matrix_s_aux_fit_vs_orb, matrix_w, matrix_w_mp2, rho_ao
       TYPE(dbcsr_p_type), DIMENSION(:, :), POINTER       :: matrix_w_kp
       TYPE(dft_control_type), POINTER                    :: dft_control
+      TYPE(lri_environment_type), POINTER                :: lri_env
       TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos, mos_aux_fit
       TYPE(mo_set_type), POINTER                         :: mo_set
       TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
@@ -290,9 +289,6 @@ CONTAINS
                                   calculate_forces=.TRUE.)
          CALL calculate_dftb_dispersion(qs_env=qs_env, para_env=para_env, &
                                         calculate_forces=.TRUE.)
-      ELSEIF (dft_control%qs_control%scptb) THEN
-         CALL build_scptb_core_matrix(qs_env=qs_env, calculate_forces=.TRUE.)
-         CALL scptb_core_interaction(qs_env, calculate_forces=.TRUE.)
       ELSE
          CALL build_core_hamiltonian_matrix(qs_env=qs_env, calculate_forces=.TRUE.)
          CALL calculate_ecore_self(qs_env)
@@ -304,10 +300,23 @@ CONTAINS
          IF (.NOT. dft_control%qs_control%gapw) THEN
             CALL external_c_potential(qs_env, calculate_forces=.TRUE.)
          END IF
+         ! RIGPW  matrices
+         IF (dft_control%qs_control%rigpw) THEN
+            CALL get_qs_env(qs_env=qs_env, lri_env=lri_env)
+            CALL build_ri_matrices(lri_env, qs_env, calculate_forces=.TRUE.)
+         ENDIF
       END IF
 
       ! Compute grid-based forces
       CALL qs_ks_update_qs_env(qs_env, calculate_forces=.TRUE.)
+
+      !! ALMO Code (in the spirit of the MP2 modifications below)
+      !IF (ASSOCIATED(qs_env%almo_scf_env)) THEN
+      !   ! tell qs about the energy correction
+      !   NULLIFY (energy)
+      !   CALL get_qs_env(qs_env, energy=energy)
+      !   energy%total = energy%total+energy%singles_corr
+      !END IF
 
       ! MP2 Code
       IF (ASSOCIATED(qs_env%mp2_env)) THEN
@@ -405,7 +414,6 @@ CONTAINS
          !  *** add the volume terms of the virial ***
          IF ((.NOT. virial%pv_numer) .AND. &
              (.NOT. (dft_control%qs_control%dftb .OR. &
-                     dft_control%qs_control%scptb .OR. &
                      dft_control%qs_control%semi_empirical))) THEN
             DO dir = 1, 3
                virial%pv_virial(dir, dir) = virial%pv_virial(dir, dir)-energy%exc &
@@ -431,9 +439,6 @@ CONTAINS
                            print_section=print_section)
       ELSE IF (dft_control%qs_control%gapw) THEN
          CALL write_forces(force, atomic_kind_set, 1, output_unit=output_unit, &
-                           print_section=print_section)
-      ELSE IF (dft_control%qs_control%scptb) THEN
-         CALL write_forces(force, atomic_kind_set, 5, output_unit=output_unit, &
                            print_section=print_section)
       ELSE
          CALL write_forces(force, atomic_kind_set, 0, output_unit=output_unit, &
@@ -482,8 +487,7 @@ CONTAINS
       CHARACTER(LEN=20)                                  :: fmtstr3
       CHARACTER(LEN=35)                                  :: fmtstr2
       CHARACTER(LEN=48)                                  :: fmtstr1
-      INTEGER                                            :: i, iatom, ikind, istat, my_ftype, natom, &
-                                                            ndigits
+      INTEGER                                            :: i, iatom, ikind, my_ftype, natom, ndigits
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: atom_of_kind, kind_of
       REAL(KIND=dp), DIMENSION(3)                        :: grand_total
 
@@ -497,12 +501,8 @@ CONTAINS
 
          CALL get_atomic_kind_set(atomic_kind_set=atomic_kind_set, &
                                   natom=natom)
-         ALLOCATE (atom_of_kind(natom), STAT=istat)
-         IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                          "atom_of_kind", natom*int_size)
-         ALLOCATE (kind_of(natom), STAT=istat)
-         IF (istat /= 0) CALL stop_memory(routineN, moduleN, __LINE__, &
-                                          "kind_of", natom*int_size)
+         ALLOCATE (atom_of_kind(natom))
+         ALLOCATE (kind_of(natom))
          CALL get_atomic_kind_set(atomic_kind_set=atomic_kind_set, &
                                   atom_of_kind=atom_of_kind, &
                                   kind_of=kind_of)

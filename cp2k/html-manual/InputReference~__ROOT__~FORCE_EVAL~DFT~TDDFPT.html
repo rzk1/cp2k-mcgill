@@ -1,0 +1,98 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section TDDFPT                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section TDDFPT                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT.html">TDDFPT</A>.
+<BR><BR>parameters needed to set up the Time Dependent Density Functional PT. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_51" TITLE="
+ Iannuzzi, M; Chassaing, T; Wallman, T; Hutter, J. 
+ CHIMIA, 59 (7-8), 499-503 (2005). 
+ Ground and excited state density functional calculations with the
+ Gaussian and augmented-plane-wave method.
+ http://dx.doi.org/10.2533/000942905777676164
+">[Iannuzzi2005]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT~XC.html">XC </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TDDFPT~SIC.html">SIC </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MAX_KV">MAX_KV </A>
+<LI><A HREF="#RESTARTS">RESTARTS </A>
+<LI><A HREF="#NEV">NEV </A>
+<LI><A HREF="#NLUMO">NLUMO </A>
+<LI><A HREF="#NREORTHO">NREORTHO </A>
+<LI><A HREF="#KERNEL">KERNEL </A>
+<LI><A HREF="#LSD_SINGLETS">LSD_SINGLETS </A>
+<LI><A HREF="#INVERT_S">INVERT_S </A>
+<LI><A HREF="#PRECONDITIONER">PRECONDITIONER </A>
+<LI><A HREF="#RES_ETYPE">RES_ETYPE </A>
+<LI><A HREF="#DIAG_METHOD">DIAG_METHOD </A>
+<LI><A HREF="#OE_CORR">OE_CORR </A>
+<LI><A HREF="#CONVERGENCE">CONVERGENCE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MAX_KV"><u>MAX_KV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_KV someInteger>0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> maximal number of Krylov space vectors</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  60
+<TR><TD WIDTH="10%"><TD>variants: MAX_VECTORS<TR><TD WITDH="20%"><A NAME="RESTARTS"><u>RESTARTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTARTS someInteger>0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> maximal number subspace search restarts</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  5
+<TR><TD WIDTH="10%"><TD>variants: N_RESTARTS<TR><TD WITDH="20%"><A NAME="NEV"><u>NEV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NEV someInteger>0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> number of excitations to calculate</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WIDTH="10%"><TD>variants: N_EV, EV<TR><TD WITDH="20%"><A NAME="NLUMO"><u>NLUMO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NLUMO 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> number of additional unoccupied orbitals</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  5
+<TR><TD WITDH="20%"><A NAME="NREORTHO"><u>NREORTHO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NREORTHO someInteger>0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> number of reorthogonalization steps</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WIDTH="10%"><TD>variants: N_REORTHO, REORTHO, REORTHOGONALITAZIONS<TR><TD WITDH="20%"><A NAME="KERNEL"><u>KERNEL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KERNEL logical_value
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>compute the kernel (debug purpose only)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WIDTH="10%"><TD>variants: DO_KERNEL<TR><TD WITDH="20%"><A NAME="LSD_SINGLETS"><u>LSD_SINGLETS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LSD_SINGLETS logical_value
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>compute singlets using lsd vxc kernel</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="INVERT_S"><u>INVERT_S</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INVERT_S logical_value
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>use the inverse of the overlap matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WIDTH="10%"><TD>variants: INVERT_OVERLAP<TR><TD WITDH="20%"><A NAME="PRECONDITIONER"><u>PRECONDITIONER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRECONDITIONER logical_value
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>use the preconditioner (only for Davidson)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WIDTH="10%"><TD>variants: PRECOND<TR><TD WITDH="20%"><A NAME="RES_ETYPE"><u>RES_ETYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RES_ETYPE T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>(singlets/triplets) for restricted calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  S
+<TR><TD WIDTH="10%"><TD>  valid keywords: S, SINGLET, SINGLETS, T, TRIPLET, TRIPLETS<TR><TD WIDTH="10%"><TD>variants: RESTRICTED_EXCITATIONS_TYPE, RES_E_TYPE<TR><TD WITDH="20%"><A NAME="DIAG_METHOD"><u>DIAG_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DIAG_METHOD DAVIDSON
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Diagonalization method used in tddfpt</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  DAVIDSON
+<TR><TD WIDTH="10%"><TD>  valid keywords: DAVIDSON, LANCZOS<TR><TD WIDTH="10%"><TD>variants: DIAGONALIZATION_METHOD, METHOD<TR><TD WITDH="20%"><A NAME="OE_CORR"><u>OE_CORR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OE_CORR SAOP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which type of orbital eigenvalue correction to use\n(to yield better HOMO-LUMO energies)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords: NONE, LB, LB_ALPHA, LB94, GLLB, GLB, SAOP, SIC<TR><TD WIDTH="10%"><TD>variants: ORBITAL_EIGENVALUES_CORRECTION<TR><TD WITDH="20%"><A NAME="CONVERGENCE"><u>CONVERGENCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CONVERGENCE 1.0E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The convergence of the eigenvalues</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WIDTH="10%"><TD>variants: CONV</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

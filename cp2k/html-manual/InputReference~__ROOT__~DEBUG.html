@@ -1,0 +1,48 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DEBUG                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DEBUG                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~DEBUG.html">DEBUG</A>.
+<BR><BR>Section to setup parameters for debug runs. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~DEBUG~PROGRAM_RUN_INFO.html">PROGRAM_RUN_INFO </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#DEBUG_FORCES">DEBUG_FORCES </A>
+<LI><A HREF="#DEBUG_STRESS_TENSOR">DEBUG_STRESS_TENSOR </A>
+<LI><A HREF="#DX">DX </A>
+<LI><A HREF="#EPS_NO_ERROR_CHECK">EPS_NO_ERROR_CHECK </A>
+<LI><A HREF="#STOP_ON_MISMATCH">STOP_ON_MISMATCH </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="DEBUG_FORCES"><u>DEBUG_FORCES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DEBUG_FORCES {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Activates the debugging of the atomic forces</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DEBUG_STRESS_TENSOR"><u>DEBUG_STRESS_TENSOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DEBUG_STRESS_TENSOR {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Activates the debugging of the stress tensor</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DX"><u>DX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DX {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Increment for the calculation of the numerical derivatives</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-03
+<TR><TD WITDH="20%"><A NAME="EPS_NO_ERROR_CHECK"><u>EPS_NO_ERROR_CHECK</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_NO_ERROR_CHECK {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The mismatch between the numerical and the analytical value is not checked for analytical values smaller than this threshold value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WITDH="20%"><A NAME="STOP_ON_MISMATCH"><u>STOP_ON_MISMATCH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STOP_ON_MISMATCH {LOGICAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Stop the debug run when a mismatch between the numerical and the analytical value is detected</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

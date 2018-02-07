@@ -1,0 +1,53 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section GLE                                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section GLE                                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~THERMOSTAT.html">THERMOSTAT</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~THERMOSTAT~GLE.html">GLE</A>.
+<BR><BR>paramameters of the gle thermostat. This section can be generated  from https://epfl-cosmo.github.io/gle4md/index.html?page=matrix. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_101" TITLE="
+ Ceriotti, M; Bussi, G; Parrinello, M. 
+ PHYSICAL REVIEW LETTERS, 102 (2), 020601 (2009). 
+ Langevin equation with colored noise for constant-temperature molecular dynamics simulations.
+ http://dx.doi.org/10.1103/PhysRevLett.102.020601
+">[Ceriotti2009]</A>
+<A HREF="references.html#reference_102" TITLE="
+ Ceriotti, M; Bussi, G; Parrinello, M. 
+ PHYSICAL REVIEW LETTERS, 103 (3), 030603 (2009). 
+ Nuclear Quantum Effects in Solids Using a Colored-Noise Thermostat.
+ http://dx.doi.org/10.1103/PhysRevLett.103.030603
+">[Ceriotti2009b]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~THERMOSTAT~GLE~THERMOSTAT_ENERGY.html">THERMOSTAT_ENERGY </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~THERMOSTAT~GLE~RNG_INIT.html">RNG_INIT </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~THERMOSTAT~GLE~S.html">S </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#NDIM">NDIM </A>
+<LI><A HREF="#A_SCALE">A_SCALE </A>
+<LI><A HREF="#A_LIST">A_LIST </A>
+<LI><A HREF="#C_LIST">C_LIST </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="NDIM"><u>NDIM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NDIM 6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Size of the gle matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  5
+<TR><TD WITDH="20%"><A NAME="A_SCALE"><u>A_SCALE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A_SCALE 0.5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>scaling factor for matrix A (for generic matrix A, depends on the characteristic frequency of the system).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [ps^-1], default value:     1.0000000000000000E+00
+ps^-1<TR><TD WITDH="20%"><A NAME="A_LIST"><u>A_LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A_LIST real real real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>A matrix The defaults give optimal sampling for most cristalline and liquid compounds. Generated with the parameters set kv_4-4.acentered on w_0=40 cm^-1.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals, and may repeat. Default unit: [internal_cp2k].<TR><TD WITDH="20%"><A NAME="C_LIST"><u>C_LIST</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">C_LIST real real real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>C matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals, and may repeat. Default unit: [K_e].</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,46 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section QPARM                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section QPARM                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR.html">COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~QPARM.html">QPARM</A>.
+<BR><BR>Section to define the Q parameter (crystalline order parameter) as a collective variable. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~QPARM~POINT.html">POINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMS_FROM">ATOMS_FROM </A>
+<LI><A HREF="#ATOMS_TO">ATOMS_TO </A>
+<LI><A HREF="#RCUT">RCUT </A>
+<LI><A HREF="#INCLUDE_IMAGES">INCLUDE_IMAGES </A>
+<LI><A HREF="#RSTART">RSTART </A>
+<LI><A HREF="#L">L </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMS_FROM"><u>ATOMS_FROM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS_FROM {integer} {integer} ..
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify indexes of atoms/points building the coordination variable.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WIDTH="10%"><TD>variants: POINTS_FROM<TR><TD WITDH="20%"><A NAME="ATOMS_TO"><u>ATOMS_TO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS_TO {integer} {integer} ..
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify indexes of atoms/points building the coordination variable.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers, and may repeat<TR><TD WIDTH="10%"><TD>variants: POINTS_TO<TR><TD WITDH="20%"><A NAME="RCUT"><u>RCUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RCUT {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the distance cutoff for neighbors. Cutoff function is exactly zero for all neighbors beyond RCUT.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="INCLUDE_IMAGES"><u>INCLUDE_IMAGES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INCLUDE_IMAGES
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether to include periodic images of ATOMS_TO into the neighbor list.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="RSTART"><u>RSTART</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RSTART {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the distance cutoff for neighbors. Cutoff function is exactly 1 for all neighbors closer than RSTART.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="L"><u>L</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">L {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the L spherical harmonics from Ylm.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

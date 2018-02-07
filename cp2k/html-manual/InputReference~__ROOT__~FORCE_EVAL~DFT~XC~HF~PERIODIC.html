@@ -1,0 +1,37 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PERIODIC                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PERIODIC                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC~HF.html">HF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC~HF~PERIODIC.html">PERIODIC</A>.
+<BR><BR>Sets up periodic boundary condition parameters if requested. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_85" TITLE="
+ Guidon, M; Schiffmann, F; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL PHYSICS, 128 (21), 214104 (2008). 
+ Ab initio molecular dynamics using hybrid density functionals.
+ http://dx.doi.org/10.1063/1.2931945
+">[Guidon2008]</A>
+<A HREF="references.html#reference_103" TITLE="
+ Guidon, M; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 5 (11), 3010-3021 (2009). 
+ Robust Periodic Hartree-Fock Exchange for Large-Scale Simulations Using
+ Gaussian Basis Sets.
+ http://dx.doi.org/10.1021/ct900494g
+">[Guidon2009]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#NUMBER_OF_SHELLS">NUMBER_OF_SHELLS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="NUMBER_OF_SHELLS"><u>NUMBER_OF_SHELLS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUMBER_OF_SHELLS 2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of shells taken into account for periodicity. By default, cp2k tries to automatically evaluate this number. This algorithm might be to conservative, resulting in some overhead. You can try to adjust this number in order to make a calculation cheaper.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

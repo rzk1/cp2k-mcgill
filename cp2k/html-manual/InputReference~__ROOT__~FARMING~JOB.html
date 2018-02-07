@@ -1,0 +1,41 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section JOB                                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section JOB                                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FARMING.html">FARMING</A>%<A HREF="InputReference~__ROOT__~FARMING~JOB.html">JOB</A>.
+<BR><BR>description of the jobs to be executed. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#DIRECTORY">DIRECTORY </A>
+<LI><A HREF="#INPUT_FILE_NAME">INPUT_FILE_NAME </A>
+<LI><A HREF="#OUTPUT_FILE_NAME">OUTPUT_FILE_NAME </A>
+<LI><A HREF="#JOB_ID">JOB_ID </A>
+<LI><A HREF="#DEPENDENCIES">DEPENDENCIES </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="DIRECTORY"><u>DIRECTORY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DIRECTORY /my/path
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the directory in which the job should be executed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: .
+<TR><TD WITDH="20%"><A NAME="INPUT_FILE_NAME"><u>INPUT_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INPUT_FILE_NAME my_input.inp
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the filename of the input file</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: input.inp
+<TR><TD WITDH="20%"><A NAME="OUTPUT_FILE_NAME"><u>OUTPUT_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OUTPUT_FILE_NAME my_input.inp
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>the filename of the output file, if not specified will use the project name in the &GLOBAL section.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+<TR><TD WITDH="20%"><A NAME="JOB_ID"><u>JOB_ID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">JOB_ID 13
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>An ID used to indentify a job in DEPENDENCIES. JOB_IDs do not need to be unique, dependencies will be on all jobs with a given ID. If no JOB_ID is given, the index of the &JOB section in the input file will be used.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WITDH="20%"><A NAME="DEPENDENCIES"><u>DEPENDENCIES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DEPENDENCIES 13 1 7
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>specifies a list of JOB_IDs on which the current job depends. The current job will not be executed before all the dependencies have finished. The keyword requires a MASTER_SLAVE farming run. Beyond the default case, some special cases might arise: 1) circular dependencies will lead to a deadlock. 2) This keyword is not compatible with CYCLE. 3) MAX_JOBS_PER_GROUP is ignored (though only a total of MAX_JOBS_PER_GROUP*NGROUPS jobs will be executed) 4) dependencies on jobs that will not be executed (due to RESTART or MAX_JOBS_PER_GROUP) are ignored. Additionally, note that, on some file systems,  output (restart) files might not be immediately available on all compute nodes,potentially resulting in unexpected failures.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

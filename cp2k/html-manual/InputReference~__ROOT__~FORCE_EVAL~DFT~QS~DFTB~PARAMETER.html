@@ -1,0 +1,69 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PARAMETER                                                                       </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PARAMETER                                                                        </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS.html">QS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DFTB.html">DFTB</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~DFTB~PARAMETER.html">PARAMETER</A>.
+<BR><BR>Information on where to find DFTB parameters. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#SK_FILE">SK_FILE </A>
+<LI><A HREF="#PARAM_FILE_PATH">PARAM_FILE_PATH </A>
+<LI><A HREF="#PARAM_FILE_NAME">PARAM_FILE_NAME </A>
+<LI><A HREF="#DISPERSION_TYPE">DISPERSION_TYPE </A>
+<LI><A HREF="#UFF_FORCE_FIELD">UFF_FORCE_FIELD </A>
+<LI><A HREF="#DISPERSION_PARAMETER_FILE">DISPERSION_PARAMETER_FILE </A>
+<LI><A HREF="#DISPERSION_RADIUS">DISPERSION_RADIUS </A>
+<LI><A HREF="#COORDINATION_CUTOFF">COORDINATION_CUTOFF </A>
+<LI><A HREF="#D3_SCALING">D3_SCALING </A>
+<LI><A HREF="#HB_SR_PARAM">HB_SR_PARAM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="SK_FILE"><u>SK_FILE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SK_FILE a1 a2 filename
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define parameter file for atom pair</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 words, and may repeat<TR><TD WITDH="20%"><A NAME="PARAM_FILE_PATH"><u>PARAM_FILE_PATH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARAM_FILE_PATH pathname
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the directory with the DFTB parameter files. Used in combination with the filenames specified in the file given in PARAM_FILE_NAME.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: ./
+<TR><TD WITDH="20%"><A NAME="PARAM_FILE_NAME"><u>PARAM_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARAM_FILE_NAME filename
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify file that contains the names of Slater-Koster tables: A plain text file, each line has the format "ATOM1 ATOM2 filename.spl".</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WITDH="20%"><A NAME="DISPERSION_TYPE"><u>DISPERSION_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPERSION_TYPE (UFF|D3)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use dispersion correction of the specified type. Dispersion correction has to be switched on in the DFTB section.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  UFF
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>UFF</code>: Uses the UFF force field for a pair potential dispersion correction.</li>
+<li><code>D3</code>: Uses the Grimme D3 method (simplified) for a pair potential dispersion correction.</li>
+</ul><TR><TD WITDH="20%"><A NAME="UFF_FORCE_FIELD"><u>UFF_FORCE_FIELD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">UFF_FORCE_FIELD filename
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Name of file with UFF parameters that will be used for the dispersion correction. Needs to be specified when DISPERSION==.TRUE., otherwise cp2k crashes with a Segmentation Fault.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WITDH="20%"><A NAME="DISPERSION_PARAMETER_FILE"><u>DISPERSION_PARAMETER_FILE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPERSION_PARAMETER_FILE filename
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify file that contains the atomic dispersion parameters for the D3 method</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: " "
+<TR><TD WITDH="20%"><A NAME="DISPERSION_RADIUS"><u>DISPERSION_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DISPERSION_RADIUS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define radius of dispersion interaction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.5000000000000000E+01
+<TR><TD WITDH="20%"><A NAME="COORDINATION_CUTOFF"><u>COORDINATION_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COORDINATION_CUTOFF
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define cutoff for coordination number calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="D3_SCALING"><u>D3_SCALING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">D3_SCALING 1.0 1.0 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scaling parameters (s6,sr6,s8) for the D3 dispersion method,</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default value:     0.0000000000000000E+00    0.0000000000000000E+00    0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="HB_SR_PARAM"><u>HB_SR_PARAM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">HB_SR_PARAM {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Uses a modified version for the GAMMA within the SCC-DFTB scheme, specifically tuned for hydrogen bonds. Specify the exponent used in the exponential.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     4.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

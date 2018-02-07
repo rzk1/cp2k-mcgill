@@ -1,0 +1,130 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PEXSI                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PEXSI                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF.html">LS_SCF</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~LS_SCF~PEXSI.html">PEXSI</A>.
+<BR><BR>Specifies the parameters of the PEXSI library. The density matrix is calculated with PEXSI if PURIFICATION_METHOD (in LS_SCF section) is set to PEXSI. The computational cost of PEXSI is at most quadratically scaling w.r.t. the system size and PEXSI is applicable to insulating and metallic systems. The value of EPS_PGF_ORB (in QS input section) defines the sparsity of the matrices sent to PEXSI and EPS_FILTER is overwritten with 0. This section can not be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_146" TITLE="
+ Lin, L; Lu, JF; Ying, LX; Car, R; E, WN. 
+ COMMUNICATIONS IN MATHEMATICAL SCIENCES, 7 (3), 755-777 (2009). 
+ FAST ALGORITHM FOR EXTRACTING THE DIAGONAL OF THE INVERSE MATRIX WITH
+ APPLICATION TO THE ELECTRONIC STRUCTURE ANALYSIS OF METALLIC SYSTEMS.
+ http://dx.doi.org/10.4310/CMS.2009.v7.n3.a12
+">[Lin2009]</A>
+<A HREF="references.html#reference_147" TITLE="
+ Lin, Lin; Chen, Mohan; Yang, Chao; He, Lixin. 
+ JOURNAL OF PHYSICS-CONDENSED MATTER, 25 (29), 295501 (2013). 
+ Accelerating atomic orbital-based electronic structure calculation via
+ pole expansion and selected inversion.
+ http://dx.doi.org/10.1088/0953-8984/25/29/295501
+">[Lin2013]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TEMPERATURE">TEMPERATURE </A>
+<LI><A HREF="#GAP">GAP </A>
+<LI><A HREF="#NUM_POLE">NUM_POLE </A>
+<LI><A HREF="#IS_INERTIA_COUNT">IS_INERTIA_COUNT </A>
+<LI><A HREF="#MAX_PEXSI_ITER">MAX_PEXSI_ITER </A>
+<LI><A HREF="#MU_MIN_0">MU_MIN_0 </A>
+<LI><A HREF="#MU_MAX_0">MU_MAX_0 </A>
+<LI><A HREF="#MU_INERTIA_TOLERANCE">MU_INERTIA_TOLERANCE </A>
+<LI><A HREF="#MU_INERTIA_EXPANSION">MU_INERTIA_EXPANSION </A>
+<LI><A HREF="#MU_PEXSI_SAFE_GUARD">MU_PEXSI_SAFE_GUARD </A>
+<LI><A HREF="#NUM_ELECTRON_PEXSI_TOLERANCE">NUM_ELECTRON_PEXSI_TOLERANCE </A>
+<LI><A HREF="#NUM_ELECTRON_INITIAL_TOLERANCE">NUM_ELECTRON_INITIAL_TOLERANCE </A>
+<LI><A HREF="#ORDERING">ORDERING </A>
+<LI><A HREF="#ROW_ORDERING">ROW_ORDERING </A>
+<LI><A HREF="#NP_SYMB_FACT">NP_SYMB_FACT </A>
+<LI><A HREF="#VERBOSITY">VERBOSITY </A>
+<LI><A HREF="#MIN_RANKS_PER_POLE">MIN_RANKS_PER_POLE </A>
+<LI><A HREF="#CSR_SCREENING">CSR_SCREENING </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TEMPERATURE"><u>TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Electronic temperature</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     3.0000000000000000E+02
+K<TR><TD WITDH="20%"><A NAME="GAP"><u>GAP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Spectral gap. Note: This can be set to be 0 in most cases.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     0.0000000000000000E+00
+hartree<TR><TD WITDH="20%"><A NAME="NUM_POLE"><u>NUM_POLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of terms in the pole expansion (should be even).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  64
+<TR><TD WITDH="20%"><A NAME="IS_INERTIA_COUNT"><u>IS_INERTIA_COUNT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether inertia counting is used each time the DFT driver of PEXSI is invoked. If FALSE, inertia counting is still used in the first SCF iteration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="MAX_PEXSI_ITER"><u>MAX_PEXSI_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of PEXSI iterations after each inertia counting procedure.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  5
+<TR><TD WITDH="20%"><A NAME="MU_MIN_0"><u>MU_MIN_0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial guess of lower bound for mu.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:    -5.0000000000000000E+00
+hartree<TR><TD WITDH="20%"><A NAME="MU_MAX_0"><u>MU_MAX_0</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial guess of upper bound for mu.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     5.0000000000000000E+00
+hartree<TR><TD WITDH="20%"><A NAME="MU_INERTIA_TOLERANCE"><u>MU_INERTIA_TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Stopping criterion in terms of the chemical potential for the inertia counting procedure.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     1.0000000000000000E-02
+hartree<TR><TD WITDH="20%"><A NAME="MU_INERTIA_EXPANSION"><u>MU_INERTIA_EXPANSION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If the chemical potential is not in the initial interval, the interval is expanded by MU_INERTIA_EXPANSION.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     1.4999999999999999E-01
+hartree<TR><TD WITDH="20%"><A NAME="MU_PEXSI_SAFE_GUARD"><u>MU_PEXSI_SAFE_GUARD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Safe guard criterion in terms of the chemical potential to reinvoke the inertia counting procedure.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [hartree], default value:     1.0000000000000000E-02
+hartree<TR><TD WITDH="20%"><A NAME="NUM_ELECTRON_PEXSI_TOLERANCE"><u>NUM_ELECTRON_PEXSI_TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Stopping criterion of the PEXSI iteration in terms of The number of electrons compared to the exact number of electrons. This threshold is the target tolerance applied at convergence of SCF.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="NUM_ELECTRON_INITIAL_TOLERANCE"><u>NUM_ELECTRON_INITIAL_TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The same as NUM_ELECTRON_PEXSI_TOLERANCE but applied in the first SCF steps. If set to a value smaller than NUM_ELECTRON_PEXSI_TOLERANCE, it is overwritten with NUM_ELECTRON_PEXSI_TOLERANCE (default). If set to a value larger than NUM_ELECTRON_PEXSI_TOLERANCE, the PEXSI tolerance in number of electrons is set adaptively according to the SCF convergence error of the previous SCF step. This reduces the number of PEXSI iterations in the first SCF steps but leads to at least one more SCF step.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="ORDERING"><u>ORDERING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Ordering strategy for factorization and selected inversion.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  PARALLEL
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>PARALLEL</code>: Parallel ordering using ParMETIS/PT-SCOTCH (PARMETIS option in SuperLU_DIST)</li>
+<li><code>SEQUENTIAL</code>: Sequential ordering using METIS (METIS_AT_PLUS_A option in SuperLU_DIST)</li>
+<li><code>MULTIPLE_MINIMUM_DEGREE</code>: Multiple minimum degree ordering (MMD_AT_PLUS_A option in SuperLU_DIST)</li>
+</ul><TR><TD WITDH="20%"><A NAME="ROW_ORDERING"><u>ROW_ORDERING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>row permutation strategy for factorization and selected inversion.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NOROWPERM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NOROWPERM</code>: No row permutation (NOROWPERM option in SuperLU_DIST)</li>
+<li><code>LARGEDIAG</code>: Make diagonal entry larger than off diagonal (LargeDiag option in SuperLU_DIST)</li>
+</ul><TR><TD WITDH="20%"><A NAME="NP_SYMB_FACT"><u>NP_SYMB_FACT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of processors for PARMETIS/PT-SCOTCH. Only used if ORDERING is set to PARALLEL. If 0, the number of processors for PARMETIS/PT-SCOTCH will be set equal to the number of MPI ranks per pole. Note: if more than one processor is used, a segmentation fault may occur in the symbolic factorization phase.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="VERBOSITY"><u>VERBOSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The level of output information.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  BASIC
+<TR><TD WIDTH="10%"><TD>  valid keywords: SILENT, BASIC, DETAILED<TR><TD WITDH="20%"><A NAME="MIN_RANKS_PER_POLE"><u>MIN_RANKS_PER_POLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The minimum number of processors used for each pole. The real number of processors per pole is the smallest number greater or equal to MIN_RANKS_PER_POLE that divides MPI size without remainder. For efficiency, MIN_RANKS_PER_POLE should be a small numbers (limited by the available memory).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  64
+<TR><TD WITDH="20%"><A NAME="CSR_SCREENING"><u>CSR_SCREENING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether distance screening should be applied to improve sparsity of CSR matrices.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,53 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CONVERGENCE_CONTROL                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CONVERGENCE_CONTROL                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY.html">FREE_ENERGY</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~UMBRELLA_INTEGRATION.html">UMBRELLA_INTEGRATION</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~UMBRELLA_INTEGRATION~CONVERGENCE_CONTROL.html">CONVERGENCE_CONTROL</A>.
+<BR><BR>This section specify parameters controlling the convergence of the free energy. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#COARSE_GRAINED_WIDTH">COARSE_GRAINED_WIDTH </A>
+<LI><A HREF="#MAX_COARSE_GRAINED_WIDTH">MAX_COARSE_GRAINED_WIDTH </A>
+<LI><A HREF="#COARSE_GRAINED_POINTS">COARSE_GRAINED_POINTS </A>
+<LI><A HREF="#EPS_CONV">EPS_CONV </A>
+<LI><A HREF="#K_CONFIDENCE_LIMIT">K_CONFIDENCE_LIMIT </A>
+<LI><A HREF="#SW_CONFIDENCE_LIMIT">SW_CONFIDENCE_LIMIT </A>
+<LI><A HREF="#VN_CONFIDENCE_LIMIT">VN_CONFIDENCE_LIMIT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="COARSE_GRAINED_WIDTH"><u>COARSE_GRAINED_WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COARSE_GRAINED_WIDTH <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Width of segments in MD steps to generate the set of coarse grained data, providing a correlation independent data set.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  50
+<TR><TD WIDTH="10%"><TD>variants: CG_WIDTH<TR><TD WITDH="20%"><A NAME="MAX_COARSE_GRAINED_WIDTH"><u>MAX_COARSE_GRAINED_WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_COARSE_GRAINED_WIDTH <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Max Width of segments in MD steps to generate the set of coarse grained data.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  200
+<TR><TD WIDTH="10%"><TD>variants: MAX_CG_WIDTH<TR><TD WITDH="20%"><A NAME="COARSE_GRAINED_POINTS"><u>COARSE_GRAINED_POINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COARSE_GRAINED_POINTS <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the minimum amount of coarse grained points to collect before starting the statistical analysis</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  30
+<TR><TD WIDTH="10%"><TD>variants: CG_POINTS<TR><TD WITDH="20%"><A NAME="EPS_CONV"><u>EPS_CONV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_CONV <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the relative tolerance for the convergence of the collective variable averages used to compute the free energy.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-02
+<TR><TD WITDH="20%"><A NAME="K_CONFIDENCE_LIMIT"><u>K_CONFIDENCE_LIMIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">K_CONFIDENCE_LIMIT <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the confidence limit for the Mann-Kendall trend test.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.0000000000000002E-01
+<TR><TD WITDH="20%"><A NAME="SW_CONFIDENCE_LIMIT"><u>SW_CONFIDENCE_LIMIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SW_CONFIDENCE_LIMIT <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the confidence limit for the Shapiro-Wilks normality test.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.0000000000000002E-01
+<TR><TD WITDH="20%"><A NAME="VN_CONFIDENCE_LIMIT"><u>VN_CONFIDENCE_LIMIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VN_CONFIDENCE_LIMIT <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the confidence limit for the Von Neumann serial correlation test.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.0000000000000002E-01
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,43 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MULTIPLE_WALKERS                                                                </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MULTIPLE_WALKERS                                                                 </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY.html">FREE_ENERGY</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~METADYN.html">METADYN</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~METADYN~MULTIPLE_WALKERS.html">MULTIPLE_WALKERS</A>.
+<BR><BR>Enables and configures the metadynamics using multiple walkers. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~METADYN~MULTIPLE_WALKERS~WALKERS_FILE_NAME.html">WALKERS_FILE_NAME </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#WALKER_ID">WALKER_ID </A>
+<LI><A HREF="#NUMBER_OF_WALKERS">NUMBER_OF_WALKERS </A>
+<LI><A HREF="#WALKER_COMM_FREQUENCY">WALKER_COMM_FREQUENCY </A>
+<LI><A HREF="#WALKERS_STATUS">WALKERS_STATUS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">&MULTIPLE_WALKERS T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the usage of the multiple walkers in a metadynamics run.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="WALKER_ID"><u>WALKER_ID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WALKER_ID <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the walker ID for the local metadynamics run.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WITDH="20%"><A NAME="NUMBER_OF_WALKERS"><u>NUMBER_OF_WALKERS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUMBER_OF_WALKERS <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the total number of walkers in the metadynamic run.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer<TR><TD WITDH="20%"><A NAME="WALKER_COMM_FREQUENCY"><u>WALKER_COMM_FREQUENCY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WALKER_COMM_FREQUENCY <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Sets the frequency (in unit of spawned hills) for the communication between the several walkers, in order to update the local list of hills with the ones coming from the other walkers</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="WALKERS_STATUS"><u>WALKERS_STATUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WALKERS_STATUS <INTEGER> .. <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Stores the status of the several walkers in the local run.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,137 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section HELIUM                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section HELIUM                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT.html">PINT</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM.html">HELIUM</A>.
+<BR><BR>The section that controls optional helium solvent environment (highly experimental, not for general use yet). This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~M-SAMPLING.html">M-SAMPLING </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~RDF.html">RDF </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~RHO.html">RHO </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~COORD.html">COORD </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~PERM.html">PERM </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~AVERAGES.html">AVERAGES </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~FORCE.html">FORCE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~RNG_STATE.html">RNG_STATE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#HELIUM_ONLY">HELIUM_ONLY </A>
+<LI><A HREF="#INTERACTION_POT_SCAN">INTERACTION_POT_SCAN </A>
+<LI><A HREF="#NUM_ENV">NUM_ENV </A>
+<LI><A HREF="#POTENTIAL_FILE_NAME">POTENTIAL_FILE_NAME </A>
+<LI><A HREF="#GET_FORCES">GET_FORCES </A>
+<LI><A HREF="#SOLUTE_INTERACTION">SOLUTE_INTERACTION </A>
+<LI><A HREF="#NATOMS">NATOMS </A>
+<LI><A HREF="#NBEADS">NBEADS </A>
+<LI><A HREF="#RNG_SEED">RNG_SEED </A>
+<LI><A HREF="#N_INNER">N_INNER </A>
+<LI><A HREF="#N_OUTER">N_OUTER </A>
+<LI><A HREF="#BISECTION">BISECTION </A>
+<LI><A HREF="#MAX_PERM_CYCLE">MAX_PERM_CYCLE </A>
+<LI><A HREF="#SAMPLING_METHOD">SAMPLING_METHOD </A>
+<LI><A HREF="#PERIODIC">PERIODIC </A>
+<LI><A HREF="#CELL_SIZE">CELL_SIZE </A>
+<LI><A HREF="#CELL_SHAPE">CELL_SHAPE </A>
+<LI><A HREF="#DROPLET_RADIUS">DROPLET_RADIUS </A>
+<LI><A HREF="#DENSITY">DENSITY </A>
+<LI><A HREF="#PRESAMPLE">PRESAMPLE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">silent
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether or not to actually use this section</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="HELIUM_ONLY"><u>HELIUM_ONLY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Simulate helium solvent only, disregard solute entirely</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="INTERACTION_POT_SCAN"><u>INTERACTION_POT_SCAN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scan solute-helium interaction potential, cubefile parameters set in subsection RHO</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="NUM_ENV"><u>NUM_ENV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of independent helium environments</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="POTENTIAL_FILE_NAME"><u>POTENTIAL_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Name of the Helium interaction potential file</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: HELIUM.POT
+<TR><TD WITDH="20%"><A NAME="GET_FORCES"><u>GET_FORCES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GET_FORCES (AVERAGE|LAST)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Get average MC forces or last MC forces to propagate MD</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  AVERAGE
+<TR><TD WIDTH="10%"><TD>  valid keywords: AVERAGE, LAST<TR><TD WITDH="20%"><A NAME="SOLUTE_INTERACTION"><u>SOLUTE_INTERACTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SOLUTE_INTERACTION (NONE | MWATER)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Interaction potential between helium and the solute</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: No interaction with solute</li>
+<li><code>MWATER</code>: Test interaction with wrong Water</li>
+</ul><TR><TD WITDH="20%"><A NAME="NATOMS"><u>NATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of helium atoms</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  64
+<TR><TD WITDH="20%"><A NAME="NBEADS"><u>NBEADS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of helium path integral beads</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  25
+<TR><TD WITDH="20%"><A NAME="RNG_SEED"><u>RNG_SEED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RNG_SEED <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial seed for the (pseudo)random number generator that controls helium coordinate generation and propagation.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  12345
+<TR><TD WITDH="20%"><A NAME="N_INNER"><u>N_INNER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of MC iterations at the same time slice(s) (number of inner MC loop iterations)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6600
+<TR><TD WIDTH="10%"><TD>variants: INOROT<TR><TD WITDH="20%"><A NAME="N_OUTER"><u>N_OUTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>how often to reselect the time slice(s) to work on (number of outer MC loop iterations)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  300
+<TR><TD WIDTH="10%"><TD>variants: IROT<TR><TD WITDH="20%"><A NAME="BISECTION"><u>BISECTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>how many time slices to change at once (+1). Must be a power of 2 currently</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  8
+<TR><TD WITDH="20%"><A NAME="MAX_PERM_CYCLE"><u>MAX_PERM_CYCLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>how large cyclic permutations to try</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  6
+<TR><TD WITDH="20%"><A NAME="SAMPLING_METHOD"><u>SAMPLING_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SAMPLING_METHOD (CEPERLEY)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Choose between Ceperley or other not implemented algorithms</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CEPERLEY
+<TR><TD WIDTH="10%"><TD>  valid keywords: CEPERLEY<TR><TD WITDH="20%"><A NAME="PERIODIC"><u>PERIODIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use periodic boundary conditions for helium</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+<TR><TD WITDH="20%"><A NAME="CELL_SIZE"><u>CELL_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PBC unit cell size (NOTE 1: density, number of atoms and volume are interdependent - give only two of them; NOTE 2: for small cell sizes specify NATOMS instead)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="CELL_SHAPE"><u>CELL_SHAPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CELL_SHAPE (CUBE|OCTAHEDRON)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>PBC unit cell shape for helium</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CUBE
+<TR><TD WIDTH="10%"><TD>  valid keywords: CUBE, OCTAHEDRON<TR><TD WITDH="20%"><A NAME="DROPLET_RADIUS"><u>DROPLET_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Reject a move if any of the new positions does not lie within  this range from the center of gravity</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     9.5129823500784665+307
+angstrom<TR><TD WITDH="20%"><A NAME="DENSITY"><u>DENSITY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>trial density of helium for determining the helium box size</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-3], default value:     2.1859999999999997E-02
+angstrom^-3<TR><TD WITDH="20%"><A NAME="PRESAMPLE"><u>PRESAMPLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Presample He coordinates before first PIMD step</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

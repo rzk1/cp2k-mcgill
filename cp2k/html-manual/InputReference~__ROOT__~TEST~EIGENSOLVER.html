@@ -1,0 +1,47 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section EIGENSOLVER                                                                     </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section EIGENSOLVER                                                                      </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>%<A HREF="InputReference~__ROOT__~TEST~EIGENSOLVER.html">EIGENSOLVER</A>.
+<BR><BR>Benchmark and test the eigensolver routines. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#N">N </A>
+<LI><A HREF="#N_LOOP">N_LOOP </A>
+<LI><A HREF="#DIAG_METHOD">DIAG_METHOD </A>
+<LI><A HREF="#EIGENVALUES">EIGENVALUES </A>
+<LI><A HREF="#INIT_METHOD">INIT_METHOD </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="N"><u>N</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N 1024
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Dimension of the square matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  256
+<TR><TD WITDH="20%"><A NAME="N_LOOP"><u>N_LOOP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_LOOP 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of operations being timed (useful for small matrices).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  10
+<TR><TD WITDH="20%"><A NAME="DIAG_METHOD"><u>DIAG_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DIAG_METHOD syevd
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Diagonalization strategy</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  SYEVD
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>SYEVD</code>: (sca)lapacks syevd</li>
+<li><code>SYEVX</code>: (sca)lapacks syevx</li>
+</ul><TR><TD WITDH="20%"><A NAME="EIGENVALUES"><u>EIGENVALUES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EIGENVALUES 13
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>number of eigenvalues to be computed (all=<0)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="INIT_METHOD"><u>INIT_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INIT_METHOD RANDOM
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initialization approach</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  RANDOM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>RANDOM</code>: use a random initial matrix</li>
+<li><code>READ</code>: read a matrix from file MATRIX</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

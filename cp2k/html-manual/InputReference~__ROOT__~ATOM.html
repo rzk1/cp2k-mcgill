@@ -1,0 +1,79 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ATOM                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ATOM                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~ATOM.html">ATOM</A>.
+<BR><BR>Section handling input for atomic calculations. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~ATOM~PRINT.html">PRINT </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~AE_BASIS.html">AE_BASIS </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~PP_BASIS.html">PP_BASIS </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~METHOD.html">METHOD </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~OPTIMIZATION.html">OPTIMIZATION </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~POTENTIAL.html">POTENTIAL </A>
+<LI><A HREF="InputReference~__ROOT__~ATOM~POWELL.html">POWELL </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMIC_NUMBER">ATOMIC_NUMBER </A>
+<LI><A HREF="#ELEMENT">ELEMENT </A>
+<LI><A HREF="#RUN_TYPE">RUN_TYPE </A>
+<LI><A HREF="#COULOMB_INTEGRALS">COULOMB_INTEGRALS </A>
+<LI><A HREF="#EXCHANGE_INTEGRALS">EXCHANGE_INTEGRALS </A>
+<LI><A HREF="#CORE">CORE </A>
+<LI><A HREF="#ELECTRON_CONFIGURATION">ELECTRON_CONFIGURATION </A>
+<LI><A HREF="#MAX_ANGULAR_MOMENTUM">MAX_ANGULAR_MOMENTUM </A>
+<LI><A HREF="#CALCULATE_STATES">CALCULATE_STATES </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMIC_NUMBER"><u>ATOMIC_NUMBER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the atomic number</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="ELEMENT"><u>ELEMENT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ELEMENT char
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the element to be calculated</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: H
+<TR><TD WITDH="20%"><A NAME="RUN_TYPE"><u>RUN_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RUN_TYPE (NONE|ENERGY|BASIS_OPTIMIZATION|PSEUDOPOTENTIAL_OPTIMIZATION)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Type of run that you want to perform [ENERGY,BASIS_OPTIMIZATION,PSEUDOPOTENTIAL_OPTIMIZATION,,...]</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ENERGY
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: Perform no run</li>
+<li><code>ENERGY</code>: Perform energy optimization</li>
+<li><code>BASIS_OPTIMIZATION</code>: Perform basis optimization</li>
+<li><code>PSEUDOPOTENTIAL_OPTIMIZATION</code>: Perform pseudopotential optimization</li>
+</ul><TR><TD WITDH="20%"><A NAME="COULOMB_INTEGRALS"><u>COULOMB_INTEGRALS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COULOMB_INTEGRALS (ANALYTIC|SEMI_ANALYTIC|NUMERIC)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method to calculate Coulomb integrals</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NUMERIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ANALYTIC</code>: Use analytical method</li>
+<li><code>SEMI_ANALYTIC</code>: Use semi-analytical method</li>
+<li><code>NUMERIC</code>: Use numerical method</li>
+</ul><TR><TD WITDH="20%"><A NAME="EXCHANGE_INTEGRALS"><u>EXCHANGE_INTEGRALS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXCHANGE_INTEGRALS (ANALYTIC|SEMI_ANALYTIC|NUMERIC)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method to calculate Exchange integrals</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NUMERIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ANALYTIC</code>: Use analytical method</li>
+<li><code>SEMI_ANALYTIC</code>: Use semi-analytical method</li>
+<li><code>NUMERIC</code>: Use numerical method</li>
+</ul><TR><TD WITDH="20%"><A NAME="CORE"><u>CORE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CORE 1s2 ... or CORE [Ne] or CORE none for 0 electron cores
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the core electrons for a pseudopotential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words<TR><TD WITDH="20%"><A NAME="ELECTRON_CONFIGURATION"><u>ELECTRON_CONFIGURATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ELECTRON_CONFIGURATION (1) [Ne] 3s2 ...
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the electron configuration. Optional the multiplicity (m) and a core state [XX] can be declared</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words, and may repeat<TR><TD WITDH="20%"><A NAME="MAX_ANGULAR_MOMENTUM"><u>MAX_ANGULAR_MOMENTUM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ANGULAR_MOMENTUM 3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the largest angular momentum calculated [0-3]</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="CALCULATE_STATES"><u>CALCULATE_STATES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CALCULATE_STATES  5 5 5 3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the number of states calculated per l value</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers. Default value:  0
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

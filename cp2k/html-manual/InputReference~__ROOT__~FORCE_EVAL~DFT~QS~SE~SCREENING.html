@@ -1,0 +1,28 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SCREENING                                                                       </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SCREENING                                                                        </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS.html">QS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE.html">SE</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~QS~SE~SCREENING.html">SCREENING</A>.
+<BR><BR>Setup parameters for the tapering of the Coulomb/Exchange Screening in KDSO-D integral scheme,. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#RC_TAPER">RC_TAPER </A>
+<LI><A HREF="#RC_RANGE">RC_RANGE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="RC_TAPER"><u>RC_TAPER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RC_TAPER {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Atomic Cutoff Radius Cutoff for Tapering the screening term.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.2000000000000000E+01
+angstrom<TR><TD WITDH="20%"><A NAME="RC_RANGE"><u>RC_RANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RC_RANGE {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Range of cutoff switch function (tapering): 0.5*(1-TANH((r-r0)/RC_RANGE)), where r0=2*RC_TAPER-20*RC_RANGE.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     0.0000000000000000E+00
+angstrom</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,64 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MODE_SELECTIVE                                                                  </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MODE_SELECTIVE                                                                   </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~VIBRATIONAL_ANALYSIS.html">VIBRATIONAL_ANALYSIS</A>%<A HREF="InputReference~__ROOT__~VIBRATIONAL_ANALYSIS~MODE_SELECTIVE.html">MODE_SELECTIVE</A>.
+<BR><BR>All parameters needed for to run a mode selective vibrational analysis. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~VIBRATIONAL_ANALYSIS~MODE_SELECTIVE~INVOLVED_ATOMS.html">INVOLVED_ATOMS </A>
+<LI><A HREF="InputReference~__ROOT__~VIBRATIONAL_ANALYSIS~MODE_SELECTIVE~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#FREQUENCY">FREQUENCY </A>
+<LI><A HREF="#RANGE">RANGE </A>
+<LI><A HREF="#LOWEST_FREQUENCY">LOWEST_FREQUENCY </A>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#EPS_MAX_VAL">EPS_MAX_VAL </A>
+<LI><A HREF="#EPS_NORM">EPS_NORM </A>
+<LI><A HREF="#INITIAL_GUESS">INITIAL_GUESS </A>
+<LI><A HREF="#RESTART_FILE_NAME">RESTART_FILE_NAME </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="FREQUENCY"><u>FREQUENCY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FREQUENCY {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>value close to the expected value of the frequency to look for. If the block Davidson algorithm is applied, the nrep closest frequencies are tracked.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:    -1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="RANGE"><u>RANGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RANGE {REAL} {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Track modes in a given range of frequencies. No warranty that the set of frequencies is complete.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals<TR><TD WITDH="20%"><A NAME="LOWEST_FREQUENCY"><u>LOWEST_FREQUENCY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LOWEST_FREQUENCY <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Lowest frequency mode to include when writing output. Use a negative value to print imaginary frequencies. Useful for visualizing the imaginary frequency along a reaction path coordinate Depending on accuracy settings, the output might include spurious low frequency  imaginary modes which should be visually checked (see MOLDEN_VIB).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {integer} {integer} .. {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the list of atoms which should be displaced for the Initial guess</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of integers<TR><TD WITDH="20%"><A NAME="EPS_MAX_VAL"><u>EPS_MAX_VAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_MAX_VAL {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the davidson algorithm. Specifies the maximal value in the residuum vectors</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     4.9999999999999998E-07
+<TR><TD WITDH="20%"><A NAME="EPS_NORM"><u>EPS_NORM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_NORM {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the davidson algorithm. Specifies the maximal value of the norm of the residuum vectors</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.9999999999999999E-06
+<TR><TD WITDH="20%"><A NAME="INITIAL_GUESS"><u>INITIAL_GUESS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INITIAL_GUESS BFGS_HESS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The type of initial guess for the normal modes</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  ATOMIC
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>BFGS_HESS</code>: get the first displacement vector out of the BFGS approximate Hessian</li>
+<li><code>ATOMIC</code>: use random displacements for a set of atoms specified</li>
+<li><code>RESTART</code>: use data from MS_RESTART as initial guess</li>
+<li><code>RESTART_VEC</code>: use a vector from MS_RESTART, useful if you want to increase accurcy by changing functionals or basis</li>
+<li><code>MOLDEN_RESTART</code>: use the .mol file of a former run, to restart a vector(similar to Restart_vec, but a different file FORMAT is used)</li>
+</ul><TR><TD WITDH="20%"><A NAME="RESTART_FILE_NAME"><u>RESTART_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RESTART_FILE_NAME {filename}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the name of the file used to create the restarted vectors</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

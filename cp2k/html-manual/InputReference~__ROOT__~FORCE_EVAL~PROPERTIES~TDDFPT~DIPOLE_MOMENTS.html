@@ -1,0 +1,38 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DIPOLE_MOMENTS                                                                  </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DIPOLE_MOMENTS                                                                   </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~TDDFPT.html">TDDFPT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~TDDFPT~DIPOLE_MOMENTS.html">DIPOLE_MOMENTS</A>.
+<BR><BR>Parameters to compute oscillator strengths in the dipole approximation. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#DIPOLE_FORM">DIPOLE_FORM </A>
+<LI><A HREF="#REFERENCE">REFERENCE </A>
+<LI><A HREF="#REFERENCE_POINT">REFERENCE_POINT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="DIPOLE_FORM"><u>DIPOLE_FORM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Form of dipole transition integrals.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  VELOCITY
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>LENGTH</code>: Length form &lang; i | r | j &rang;</li>
+<li><code>VELOCITY</code>: Velocity form &lang; i | d/dr | j &rang;</li>
+</ul><TR><TD WITDH="20%"><A NAME="REFERENCE"><u>REFERENCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Reference point to calculate electric dipole moments using the dipole integrals in the length form.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  COM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>COM</code>: Use Center of Mass</li>
+<li><code>COAC</code>: Use Center of Atomic Charges</li>
+<li><code>USER_DEFINED</code>: Use User-defined Point</li>
+<li><code>ZERO</code>: Use Origin of Coordinate System</li>
+</ul><TR><TD WITDH="20%"><A NAME="REFERENCE_POINT"><u>REFERENCE_POINT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REFERENCE_POINT x y z
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>User-defined reference point.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [bohr].</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

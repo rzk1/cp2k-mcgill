@@ -1,0 +1,34 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section OPTIMIZE_BAND                                                                   </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section OPTIMIZE_BAND                                                                    </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~BAND.html">BAND</A>%<A HREF="InputReference~__ROOT__~MOTION~BAND~OPTIMIZE_BAND.html">OPTIMIZE_BAND</A>.
+<BR><BR>Specify the optimization method for the band. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~BAND~OPTIMIZE_BAND~MD.html">MD </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~BAND~OPTIMIZE_BAND~DIIS.html">DIIS </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#OPT_TYPE">OPT_TYPE </A>
+<LI><A HREF="#OPTIMIZE_END_POINTS">OPTIMIZE_END_POINTS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="OPT_TYPE"><u>OPT_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OPT_TYPE (MD|DIIS)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the type optimizer used for the band</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  DIIS
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>MD</code>: Molecular dynamics-based optimizer</li>
+<li><code>DIIS</code>: Coupled steepest descent / direct inversion in the iterative subspace</li>
+</ul><TR><TD WITDH="20%"><A NAME="OPTIMIZE_END_POINTS"><u>OPTIMIZE_END_POINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Performs also an optimization of the end points of the band.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

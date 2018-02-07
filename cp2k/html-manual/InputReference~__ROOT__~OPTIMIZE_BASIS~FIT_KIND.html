@@ -1,0 +1,56 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FIT_KIND                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FIT_KIND                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~OPTIMIZE_BASIS.html">OPTIMIZE_BASIS</A>%<A HREF="InputReference~__ROOT__~OPTIMIZE_BASIS~FIT_KIND.html">FIT_KIND</A>.
+<BR><BR>specicifies the atomic kinds to be fitted and the basis sets associated with the kind. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~OPTIMIZE_BASIS~FIT_KIND~CONSTRAIN_EXPONENTS.html">CONSTRAIN_EXPONENTS </A>
+<LI><A HREF="InputReference~__ROOT__~OPTIMIZE_BASIS~FIT_KIND~DERIVED_BASIS_SETS.html">DERIVED_BASIS_SETS </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#BASIS_SET">BASIS_SET </A>
+<LI><A HREF="#INITIAL_DEGREES_OF_FREEDOM">INITIAL_DEGREES_OF_FREEDOM </A>
+<LI><A HREF="#SWITCH_COEFF_STATE">SWITCH_COEFF_STATE </A>
+<LI><A HREF="#SWITCH_CONTRACTION_STATE">SWITCH_CONTRACTION_STATE </A>
+<LI><A HREF="#SWITCH_EXP_STATE">SWITCH_EXP_STATE </A>
+<LI><A HREF="#SWITCH_SET_STATE">SWITCH_SET_STATE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">H
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The name of the kind described in this section.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: DEFAULT
+<TR><TD WITDH="20%"><A NAME="BASIS_SET"><u>BASIS_SET</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">H
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The name of the basis set for the kind. Has to be specified in BASIS_TEMPLATE_FILE.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: DEFAULT
+<TR><TD WITDH="20%"><A NAME="INITIAL_DEGREES_OF_FREEDOM"><u>INITIAL_DEGREES_OF_FREEDOM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INITIAL_DEGREES_OF_FREEDOM ALL
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the initial degrees of freedom in the basis optimization.This can be used to make further specifications easier</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  COEFFICIENTS
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>ALL</code>: Set all parameters in the basis to be variable.</li>
+<li><code>NONE</code>: Set all parameters in the basis to be fixed.</li>
+<li><code>COEFFICIENTS</code>: Set all coefficients in the basis set to be variable.</li>
+<li><code>EXPONENTS</code>: Set all exponents in the basis to be variable.</li>
+</ul><TR><TD WITDH="20%"><A NAME="SWITCH_COEFF_STATE"><u>SWITCH_COEFF_STATE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SWITCH_COEFF_STATE SET L CONTRACTION IPGF
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Allows to switch the state of a given coefficient from current state (varibale/fixed)) to the opposite state. The three integers indicate the set number, the angular momentum i'th contraction and i'th coefficient</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     4 integers, and may repeat<TR><TD WITDH="20%"><A NAME="SWITCH_CONTRACTION_STATE"><u>SWITCH_CONTRACTION_STATE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SWITCH_CONTRACTION_STATE SET L CONTRACTION
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Allows to switch the state of a given contraction from current state (varibale/fixed)) to the opposite state. The three integers indicate the set number, the angular momentum and i'th contraction</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers, and may repeat<TR><TD WITDH="20%"><A NAME="SWITCH_EXP_STATE"><u>SWITCH_EXP_STATE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SWITCH_EXP_STATE SET IEXP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Allows to switch the state of a given exponent from current state (varibale/fixed)) to the opposite state. The two integers indicate the set number and i'th exponent</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers, and may repeat<TR><TD WITDH="20%"><A NAME="SWITCH_SET_STATE"><u>SWITCH_SET_STATE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SWITCH_SET_STATE SET IEXP
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Allows to switch the states of in a set from current state (varibale/fixed)) to the opposite state. The two integers indicate the affected part (0=ALL,1=EXPS,2=COEFF) and i'th set</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers, and may repeat</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

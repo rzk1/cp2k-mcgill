@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2018  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 ! **************************************************************************************************
 !> \brief Routines useful for iterative matrix calculations
@@ -640,9 +640,9 @@ CONTAINS
       END IF
 
       IF (unit_nr > 0) THEN
-         !   WRITE(unit_nr,'(T6,A,1X,I3,1X,F10.8,E12.3)') "Final Hotelling ",i,occ_matrix,&
-         !      !frob_matrix/frob_matrix_base
-         !      maxnorm_matrix
+!           WRITE(unit_nr,'(T6,A,1X,I3,1X,F10.8,E12.3)') "Final Hotelling ",i,occ_matrix,&
+!              !frob_matrix/frob_matrix_base
+!              maxnorm_matrix
          WRITE (unit_nr, '()')
          CALL m_flush(unit_nr)
       ENDIF
@@ -734,7 +734,8 @@ CONTAINS
             CALL m_flush(unit_nr)
          ENDIF
 
-         IF (frob_matrix/frob_matrix_base < SQRT(threshold)) EXIT
+         ! frob_matrix/frob_matrix_base < SQRT(threshold)
+         IF (frob_matrix*frob_matrix < (threshold*frob_matrix_base*frob_matrix_base)) EXIT
 
       ENDDO
 
@@ -950,7 +951,8 @@ CONTAINS
          IF (abnormal_value(conv)) &
             CPABORT("conv is an abnormal value (NaN/Inf).")
 
-         IF (conv < SQRT(threshold)) THEN
+         ! conv < SQRT(threshold)
+         IF ((conv*conv) < threshold) THEN
             IF (PRESENT(converged)) converged = .TRUE.
             EXIT
          ENDIF
@@ -1150,7 +1152,8 @@ CONTAINS
                                 3.0_dp, matrix_tmp, filter_eps=threshold)
             CALL dbcsr_copy(matrix_p(ispin), matrix_tmp) ! tmp = 3PP - 2PPP
 
-            IF (frob_norm < SQRT(trace*threshold)) EXIT
+            ! frob_norm < SQRT(trace*threshold)
+            IF (frob_norm*frob_norm < trace*threshold) EXIT
          END DO
       END DO
 
@@ -1217,7 +1220,8 @@ CONTAINS
             CALL dbcsr_multiply("N", "N", -2.0_dp, matrix_ps, matrix_psp, &
                                 3.0_dp, matrix_p(ispin), filter_eps=threshold)
 
-            IF (frob_norm < SQRT(trace*threshold)) EXIT
+            ! frob_norm < SQRT(trace*threshold)
+            IF (frob_norm*frob_norm < trace*threshold) EXIT
          END DO
       END DO
 

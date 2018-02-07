@@ -1,0 +1,58 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section REFTRAJ                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section REFTRAJ                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~MD.html">MD</A>%<A HREF="InputReference~__ROOT__~MOTION~MD~REFTRAJ.html">REFTRAJ</A>.
+<BR><BR>Loads an external trajectory file and performs analysis on the loaded snapshots. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~REFTRAJ~MSD.html">MSD </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~MD~REFTRAJ~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TRAJ_FILE_NAME">TRAJ_FILE_NAME </A>
+<LI><A HREF="#CELL_FILE_NAME">CELL_FILE_NAME </A>
+<LI><A HREF="#VARIABLE_VOLUME">VARIABLE_VOLUME </A>
+<LI><A HREF="#FIRST_SNAPSHOT">FIRST_SNAPSHOT </A>
+<LI><A HREF="#LAST_SNAPSHOT">LAST_SNAPSHOT </A>
+<LI><A HREF="#STRIDE">STRIDE </A>
+<LI><A HREF="#EVAL_ENERGY_FORCES">EVAL_ENERGY_FORCES </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TRAJ_FILE_NAME"><u>TRAJ_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRAJ_FILE_NAME <CHARACTER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the filename where the trajectory is stored. If you built your own trajectory file make sure it has the trajectory format. In particular, each structure has to be enumerated using " i = ..."</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: reftraj.xyz
+<TR><TD WITDH="20%"><A NAME="CELL_FILE_NAME"><u>CELL_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CELL_FILE_NAME <CHARACTER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the filename where the cell is stored (for trajectories generated within variable cell ensembles).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: reftraj.cell
+<TR><TD WITDH="20%"><A NAME="VARIABLE_VOLUME"><u>VARIABLE_VOLUME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Enables the possibility to read a CELL file with information on the CELL size during the MD.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="FIRST_SNAPSHOT"><u>FIRST_SNAPSHOT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FIRST_SNAPSHOT <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Index of the snapshot stored in the trajectory file from which to start a REFTRAJ run</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="LAST_SNAPSHOT"><u>LAST_SNAPSHOT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LAST_SNAPSHOT
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Index of the last snapshot stored in the trajectory file that is read along a REFTRAJ run. Must be specified as default is 0. Must be specified exactly as LAST_SNAPSHOT = FIRST_SNAPSHOT + STRIDE*(number of strides) to avoid an error 'Unexpected EOF'. Note that STRIDE*(number of strides) is simply the number of steps between the first to last snapshot.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="STRIDE"><u>STRIDE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STRIDE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> Stride in number of snapshot for the  reftraj analysis</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="EVAL_ENERGY_FORCES"><u>EVAL_ENERGY_FORCES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Evaluate energy and forces for each retrieved snapshot during a REFTRAJ run</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

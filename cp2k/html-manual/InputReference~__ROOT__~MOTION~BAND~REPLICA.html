@@ -1,0 +1,30 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section REPLICA                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section REPLICA                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~BAND.html">BAND</A>%<A HREF="InputReference~__ROOT__~MOTION~BAND~REPLICA.html">REPLICA</A>.
+<BR><BR>Specify coordinates and velocities (possibly) of the replica. This section can be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~BAND~REPLICA~COORD.html">COORD </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~BAND~REPLICA~VELOCITY.html">VELOCITY </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#COLLECTIVE">COLLECTIVE </A>
+<LI><A HREF="#COORD_FILE_NAME">COORD_FILE_NAME </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="COLLECTIVE"><u>COLLECTIVE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COLLECTIVE {real} .. {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the value of the collective variables used in the projected BAND method. The order of the values is the order of the COLLECTIVE section in the constraints/restraints section</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals<TR><TD WITDH="20%"><A NAME="COORD_FILE_NAME"><u>COORD_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COORD_FILE_NAME <CHAR>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Name of the xyz file with coordinates (alternative to &COORD section)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

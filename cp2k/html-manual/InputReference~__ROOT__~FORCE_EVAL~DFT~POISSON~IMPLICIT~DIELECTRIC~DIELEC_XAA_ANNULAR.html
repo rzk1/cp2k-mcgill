@@ -1,0 +1,40 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DIELEC_XAA_ANNULAR                                                              </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DIELEC_XAA_ANNULAR                                                               </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~POISSON.html">POISSON</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~POISSON~IMPLICIT.html">IMPLICIT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~POISSON~IMPLICIT~DIELECTRIC.html">DIELECTRIC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~POISSON~IMPLICIT~DIELECTRIC~DIELEC_XAA_ANNULAR.html">DIELEC_XAA_ANNULAR</A>.
+<BR><BR>Parameters for creating x-axis-aligned annular dielectric region. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#DIELECTRIC_CONSTANT">DIELECTRIC_CONSTANT </A>
+<LI><A HREF="#X_XTNT">X_XTNT </A>
+<LI><A HREF="#BASE_CENTER">BASE_CENTER </A>
+<LI><A HREF="#BASE_RADII">BASE_RADII </A>
+<LI><A HREF="#SMOOTHING_WIDTH">SMOOTHING_WIDTH </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="DIELECTRIC_CONSTANT"><u>DIELECTRIC_CONSTANT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">dielectric_constant <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>value of the dielectric constant inside the region.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     8.0000000000000000E+01
+<TR><TD WIDTH="10%"><TD>variants: EPSILON<TR><TD WITDH="20%"><A NAME="X_XTNT"><u>X_XTNT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">X_xtnt <xmin(real)> <xmax(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The X extents of the annulus.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="BASE_CENTER"><u>BASE_CENTER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">base_center <y(real)> <z(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The y and z coordinates of the annulus' base center.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="BASE_RADII"><u>BASE_RADII</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">base_radius <r1(real)> <r2(real)>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The base radius of the annulus.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="SMOOTHING_WIDTH"><u>SMOOTHING_WIDTH</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">smoothing_width <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The width of the standard mollifier.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.0583544171800002E-01
+angstrom<TR><TD WIDTH="10%"><TD>variants: ZETA</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

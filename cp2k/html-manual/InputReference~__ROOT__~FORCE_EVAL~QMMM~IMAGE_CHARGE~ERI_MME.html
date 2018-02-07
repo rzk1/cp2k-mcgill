@@ -1,0 +1,54 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ERI_MME                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ERI_MME                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM.html">QMMM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~IMAGE_CHARGE.html">IMAGE_CHARGE</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~IMAGE_CHARGE~ERI_MME.html">ERI_MME</A>.
+<BR><BR>Parameters for the calculation of periodic electron repulsion integrals (ERI) using the Minimax-Ewald (MME) method. Note: N_MINIMAX is the only parameter to be tuned for accuracy, all other parameters can be left to default. MME method is faster than numerical GPW. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~IMAGE_CHARGE~ERI_MME~ERI_MME_INFO.html">ERI_MME_INFO </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~QMMM~IMAGE_CHARGE~ERI_MME~CUTOFF_CALIB.html">CUTOFF_CALIB </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#N_MINIMAX">N_MINIMAX </A>
+<LI><A HREF="#CUTOFF">CUTOFF </A>
+<LI><A HREF="#DO_CALIBRATE_CUTOFF">DO_CALIBRATE_CUTOFF </A>
+<LI><A HREF="#PRINT_CALIB">PRINT_CALIB </A>
+<LI><A HREF="#DEBUG">DEBUG </A>
+<LI><A HREF="#DEBUG_TOLERANCE">DEBUG_TOLERANCE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="N_MINIMAX"><u>N_MINIMAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of terms in minimax approximation of reciprocal space potential.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  53
+<TR><TD WITDH="20%"><A NAME="CUTOFF"><u>CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>User-defined energy cutoff to be used only if DO_CALIBRATE_CUTOFF is set to .FALSE.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     3.0000000000000000E+02
+<TR><TD WITDH="20%"><A NAME="DO_CALIBRATE_CUTOFF"><u>DO_CALIBRATE_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether the energy cutoff shall be calibrated to minimize upper bound error estimate.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="PRINT_CALIB"><u>PRINT_CALIB</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Print detailed info on calibration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DEBUG"><u>DEBUG</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>debug mode (consistency of summation methods is checked).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="DEBUG_TOLERANCE"><u>DEBUG_TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>tolerance for rel. numerical error in debug mode.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

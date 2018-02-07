@@ -1,0 +1,35 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section INTERACTION_POTENTIAL                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section INTERACTION_POTENTIAL                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC~WF_CORRELATION.html">WF_CORRELATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC~WF_CORRELATION~INTERACTION_POTENTIAL.html">INTERACTION_POTENTIAL</A>.
+<BR><BR>Parameters the interaction potential in computing the biel integrals. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#POTENTIAL_TYPE">POTENTIAL_TYPE </A>
+<LI><A HREF="#TRUNCATION_RADIUS">TRUNCATION_RADIUS </A>
+<LI><A HREF="#TSHPSC_DATA">TSHPSC_DATA </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="POTENTIAL_TYPE"><u>POTENTIAL_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">POTENTIAL_TYPE TSHPSC
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which interaction potential should be used (Coulomb, TShPSC operator).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  COULOMB
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>COULOMB</code>: Coulomb potential: 1/r</li>
+<li><code>TSHPSC</code>: TShPSC:<ul><li>1/x - s/Rc for x &le; Rc</li><li>(1 - s)/Rc - (x - Rc)/Rc^2 + (x - Rc)^2/Rc^3 - (2*n^2 - 7*n + 9 - 4*s)*(x - Rc)^3/(Rc^4*(n^2 - 2*n + 1)*(n - 1)) + (6-3*s - 4*n + n^2)*(x - Rc)^4/(Rc^5*(n^4 - 4*n^3 + 6*n^2 - 4*n + 1)) for Rc &lt; x &le; n*Rc (4th order polynomial)</li><li>0 for x &gt; n*Rc</li></ul></li>
+</ul><TR><TD WITDH="20%"><A NAME="TRUNCATION_RADIUS"><u>TRUNCATION_RADIUS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRUNCATION_RADIUS 10.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Determines truncation radius for the truncated TShPSC potential. Only valid when doing truncated calculation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     5.2917720859000008E+00
+angstrom<TR><TD WITDH="20%"><A NAME="TSHPSC_DATA"><u>TSHPSC_DATA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TShPSC_DATA t_sh_p_s_c.dat
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Location of the file TShPSC.dat that contains the data for the evaluation of the TShPSC G0</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: t_sh_p_s_c.dat
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

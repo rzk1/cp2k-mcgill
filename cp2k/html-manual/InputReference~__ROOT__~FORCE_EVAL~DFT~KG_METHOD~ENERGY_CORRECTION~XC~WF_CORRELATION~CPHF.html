@@ -1,0 +1,36 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CPHF                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CPHF                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD.html">KG_METHOD</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD~ENERGY_CORRECTION.html">ENERGY_CORRECTION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD~ENERGY_CORRECTION~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD~ENERGY_CORRECTION~XC~WF_CORRELATION.html">WF_CORRELATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KG_METHOD~ENERGY_CORRECTION~XC~WF_CORRELATION~CPHF.html">CPHF</A>.
+<BR><BR>Parameters influencing the solution of the Z-vector equations in MP2 gradients calculations. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_122" TITLE="
+ Del Ben, M; Hutter, J; VandeVondele, J. 
+ JOURNAL OF CHEMICAL THEORY AND COMPUTATION, 9 (6), 2654-2671 (2013). 
+ Electron Correlation in the Condensed Phase from a Resolution of
+ Identity Approach Based on the Gaussian and Plane Waves Scheme.
+ http://dx.doi.org/10.1021/ct4002202
+">[DelBen2013]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MAX_ITER">MAX_ITER </A>
+<LI><A HREF="#EPS_CONV">EPS_CONV </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MAX_ITER"><u>MAX_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER  50
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum number of iterations allowed for the solution of the Z-vector equations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  30
+<TR><TD WIDTH="10%"><TD>variants: MAX_NUM_ITER<TR><TD WITDH="20%"><A NAME="EPS_CONV"><u>EPS_CONV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_CONV 1.0E-6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence threshold for the solution of the Z-vector equations. The Z-vector equations have the form of a linear system of equations Ax=b, convergence is achieved when |Ax-b|<=EPS_CONV.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-04
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

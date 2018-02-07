@@ -1,0 +1,75 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section SHELL                                                                           </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section SHELL                                                                            </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD.html">FORCEFIELD</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~SHELL.html">SHELL</A>.
+<BR><BR>This section specifies the parameters for shell-model potentials. This section can be repeated.
+<BR><BR> This section cites following references: 
+<A HREF="references.html#reference_110" TITLE="
+ Dick, BG; Overhauser, AW. Phys. Rev., 112 (1), (1958). 
+ Theory of the Dielectric Constants of Alkali Halide Crystals.
+ http://dx.doi.org/10.1103/PhysRev.112.90
+">[Dick1958]</A>
+<A HREF="references.html#reference_111" TITLE="
+ Mitchell, PJ; Fincham D. J. Phys.: Condens. Matter, 5 (8), (1993). 
+ Shell model simulations by adiabatic dynamics.
+ http://dx.doi.org/10.1088/0953-8984/5/8/006
+">[Mitchell1993]</A>
+<A HREF="references.html#reference_112" TITLE="
+ Devynck, F; Iannuzzi, M; Krack, M. Phys. Rev. B, 85 (18), (2012). 
+ Frenkel pair recombinations in UO2: Importance of explicit description of
+ polarizability in core-shell molecular dynamics simulations.
+ http://dx.doi.org/10.1103/PhysRevB.85.184103
+">[Devynck2012]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#_SECTION_PARAMETERS_">_SECTION_PARAMETERS_ </A>
+<LI><A HREF="#CORE_CHARGE">CORE_CHARGE </A>
+<LI><A HREF="#SHELL_CHARGE">SHELL_CHARGE </A>
+<LI><A HREF="#MASS_FRACTION">MASS_FRACTION </A>
+<LI><A HREF="#K2_SPRING">K2_SPRING </A>
+<LI><A HREF="#K4_SPRING">K4_SPRING </A>
+<LI><A HREF="#MAX_DISTANCE">MAX_DISTANCE </A>
+<LI><A HREF="#SHELL_CUTOFF">SHELL_CUTOFF </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="_SECTION_PARAMETERS_"><u>_SECTION_PARAMETERS_</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">H
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The kind for which the shell potential parameters are given</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: DEFAULT
+<TR><TD WITDH="20%"><A NAME="CORE_CHARGE"><u>CORE_CHARGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CORE_CHARGE {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Partial charge assigned to the core (electron charge units)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WIDTH="10%"><TD>variants: CORE<TR><TD WITDH="20%"><A NAME="SHELL_CHARGE"><u>SHELL_CHARGE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SHELL_CHARGE {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Partial charge assigned to the shell (electron charge units)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WIDTH="10%"><TD>variants: SHELL<TR><TD WITDH="20%"><A NAME="MASS_FRACTION"><u>MASS_FRACTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MASS_FRACTION {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Fraction of the mass of the atom to be assigned to the shell</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-01
+<TR><TD WIDTH="10%"><TD>variants: MASS<TR><TD WITDH="20%"><A NAME="K2_SPRING"><u>K2_SPRING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">K2_SPRING {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Force constant k2 of the spring potential 1/2*k2*r^2 + 1/24*k4*r^4 binding a core-shell pair when a core-shell potential is employed.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr^-2*hartree], default value:    -1.0000000000000000E+00
+bohr^-2*hartree<TR><TD WIDTH="10%"><TD>variants: K2, SPRING<TR><TD WITDH="20%"><A NAME="K4_SPRING"><u>K4_SPRING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">K4_SPRING {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Force constant k4 of the spring potential 1/2*k2*r^2 + 1/24*k4*r^4 binding a core-shell pair when a core-shell potential is employed. By default a harmonic spring potential is used, i.e. k4 is zero.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr^-4*hartree], default value:     0.0000000000000000E+00
+bohr^-4*hartree<TR><TD WIDTH="10%"><TD>variants: K4<TR><TD WITDH="20%"><A NAME="MAX_DISTANCE"><u>MAX_DISTANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_DISTANCE 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Assign a maximum elongation of the spring, if negative no limit is imposed</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:    -5.2917720859000006E-01
+angstrom<TR><TD WITDH="20%"><A NAME="SHELL_CUTOFF"><u>SHELL_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SHELL_CUTOFF -1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define a screening function to exclude some neighbors  of the shell when electrostatic interaction are considered, if negative no screening is operated</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:    -5.2917720859000006E-01
+angstrom</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

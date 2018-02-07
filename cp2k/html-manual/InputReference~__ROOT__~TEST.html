@@ -1,0 +1,83 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section TEST                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section TEST                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~TEST.html">TEST</A>.
+<BR><BR>Tests to perform on the supported libraries. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~TEST~GRID_INFORMATION.html">GRID_INFORMATION </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~PROGRAM_RUN_INFO.html">PROGRAM_RUN_INFO </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~RS_PW_TRANSFER.html">RS_PW_TRANSFER </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~EIGENSOLVER.html">EIGENSOLVER </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~PW_TRANSFER.html">PW_TRANSFER </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~CP_FM_GEMM.html">CP_FM_GEMM </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~CP_DBCSR.html">CP_DBCSR </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~ERI_MME_TEST.html">ERI_MME_TEST </A>
+<LI><A HREF="InputReference~__ROOT__~TEST~SHG_INTEGRALS_TEST.html">SHG_INTEGRALS_TEST </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MEMORY">MEMORY </A>
+<LI><A HREF="#COPY">COPY </A>
+<LI><A HREF="#MATMUL">MATMUL </A>
+<LI><A HREF="#DGEMM">DGEMM </A>
+<LI><A HREF="#FFT">FFT </A>
+<LI><A HREF="#ERI">ERI </A>
+<LI><A HREF="#CLEBSCH_GORDON">CLEBSCH_GORDON </A>
+<LI><A HREF="#MPI">MPI </A>
+<LI><A HREF="#RANDOM_NUMBER_GENERATOR">RANDOM_NUMBER_GENERATOR </A>
+<LI><A HREF="#MINIMAX">MINIMAX </A>
+<LI><A HREF="#LEAST_SQ_FT">LEAST_SQ_FT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MEMORY"><u>MEMORY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MEMORY <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the maximum amount of memory allocated for a given test (in bytes)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.5600000000000000E+08
+<TR><TD WITDH="20%"><A NAME="COPY"><u>COPY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">copy 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests the performance to copy two vectors.The results of these tests allow to determine the size of the cache of the CPU. This can be used to optimize the performance of theFFTSG library. Tests are repeated the given number of times.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="MATMUL"><u>MATMUL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">matmul 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests the performance of different kinds of matrix matrix multiply kernels for the F95 INTRINSIC matmul. Matrices up to 2**N+1 will be tested.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="DGEMM"><u>DGEMM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DGEMM 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests the performance of different kinds of matrix matrix multiply kernels for the BLAS INTRINSIC DGEMM. Matrices up to 2**N+1 will be tested.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="FFT"><u>FFT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">fft 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests the performance of all available FFT libraries for 3D FFTs Tests are repeated the given number of times.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="ERI"><u>ERI</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">eri 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests the performance and correctness of ERI libraries</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="CLEBSCH_GORDON"><u>CLEBSCH_GORDON</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">clebsch_gordon 10
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests the Clebsch-Gordon Coefficients. Tests are repeated the given number of times.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WIDTH="10%"><TD>variants: CLEBSCH<TR><TD WITDH="20%"><A NAME="MPI"><u>MPI</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">mpi 6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests mpi, quickly adapted benchmark code,will ONLY work on an even number of CPUs. comm is the relevant, initialized communicator. This test will produce messages of the size 8*10**requested_size, where requested_size is the value given to this keyword</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="RANDOM_NUMBER_GENERATOR"><u>RANDOM_NUMBER_GENERATOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">rng 1000000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i> Tests the parallel random number generator (RNG)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WIDTH="10%"><TD>variants: RNG<TR><TD WITDH="20%"><A NAME="MINIMAX"><u>MINIMAX</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MINIMAX 1000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests validity of minimax coefficients for approximating 1/x as a sum of exponentials. Checks numerical error against tabulated error, testing the given number of different Rc values.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="LEAST_SQ_FT"><u>LEAST_SQ_FT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MINIMAX 1000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Tests accuracy of the integration weights gamma_ik from Kaltak, Klimes, Kresse, JCTC 10, 2498 (2014), Eq. 30. Printed is the L1-error (=minimax error for a given range and a given number of grid points. The input parameter is the given number of different Rc values.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

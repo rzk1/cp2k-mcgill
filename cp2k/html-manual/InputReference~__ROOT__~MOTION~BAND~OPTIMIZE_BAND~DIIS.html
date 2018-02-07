@@ -1,0 +1,62 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DIIS                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DIIS                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~BAND.html">BAND</A>%<A HREF="InputReference~__ROOT__~MOTION~BAND~OPTIMIZE_BAND.html">OPTIMIZE_BAND</A>%<A HREF="InputReference~__ROOT__~MOTION~BAND~OPTIMIZE_BAND~DIIS.html">DIIS</A>.
+<BR><BR>Activate the DIIS based optimization procedure for BAND. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~BAND~OPTIMIZE_BAND~DIIS~DIIS_INFO.html">DIIS_INFO </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#MAX_SD_STEPS">MAX_SD_STEPS </A>
+<LI><A HREF="#MAX_STEPS">MAX_STEPS </A>
+<LI><A HREF="#N_DIIS">N_DIIS </A>
+<LI><A HREF="#STEPSIZE">STEPSIZE </A>
+<LI><A HREF="#MAX_STEPSIZE">MAX_STEPSIZE </A>
+<LI><A HREF="#NP_LS">NP_LS </A>
+<LI><A HREF="#NO_LS">NO_LS </A>
+<LI><A HREF="#CHECK_DIIS">CHECK_DIIS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="MAX_SD_STEPS"><u>MAX_SD_STEPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the maximum number of SD steps to perform before switching on DIIS (the minimum number will always be equal to N_DIIS).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="MAX_STEPS"><u>MAX_STEPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the maximum number of optimization steps</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  100
+<TR><TD WITDH="20%"><A NAME="N_DIIS"><u>N_DIIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_DIIS 4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of history vectors to be used with DIIS</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  7
+<TR><TD WIDTH="10%"><TD>variants: NDIIS<TR><TD WITDH="20%"><A NAME="STEPSIZE"><u>STEPSIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">STEPSIZE <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Initial stepsize used for the line search, sometimes this parametercan be reduced to stablize DIIS</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="MAX_STEPSIZE"><u>MAX_STEPSIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_STEPSIZE <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum stepsize used for the line search, sometimes this parametercan be reduced to stablize the LS for particularly difficult initial geometries</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="NP_LS"><u>NP_LS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NP_LS <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of points used in the line search SD.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WITDH="20%"><A NAME="NO_LS"><u>NO_LS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Does not perform LS during SD. Useful in combination with a proper STEPSIZE for particularly out of equilibrium starting geometries.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="CHECK_DIIS"><u>CHECK_DIIS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Performes a series of checks on the DIIS solution in order to accept the DIIS step. If set to .FALSE. the only check performed is that the angle between the DIIS solution and the reference vector is less than Pi/2. Can be useful if many DIIS steps are rejected.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

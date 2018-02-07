@@ -1,0 +1,98 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section TERSOFF                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section TERSOFF                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD.html">FORCEFIELD</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~NONBONDED.html">NONBONDED</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~NONBONDED~TERSOFF.html">TERSOFF</A>.
+<BR><BR>This section specifies the input parameters for Tersoff potential type. This section can be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_33" TITLE="
+ TERSOFF, J. PHYSICAL REVIEW B, 38 (14), 9902-9905 (1988). 
+ EMPIRICAL INTERATOMIC POTENTIAL FOR SILICON WITH IMPROVED ELASTIC
+ PROPERTIES.
+ http://dx.doi.org/10.1103/PhysRevB.38.9902
+">[TERSOFF1988]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#A">A </A>
+<LI><A HREF="#B">B </A>
+<LI><A HREF="#LAMBDA1">LAMBDA1 </A>
+<LI><A HREF="#LAMBDA2">LAMBDA2 </A>
+<LI><A HREF="#ALPHA">ALPHA </A>
+<LI><A HREF="#BETA">BETA </A>
+<LI><A HREF="#N">N </A>
+<LI><A HREF="#C">C </A>
+<LI><A HREF="#D">D </A>
+<LI><A HREF="#H">H </A>
+<LI><A HREF="#LAMBDA3">LAMBDA3 </A>
+<LI><A HREF="#BIGR">BIGR </A>
+<LI><A HREF="#BIGD">BIGD </A>
+<LI><A HREF="#RCUT">RCUT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {KIND1} {KIND2}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the atomic kind involved in the nonbond potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 words<TR><TD WITDH="20%"><A NAME="A"><u>A</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the A parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [eV], default value:     1.8308000000000000E+03
+eV<TR><TD WITDH="20%"><A NAME="B"><u>B</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">B {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the B parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [eV], default value:     4.7118000000000001E+02
+eV<TR><TD WITDH="20%"><A NAME="LAMBDA1"><u>LAMBDA1</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">lambda1 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the lambda1 parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-1], default value:     2.4799000000000007E+00
+angstrom^-1<TR><TD WITDH="20%"><A NAME="LAMBDA2"><u>LAMBDA2</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">lambda2 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the lambda2 parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-1], default value:     1.7322000000000002E+00
+angstrom^-1<TR><TD WITDH="20%"><A NAME="ALPHA"><u>ALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">alpha {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the alpha parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="BETA"><u>BETA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">beta {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the beta parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [], default value:     1.0999000000000000E-06
+<TR><TD WITDH="20%"><A NAME="N"><u>N</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">n {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the n parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [], default value:     7.8734000000000004E-01
+<TR><TD WITDH="20%"><A NAME="C"><u>C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">c {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the c parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [], default value:     1.0039000000000000E+05
+<TR><TD WITDH="20%"><A NAME="D"><u>D</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">d {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the d parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [], default value:     1.6218000000000000E+01
+<TR><TD WITDH="20%"><A NAME="H"><u>H</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">h {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the h parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [], default value:    -5.9826000000000001E-01
+<TR><TD WITDH="20%"><A NAME="LAMBDA3"><u>LAMBDA3</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">lambda3 {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the lambda3 parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom^-1], default value:     1.7322000000000002E+00
+angstrom^-1<TR><TD WITDH="20%"><A NAME="BIGR"><u>BIGR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">bigR {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the bigR parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     2.8500000000000001E+00
+angstrom<TR><TD WITDH="20%"><A NAME="BIGD"><u>BIGD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">bigD {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the D parameter of Tersoff potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom], default value:     1.4999999999999999E-01
+angstrom<TR><TD WITDH="20%"><A NAME="RCUT"><u>RCUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RCUT {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the cutoff parameter of the tersoff potential.  This parameter is in principle already defined by the values of  bigD and bigR. But it is necessary to define it when using the tersoff  in conjuction with other potentials (for the same atomic pair) in order to have the same consistent definition of RCUT for all potentials.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [angstrom].</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,67 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PERIODIC                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PERIODIC                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES.html">PROPERTIES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES.html">LINRES</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR.html">EPR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR.html">G_TENSOR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~WF_CORRELATION.html">WF_CORRELATION</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~WF_CORRELATION~RI_RPA.html">RI_RPA</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~WF_CORRELATION~RI_RPA~RI_G0W0.html">RI_G0W0</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~PROPERTIES~LINRES~EPR~PRINT~G_TENSOR~XC~WF_CORRELATION~RI_RPA~RI_G0W0~PERIODIC.html">PERIODIC</A>.
+<BR><BR>Parameters influencing correction for periodic GW. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#KPOINTS">KPOINTS </A>
+<LI><A HREF="#NUM_KP_GRIDS">NUM_KP_GRIDS </A>
+<LI><A HREF="#EPS_KPOINT">EPS_KPOINT </A>
+<LI><A HREF="#MO_COEFF_GAMMA">MO_COEFF_GAMMA </A>
+<LI><A HREF="#AVERAGE_DEGENERATE_LEVELS">AVERAGE_DEGENERATE_LEVELS </A>
+<LI><A HREF="#EPS_EIGENVAL">EPS_EIGENVAL </A>
+<LI><A HREF="#EXTRAPOLATE_KPOINTS">EXTRAPOLATE_KPOINTS </A>
+<LI><A HREF="#DO_AUX_BAS_GW">DO_AUX_BAS_GW </A>
+<LI><A HREF="#FRACTION_AUX_MOS">FRACTION_AUX_MOS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="KPOINTS"><u>KPOINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KPOINTS  nx  ny  nz
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify number of k-points for a single k-point grid. Internally, a Monkhorst-Pack grid is used. Typically, even numbers are chosen such that the Gamma point is excluded from the k-point mesh.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers, and may repeat. Default value:  16 16 16
+<TR><TD WITDH="20%"><A NAME="NUM_KP_GRIDS"><u>NUM_KP_GRIDS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUM_KP_GRIDS 5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of k-point grids around the Gamma point with different resolution. E.g. for KPOINTS 4 4 4 and NUM_KP_GRIDS 3, there will be a 3x3x3 Monkhorst-Pack (MP) k-point grid for the whole Brillouin zone (excluding Gamma), another 3x3x3 MP grid with smaller  spacing around Gamma (again excluding Gamma) and a very fine 4x4x4 MP grid around Gamma.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="EPS_KPOINT"><u>EPS_KPOINT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_KPOINT 1.0E-4
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If the absolute value of a k-point is below EPS_KPOINT, this kpoint is neglected since the Gamma point is not included in the periodic correction.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000001E-05
+<TR><TD WITDH="20%"><A NAME="MO_COEFF_GAMMA"><u>MO_COEFF_GAMMA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MO_COEFF_GAMMA
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If true, only the MO coefficients at the Gamma point are used for the periodic  correction. Otherwise, the MO coeffs are computed at every k-point which is much more expensive. It should be okay to use the Gamma MO coefficients.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="AVERAGE_DEGENERATE_LEVELS"><u>AVERAGE_DEGENERATE_LEVELS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AVERAGE_DEGENERATE_LEVELS
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If true, the correlation self-energy of degenerate levels is averaged.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WIDTH="10%"><TD>variants: ADL<TR><TD WITDH="20%"><A NAME="EPS_EIGENVAL"><u>EPS_EIGENVAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_EIGENVAL 1.0E-5
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Threshold for considering levels as degenerate. Unit: Hartree.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.0000000000000001E-04
+<TR><TD WITDH="20%"><A NAME="EXTRAPOLATE_KPOINTS"><u>EXTRAPOLATE_KPOINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXTRAPOLATE_KPOINTS FALSE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If true, extrapolates the k-point mesh. Only working if k-point mesh numbers are disivible by 4, e.g. 8x8x8 or 12x12x12 is recommended.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WIDTH="10%"><TD>variants: EXTRAPOLATE<TR><TD WITDH="20%"><A NAME="DO_AUX_BAS_GW"><u>DO_AUX_BAS_GW</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">AUX_BAS_GW TRUE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>If true, use a different basis for the periodic correction. This can be necessary in case a diffused basis is used for GW to converge the HOMO-LUMO gap. In this case, numerical problems may occur due to diffuse functions in the basis. This keyword only works if AUX_GW <basis set>  is specified in the kind section for every atom kind.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="FRACTION_AUX_MOS"><u>FRACTION_AUX_MOS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FRACTION_AUX_MOS 0.6
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Fraction how many MOs are used in the auxiliary basis.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     5.0000000000000000E-01
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

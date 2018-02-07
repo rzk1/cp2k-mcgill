@@ -1,0 +1,95 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PINT                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PINT                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT.html">PINT</A>.
+<BR><BR>The section that controls a path integral run. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~NORMALMODE.html">NORMALMODE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~STAGING.html">STAGING </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~BEADS.html">BEADS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~NOSE.html">NOSE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~GLE.html">GLE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~PILE.html">PILE </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~PIGLET.html">PIGLET </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~INIT.html">INIT </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~HELIUM.html">HELIUM </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#P">P </A>
+<LI><A HREF="#PROC_PER_REPLICA">PROC_PER_REPLICA </A>
+<LI><A HREF="#NUM_STEPS">NUM_STEPS </A>
+<LI><A HREF="#MAX_STEP">MAX_STEP </A>
+<LI><A HREF="#ITERATION">ITERATION </A>
+<LI><A HREF="#TEMP">TEMP </A>
+<LI><A HREF="#T_TOL">T_TOL </A>
+<LI><A HREF="#DT">DT </A>
+<LI><A HREF="#HARM_INT">HARM_INT </A>
+<LI><A HREF="#NRESPA">NRESPA </A>
+<LI><A HREF="#TRANSFORMATION">TRANSFORMATION </A>
+<LI><A HREF="#PROPAGATOR">PROPAGATOR </A>
+<LI><A HREF="#FIX_CENTROID_POS">FIX_CENTROID_POS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="P"><u>P</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify number beads to use</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="PROC_PER_REPLICA"><u>PROC_PER_REPLICA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify number of processors to use for each replica</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="NUM_STEPS"><u>NUM_STEPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of steps (if MAX_STEP is not explicitly given the program will perform this number of steps)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  3
+<TR><TD WITDH="20%"><A NAME="MAX_STEP"><u>MAX_STEP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Maximum step number (the program will stop if ITERATION >= MAX_STEP even if NUM_STEPS has not been reached)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  10
+<TR><TD WITDH="20%"><A NAME="ITERATION"><u>ITERATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the iteration number from which it should be counted</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="TEMP"><u>TEMP</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The temperature you want to simulate</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     3.0000000000000000E+02
+K<TR><TD WITDH="20%"><A NAME="T_TOL"><u>T_TOL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>threshold for the oscillations of the temperature excedeed which the temperature is rescaled. 0 means no rescaling.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     0.0000000000000000E+00
+K<TR><TD WIDTH="10%"><TD>variants: TEMP_TO<TR><TD WITDH="20%"><A NAME="DT"><u>DT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">dt 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>timestep (might be subdivised in nrespa subtimesteps</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [fs], default value:     9.9999999999999989E-01
+fs<TR><TD WITDH="20%"><A NAME="HARM_INT"><u>HARM_INT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">HARM_INT (NUMERIC|EXACT)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>integrator scheme for integrating the harmonic bead springs.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NUMERIC
+<TR><TD WIDTH="10%"><TD>  valid keywords: NUMERIC, EXACT<TR><TD WITDH="20%"><A NAME="NRESPA"><u>NRESPA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>number of respa steps for the bead for each md step</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  5
+<TR><TD WITDH="20%"><A NAME="TRANSFORMATION"><u>TRANSFORMATION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRANSFORMATION (NORMAL|STAGE)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the coordinate transformation to use</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NORMAL
+<TR><TD WIDTH="10%"><TD>  valid keywords: NORMAL, STAGE<TR><TD WITDH="20%"><A NAME="PROPAGATOR"><u>PROPAGATOR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PROPAGATOR (PIMD|RPMD)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the real time propagator to use</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  PIMD
+<TR><TD WIDTH="10%"><TD>  valid keywords: PIMD, RPMD<TR><TD WITDH="20%"><A NAME="FIX_CENTROID_POS"><u>FIX_CENTROID_POS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Propagate all DOF but the centroid - useful for equilibration of the non-centroid modes (activated only if TRANSFORMATION==NORMAL)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

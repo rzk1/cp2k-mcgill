@@ -1,0 +1,40 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ADIABATIC_RESCALING                                                             </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ADIABATIC_RESCALING                                                              </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC.html">XC</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~XC~ADIABATIC_RESCALING.html">ADIABATIC_RESCALING</A>.
+<BR><BR>Parameters for self interation corrected hybrid functionals. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#FUNCTIONAL_TYPE">FUNCTIONAL_TYPE </A>
+<LI><A HREF="#LAMBDA">LAMBDA </A>
+<LI><A HREF="#OMEGA">OMEGA </A>
+<LI><A HREF="#FUNCTIONAL_MODEL">FUNCTIONAL_MODEL </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="FUNCTIONAL_TYPE"><u>FUNCTIONAL_TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FUNCTIONAL_TYPE MCY3
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which Hybrid functional should be used. (Has to be consistent with the definitions in XC and HF).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  MCY3
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>MCY3</code>: Use MCY3 hybrid functional</li>
+</ul><TR><TD WITDH="20%"><A NAME="LAMBDA"><u>LAMBDA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LAMBDA 0.71
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The point to be used along the adiabatic curve (0 &lt; &lambda; &lt; 1)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     7.0999999999999996E-01
+<TR><TD WITDH="20%"><A NAME="OMEGA"><u>OMEGA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OMEGA 0.2
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Long-range parameter</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.0000000000000001E-01
+<TR><TD WITDH="20%"><A NAME="FUNCTIONAL_MODEL"><u>FUNCTIONAL_MODEL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FUNCTIONAL_MODEL PADE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Which model for the coupling constant integration should be used.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  PADE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>PADE</code>: Use pade model: W(lambda)=a+(b*lambda)/(1+c*lambda)</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,99 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CELL_OPT                                                                        </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CELL_OPT                                                                         </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~CELL_OPT.html">CELL_OPT</A>.
+<BR><BR>This section sets the environment for the optimization of the simulation cell. Two possible schemes are available: (1) Zero temperature optimization;  (2) Finite temperature optimization. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CELL_OPT~LBFGS.html">LBFGS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CELL_OPT~CG.html">CG </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CELL_OPT~BFGS.html">BFGS </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~CELL_OPT~PRINT.html">PRINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#OPTIMIZER">OPTIMIZER </A>
+<LI><A HREF="#MAX_ITER">MAX_ITER </A>
+<LI><A HREF="#MAX_DR">MAX_DR </A>
+<LI><A HREF="#MAX_FORCE">MAX_FORCE </A>
+<LI><A HREF="#RMS_DR">RMS_DR </A>
+<LI><A HREF="#RMS_FORCE">RMS_FORCE </A>
+<LI><A HREF="#STEP_START_VAL">STEP_START_VAL </A>
+<LI><A HREF="#TYPE">TYPE </A>
+<LI><A HREF="#EXTERNAL_PRESSURE">EXTERNAL_PRESSURE </A>
+<LI><A HREF="#KEEP_ANGLES">KEEP_ANGLES </A>
+<LI><A HREF="#KEEP_SYMMETRY">KEEP_SYMMETRY </A>
+<LI><A HREF="#PRESSURE_TOLERANCE">PRESSURE_TOLERANCE </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="OPTIMIZER"><u>OPTIMIZER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">OPTIMIZER {BFGS|LBFGS|CG}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify which method to use to perform a geometry optimization.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  BFGS
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>BFGS</code>: Most efficient minimizer, but only for 'small' systems, as it relies on diagonalization of a full Hessian matrix</li>
+<li><code>LBFGS</code>: Limit memory variant of the above, can also be applied to large systems, not as well fine-tuned</li>
+<li><code>CG</code>: conjugate gradients, robust minimizer (depending on the line search) also OK for large systems</li>
+</ul><TR><TD WIDTH="10%"><TD>variants: MINIMIZER<BR> This keyword cites following reference: 
+<A HREF="references.html#reference_66" TITLE="
+ BYRD, RH; LU, PH; NOCEDAL, J; ZHU, CY. 
+ SIAM JOURNAL ON SCIENTIFIC COMPUTING, 16 (5), 1190-1208 (1995). 
+ A LIMITED MEMORY ALGORITHM FOR BOUND CONSTRAINED OPTIMIZATION.
+ http://dx.doi.org/10.1137/0916069
+">[BYRD1995]</A>
+<TR><TD WITDH="20%"><A NAME="MAX_ITER"><u>MAX_ITER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_ITER {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the maximum number of geometry optimization steps. One step might imply several force evaluations for the CG and LBFGS optimizers.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  200
+<TR><TD WITDH="20%"><A NAME="MAX_DR"><u>MAX_DR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_DR {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the maximum geometry change between the current and the last optimizer iteration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     3.0000000000000001E-03
+bohr<TR><TD WITDH="20%"><A NAME="MAX_FORCE"><u>MAX_FORCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MAX_FORCE {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the maximum force component of the current configuration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr^-1*hartree], default value:     4.4999999999999999E-04
+bohr^-1*hartree<TR><TD WITDH="20%"><A NAME="RMS_DR"><u>RMS_DR</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RMS_DR {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the root mean square (RMS) geometry change between the current and the last optimizer iteration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr], default value:     1.5000000000000000E-03
+bohr<TR><TD WITDH="20%"><A NAME="RMS_FORCE"><u>RMS_FORCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">RMS_FORCE {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence criterion for the root mean square (RMS) force of the current configuration.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bohr^-1*hartree], default value:     2.9999999999999997E-04
+bohr^-1*hartree<TR><TD WITDH="20%"><A NAME="STEP_START_VAL"><u>STEP_START_VAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">step_start_val <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The starting step value for the CELL_OPT module.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="TYPE"><u>TYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TYPE (GEO_OPT|MD|DIRECT_CELL_OPT)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify which kind of method to use for the optimization of the simulation cell</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  DIRECT_CELL_OPT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>GEO_OPT</code>: Performs a geometry optimization (the GEO_OPT section must be defined) between cell optimization steps.  The stress tensor is computed at the optimized geometry.</li>
+<li><code>MD</code>: Performs a molecular dynamics run (the MD section needs must defined) for computing the stress tensor  used for the cell optimization.</li>
+<li><code>DIRECT_CELL_OPT</code>: Performs a geometry and cell optimization at the same time. The stress tensor is computed at every step</li>
+</ul><TR><TD WITDH="20%"><A NAME="EXTERNAL_PRESSURE"><u>EXTERNAL_PRESSURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EXTERNAL_PRESSURE {REAL} .. {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the external pressure (1 value or the full 9 components of the pressure tensor) applied during the cell optimization.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of reals. Default unit: [bar], default value:     1.0000000000000000E+02    0.0000000000000000E+00    0.0000000000000000E+00    0.0000000000000000E+00 \
+    1.0000000000000000E+02    0.0000000000000000E+00    0.0000000000000000E+00    0.0000000000000000E+00    1.0000000000000000E+02
+bar<TR><TD WITDH="20%"><A NAME="KEEP_ANGLES"><u>KEEP_ANGLES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KEEP_ANGLES TRUE
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Keep angles between the cell vectors constant, but allow the lenghts of the cell vectors to change independently. Albeit general, this is most useful for triclinic cells, to enforce higher symmetry, see KEEP_SYMMETRY.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="KEEP_SYMMETRY"><u>KEEP_SYMMETRY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KEEP_SYMMETRY yes
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Keep the requested initial cell symmetry (e.g. during a cell optimisation). The initial symmetry must be specified in the &CELL section.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="PRESSURE_TOLERANCE"><u>PRESSURE_TOLERANCE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PRESSURE_TOLERANCE {REAL}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the Pressure tolerance (compared to the external pressure) to achieve during the cell optimization.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [bar], default value:     1.0000000000000000E+02
+bar</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

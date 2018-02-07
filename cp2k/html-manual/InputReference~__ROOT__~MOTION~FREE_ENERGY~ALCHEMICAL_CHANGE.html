@@ -1,0 +1,37 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section ALCHEMICAL_CHANGE                                                               </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section ALCHEMICAL_CHANGE                                                                </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY.html">FREE_ENERGY</A>%<A HREF="InputReference~__ROOT__~MOTION~FREE_ENERGY~ALCHEMICAL_CHANGE.html">ALCHEMICAL_CHANGE</A>.
+<BR><BR>Controls the calculation of delta free energies with the alchemical change method. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#PARAMETER">PARAMETER </A>
+<LI><A HREF="#WEIGHTING_FUNCTION">WEIGHTING_FUNCTION </A>
+<LI><A HREF="#EPS_CONV">EPS_CONV </A>
+<LI><A HREF="#NEQUIL_STEPS">NEQUIL_STEPS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="PARAMETER"><u>PARAMETER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARAMETERS k
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Defines the perturbing parameter of the alchemical change tranformation</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word<TR><TD WITDH="20%"><A NAME="WEIGHTING_FUNCTION"><u>WEIGHTING_FUNCTION</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WEIGHTING_FUNCTION (E1+E2-LOG(E1/E2))
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the weighting function (umbrella potential, part of the mixing function)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: 0
+<TR><TD WITDH="20%"><A NAME="EPS_CONV"><u>EPS_CONV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_CONV <REAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the relative tolerance for the convergence of the free energy derivative</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-02
+<TR><TD WITDH="20%"><A NAME="NEQUIL_STEPS"><u>NEQUIL_STEPS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NEQUIL_STEPS <INTEGER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Set the number of equilibration steps, skipped to compute averages</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

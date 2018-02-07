@@ -1,0 +1,34 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section DISTANCE_FUNCTION                                                               </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section DISTANCE_FUNCTION                                                                </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR.html">COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH.html">DISTANCE_FROM_PATH</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH~COLVAR.html">COLVAR</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH~COLVAR~DISTANCE_FUNCTION.html">DISTANCE_FUNCTION</A>.
+<BR><BR>Section to define functions between two distances as collective variables. The function is defined as d1+coeff*d2. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~COLVAR~DISTANCE_FROM_PATH~COLVAR~DISTANCE_FUNCTION~POINT.html">POINT </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ATOMS">ATOMS </A>
+<LI><A HREF="#COEFFICIENT">COEFFICIENT </A>
+<LI><A HREF="#PBC">PBC </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ATOMS"><u>ATOMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ATOMS {integer} {integer} {integer} {integer}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the indexes of atoms/points for the two bonds d1=(1-2) d2=(3-4).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     4 integers<TR><TD WIDTH="10%"><TD>variants: POINTS<TR><TD WITDH="20%"><A NAME="COEFFICIENT"><u>COEFFICIENT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COEFFICIENT {real}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the coefficient in the function for the constraint. -1.0 has to be used for distance difference, 1.0 for distance addition</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real<TR><TD WITDH="20%"><A NAME="PBC"><u>PBC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PBC
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether periodic boundary conditions should be applied on the atomic position before computing the colvar or not.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

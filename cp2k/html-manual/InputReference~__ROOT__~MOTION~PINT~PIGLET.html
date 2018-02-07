@@ -1,0 +1,43 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section PIGLET                                                                          </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section PIGLET                                                                           </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~MOTION.html">MOTION</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT.html">PINT</A>%<A HREF="InputReference~__ROOT__~MOTION~PINT~PIGLET.html">PIGLET</A>.
+<BR><BR>Controls the PI Generalized Langevin Equation thermostat. Needs the exact harmonic integrator. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_1" TITLE="
+ Ceriotti, M; Manolopoulos, D. 
+ PHYSICAL REVIEW LETTERS, 109 (10), 100604 (2012). 
+ Efficient First-Principles Calculation of the Quantum Kinetic Energy and Momentum Distribution of Nuclei.
+ http://dx.doi.org/10.1103/PhysRevLett.109.100604
+">[Ceriotti2012]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~PIGLET~RNG_INIT.html">RNG_INIT </A>
+<LI><A HREF="InputReference~__ROOT__~MOTION~PINT~PIGLET~EXTRA_DOF.html">EXTRA_DOF </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#NEXTRA_DOF">NEXTRA_DOF </A>
+<LI><A HREF="#MATRICES_FILE_NAME">MATRICES_FILE_NAME </A>
+<LI><A HREF="#SMATRIX_INIT">SMATRIX_INIT </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="NEXTRA_DOF"><u>NEXTRA_DOF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of extra degrees of freedom to ensure markovian dynamics</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  8
+<TR><TD WITDH="20%"><A NAME="MATRICES_FILE_NAME"><u>MATRICES_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Filename containig the raw matrices from https://epfl-cosmo.github.io/gle4md/index.html?page=matrix</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string. Default value: PIGLET.MAT
+<TR><TD WITDH="20%"><A NAME="SMATRIX_INIT"><u>SMATRIX_INIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SMATRIX_INIT (CHOLESKY|DIAGONAL)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Select algorithm to initialize piglet S-matrices</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CHOLESKY
+<TR><TD WIDTH="10%"><TD>  valid keywords: CHOLESKY, DIAGONAL</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

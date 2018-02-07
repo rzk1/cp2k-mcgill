@@ -1,6 +1,6 @@
 !--------------------------------------------------------------------------------------------------!
 !   CP2K: A general program to perform molecular dynamics simulations                              !
-!   Copyright (C) 2000 - 2017  CP2K developers group                                               !
+!   Copyright (C) 2000 - 2018  CP2K developers group                                               !
 !--------------------------------------------------------------------------------------------------!
 
 ! **************************************************************************************************
@@ -129,7 +129,8 @@ MODULE input_constants
                                                ehrenfest = 16, &
                                                do_tamc = 17, &
                                                tree_mc_run = 18, &
-                                               driver_run = 19
+                                               driver_run = 19, &
+                                               negf_run = 20
 
    ! Run Types of Atom Code
    INTEGER, PARAMETER, PUBLIC               :: atom_no_run = 1, &
@@ -160,15 +161,14 @@ MODULE input_constants
                                                do_dkh0_atom = 110, &
                                                do_dkh1_atom = 111, &
                                                do_dkh2_atom = 112, &
-                                               do_dkh3_atom = 113, &
-                                               do_dkh4_atom = 114, &
-                                               do_dkh5_atom = 115
+                                               do_dkh3_atom = 113
 
    ! Pseudopotential type for Atom Code
    INTEGER, PARAMETER, PUBLIC               :: no_pseudo = 0, &
                                                gth_pseudo = 1, &
                                                upf_pseudo = 2, &
-                                               ecp_pseudo = 3
+                                               ecp_pseudo = 3, &
+                                               sgp_pseudo = 4
    ! Confinement type for Atom Code
    INTEGER, PARAMETER, PUBLIC               :: no_conf = 0, &
                                                poly_conf = 1, &
@@ -239,6 +239,7 @@ MODULE input_constants
                                                do_method_gapw_xc = 2, &
                                                do_method_gpw = 3, &
                                                do_method_lrigpw = 4, &
+                                               do_method_rigpw = 5, &
                                                do_method_mndo = 7, &
                                                do_method_am1 = 8, &
                                                do_method_pm3 = 9, &
@@ -250,7 +251,7 @@ MODULE input_constants
                                                do_method_pchg = 15, &
                                                do_method_pnnl = 16, &
                                                do_method_ofgpw = 17, &
-                                               do_method_scptb = 18
+                                               do_method_pm6fm = 18
 
    INTEGER, PARAMETER, PUBLIC               :: do_multipole_section_on = 0, &
                                                do_multipole_section_off = 1
@@ -323,7 +324,8 @@ MODULE input_constants
                                                denominator_rperp2 = 4
 
    ! helium-sampling algorithms
-   INTEGER, PARAMETER, PUBLIC               :: helium_sampling_ceperley = 0
+   INTEGER, PARAMETER, PUBLIC               :: helium_sampling_ceperley = 0, &
+                                               helium_sampling_worm = 1
 
    ! distribution types for sampling path lengths
    INTEGER, PARAMETER, PUBLIC               :: helium_mdist_singlev = 1, &
@@ -680,6 +682,12 @@ MODULE input_constants
    INTEGER, PARAMETER, PUBLIC               :: ot2cdft = 101, &
                                                cdft2ot = 102
 
+   ! CDFT constraint type definitions
+   INTEGER, PARAMETER, PUBLIC               :: cdft_charge_constraint = 820, &
+                                               cdft_magnetization_constraint = 821, &
+                                               cdft_alpha_constraint = 822, &
+                                               cdft_beta_constraint = 823
+
    ! ROKS schemes
    INTEGER, PARAMETER, PUBLIC               :: general_roks = 1, &
                                                high_spin_roks = 2
@@ -690,7 +698,8 @@ MODULE input_constants
                                                mix_coupled = 703, &
                                                mix_restrained = 704, &
                                                mix_generic = 705, &
-                                               mix_mymix = 706
+                                               mix_mymix = 706, &
+                                               mix_cdft = 707
 
    ! cost models for distribution 2d
    INTEGER, PARAMETER, PUBLIC               :: model_block_count = 453, &
@@ -929,7 +938,11 @@ MODULE input_constants
    ! G0W0 parameter
    INTEGER, PARAMETER, PUBLIC               :: ri_rpa_g0w0_crossing_none = 0, &
                                                ri_rpa_g0w0_crossing_z_shot = 1, &
-                                               ri_rpa_g0w0_crossing_newton = 2
+                                               ri_rpa_g0w0_crossing_newton = 2, &
+                                               ri_rpa_g0w0_crossing_bisection = 3
+
+   INTEGER, PARAMETER, PUBLIC               :: gw_pade_approx = 0, &
+                                               gw_two_pole_model = 1
 
    ! periodic RESP parameters
    INTEGER, PARAMETER, PUBLIC               :: do_resp_x_dir = 0, &
@@ -973,7 +986,9 @@ MODULE input_constants
                                                kg_color_greedy = 1
    ! kg kinetic energy embedding potential
    INTEGER, PARAMETER, PUBLIC               :: kg_tnadd_embed = 100, &
-                                               kg_tnadd_atomic = 200
+                                               kg_tnadd_embed_ri = 101, &
+                                               kg_tnadd_atomic = 200, &
+                                               kg_tnadd_none = 300
 
    ! kg energy corrections
    INTEGER, PARAMETER, PUBLIC               :: kg_ec_diagonalization = 1001
@@ -1030,7 +1045,9 @@ MODULE input_constants
                                                rlaxisint_trapezoidal = 32, &
                                                rlaxisint_readfromfile = 33, &
                                                rho_negf = 41, &
-                                               rho_qtbm = 42
+                                               rho_qtbm = 42, &
+                                               neutlead_bs = 51, &
+                                               neutlead_dos = 52
 
    ! Active Space Section: orbital selection methods
    INTEGER, PARAMETER, PUBLIC               :: casci_canonical = 100, &
@@ -1045,6 +1062,22 @@ MODULE input_constants
                                                eri_operator_gaussian = 5
 
    INTEGER, PARAMETER, PUBLIC               :: do_eri_gpw = 0, &
-                                               do_eri_mme = 1
+                                               do_eri_mme = 1, &
+                                               do_eri_os = 2
+
+   ! Cell optimisation constraints
+   INTEGER, PARAMETER, PUBLIC               :: fix_none = 0, &
+                                               fix_x = 1, &
+                                               fix_y = 2, &
+                                               fix_z = 3, &
+                                               fix_xy = 4, &
+                                               fix_xz = 5, &
+                                               fix_yz = 6
+
+   ! Non-equilibrium Green's function method
+   INTEGER, PARAMETER, PUBLIC               :: negfint_method_cc = 0, &
+                                               negfint_method_simpson = 1
+   INTEGER, PARAMETER, PUBLIC               :: negfrun_main = 0, &
+                                               negfrun_fermilevel = 1
 
 END MODULE input_constants

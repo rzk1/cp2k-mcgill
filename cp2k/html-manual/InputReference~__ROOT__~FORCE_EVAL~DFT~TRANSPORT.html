@@ -1,0 +1,177 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section TRANSPORT                                                                       </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section TRANSPORT                                                                        </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT.html">TRANSPORT</A>.
+<BR><BR>Specifies the parameters for transport, sets parameters for the OMEN code, see also http://www.nano-tcad.ethz.ch/. This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_157" TITLE="
+ Bruck, S; Calderara, M; Bani-Hashemian, MH; VandeVondele, J;
+ Luisier, M. 
+ 2014 INTERNATIONAL WORKSHOP ON COMPUTATIONAL ELECTRONICS (IWCE), (2014). 
+ Towards ab-initio simulations of nanowire field-effect transistors.
+ http://dx.doi.org/10.1109/IWCE.2014.6865831
+">[Bruck2014]</A>
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT~CONTACT.html">CONTACT </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT~BEYN.html">BEYN </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~TRANSPORT~PEXSI.html">PEXSI </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#TRANSPORT_METHOD">TRANSPORT_METHOD </A>
+<LI><A HREF="#QT_FORMALISM">QT_FORMALISM </A>
+<LI><A HREF="#NUM_POLE">NUM_POLE </A>
+<LI><A HREF="#N_KPOINTS">N_KPOINTS </A>
+<LI><A HREF="#NUM_INTERVAL">NUM_INTERVAL </A>
+<LI><A HREF="#TASKS_PER_ENERGY_POINT">TASKS_PER_ENERGY_POINT </A>
+<LI><A HREF="#TASKS_PER_POLE">TASKS_PER_POLE </A>
+<LI><A HREF="#GPUS_PER_POINT">GPUS_PER_POINT </A>
+<LI><A HREF="#COLZERO_THRESHOLD">COLZERO_THRESHOLD </A>
+<LI><A HREF="#EPS_LIMIT">EPS_LIMIT </A>
+<LI><A HREF="#EPS_LIMIT_CC">EPS_LIMIT_CC </A>
+<LI><A HREF="#EPS_DECAY">EPS_DECAY </A>
+<LI><A HREF="#EPS_SINGULARITY_CURVATURES">EPS_SINGULARITY_CURVATURES </A>
+<LI><A HREF="#EPS_MU">EPS_MU </A>
+<LI><A HREF="#EPS_EIGVAL_DEGEN">EPS_EIGVAL_DEGEN </A>
+<LI><A HREF="#EPS_FERMI">EPS_FERMI </A>
+<LI><A HREF="#ENERGY_INTERVAL">ENERGY_INTERVAL </A>
+<LI><A HREF="#MIN_INTERVAL">MIN_INTERVAL </A>
+<LI><A HREF="#TEMPERATURE">TEMPERATURE </A>
+<LI><A HREF="#CSR_SCREENING">CSR_SCREENING </A>
+<LI><A HREF="#LINEAR_SOLVER">LINEAR_SOLVER </A>
+<LI><A HREF="#MATRIX_INVERSION_METHOD">MATRIX_INVERSION_METHOD </A>
+<LI><A HREF="#INJECTION_METHOD">INJECTION_METHOD </A>
+<LI><A HREF="#CUTOUT">CUTOUT </A>
+<LI><A HREF="#REAL_AXIS_INTEGRATION_METHOD">REAL_AXIS_INTEGRATION_METHOD </A>
+<LI><A HREF="#N_POINTS_INV">N_POINTS_INV </A>
+<LI><A HREF="#OBC_EQUILIBRIUM">OBC_EQUILIBRIUM </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="TRANSPORT_METHOD"><u>TRANSPORT_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TRANSPORT_METHOD <method>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Preferred method for transport calculations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  TRANSPORT
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>TRANSPORT</code>: self-consistent CP2K and OMEN transport calculations</li>
+<li><code>LOCAL_SCF</code>: CP2K valence Hamiltonian + OMEN self-consistent calculations on conduction electrons</li>
+<li><code>TRANSMISSION</code>: self-consistent transmission calculations without applied bias voltage</li>
+</ul><TR><TD WITDH="20%"><A NAME="QT_FORMALISM"><u>QT_FORMALISM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">QT_FORMALISM <method>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Preferred quantum transport formalism to compute the current and density.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  QTBM
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NEGF</code>: The non-equilibrium Green's function formalism.</li>
+<li><code>QTBM</code>: The quantum transmitting boundary method / wave-function formalism.</li>
+</ul><TR><TD WITDH="20%"><A NAME="NUM_POLE"><u>NUM_POLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUM_POLE <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of terms in the PEXSI's pole expansion method.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  64
+<TR><TD WITDH="20%"><A NAME="N_KPOINTS"><u>N_KPOINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_KPOINTS <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of k points for determination of the singularities.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  64
+<TR><TD WITDH="20%"><A NAME="NUM_INTERVAL"><u>NUM_INTERVAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">NUM_INTERVAL <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Max number of energy points per small interval.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  10
+<TR><TD WITDH="20%"><A NAME="TASKS_PER_ENERGY_POINT"><u>TASKS_PER_ENERGY_POINT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TASKS_PER_ENERGY_POINT <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of tasks per energy point. The value should be a divisor of the total number of MPI ranks.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="TASKS_PER_POLE"><u>TASKS_PER_POLE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TASKS_PER_POLE <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of tasks per pole in the pole expansion method. The value should be a divisor of the total number of MPI ranks.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  1
+<TR><TD WITDH="20%"><A NAME="GPUS_PER_POINT"><u>GPUS_PER_POINT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">GPUS_PER_POINT <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of GPUs per energy point for SplitSolve. Needs to be a power of two</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  2
+<TR><TD WITDH="20%"><A NAME="COLZERO_THRESHOLD"><u>COLZERO_THRESHOLD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">COLZERO_THRESHOLD <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The smallest number that is not zero in the full diagonalization part.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999998E-13
+<TR><TD WITDH="20%"><A NAME="EPS_LIMIT"><u>EPS_LIMIT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_LIMIT <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The smallest eigenvalue that is kept.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-04
+<TR><TD WITDH="20%"><A NAME="EPS_LIMIT_CC"><u>EPS_LIMIT_CC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_LIMIT_CC <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The smallest eigenvalue that is kept on the complex contour.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="EPS_DECAY"><u>EPS_DECAY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_DECAY <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The smallest imaginary part that a decaying eigenvalue may have not to be considered as propagating.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-04
+<TR><TD WITDH="20%"><A NAME="EPS_SINGULARITY_CURVATURES"><u>EPS_SINGULARITY_CURVATURES</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_SINGULARITY_CURVATURES <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Filter for degenerate bands in the bandstructure.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999998E-13
+<TR><TD WITDH="20%"><A NAME="EPS_MU"><u>EPS_MU</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_MU <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Accuracy to which the Fermi level should be determined.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="EPS_EIGVAL_DEGEN"><u>EPS_EIGVAL_DEGEN</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_EIGVAL_DEGEN <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Filter for degenerate bands in the injection vector.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="EPS_FERMI"><u>EPS_FERMI</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_FERMI <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Cutoff for the tail of the Fermi function.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="ENERGY_INTERVAL"><u>ENERGY_INTERVAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ENERGY_INTERVAL <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Distance between energy points in eV.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-03
+<TR><TD WITDH="20%"><A NAME="MIN_INTERVAL"><u>MIN_INTERVAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MIN_INTERVAL <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Smallest enery distance in energy vector.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E-04
+<TR><TD WITDH="20%"><A NAME="TEMPERATURE"><u>TEMPERATURE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">TEMPERATURE [K] 300.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Temperature.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default unit: [K], default value:     3.0000000000000000E+02
+K<TR><TD WITDH="20%"><A NAME="CSR_SCREENING"><u>CSR_SCREENING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Whether distance screening should be applied to improve sparsity of CSR matrices.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="LINEAR_SOLVER"><u>LINEAR_SOLVER</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">LINEAR_SOLVER <solver>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Preferred solver for solving the linear system of equations.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FULL
+<TR><TD WIDTH="10%"><TD>  valid keywords: SPLITSOLVE, SUPERLU, MUMPS, FULL, BANDED, PARDISO, UMFPACK<TR><TD WITDH="20%"><A NAME="MATRIX_INVERSION_METHOD"><u>MATRIX_INVERSION_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MATRIX_INVERSION_METHOD <solver>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Preferred matrix inversion method.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  FULL
+<TR><TD WIDTH="10%"><TD>  valid keywords: FULL, PEXSI, PARDISO, RGF<TR><TD WITDH="20%"><A NAME="INJECTION_METHOD"><u>INJECTION_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">INJECTION_METHOD <method>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Method to solve the eigenvalue problem for the open boundary conditions.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  BEYN
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>EVP</code>: Full eigenvalue solver.</li>
+<li><code>BEYN</code>: Beyn eigenvalue solver.</li>
+</ul><TR><TD WITDH="20%"><A NAME="CUTOUT"><u>CUTOUT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CUTOUT <integer> <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>The number of atoms at the beginning and the end of the structure where the density should not be changed.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     2 integers. Default value:  0 0
+<TR><TD WITDH="20%"><A NAME="REAL_AXIS_INTEGRATION_METHOD"><u>REAL_AXIS_INTEGRATION_METHOD</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REAL_AXIS_INTEGRATION_METHOD <method>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Integration method for the real axis.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  GAUSS_CHEBYSHEV
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>GAUSS_CHEBYSHEV</code>: Gauss-Chebyshev integration between singularity points.</li>
+<li><code>TRAPEZOIDAL_RULE</code>: Trapezoidal rule on the total range.</li>
+<li><code>READ</code>: Read integration points from a file (named E.dat).</li>
+</ul><TR><TD WITDH="20%"><A NAME="N_POINTS_INV"><u>N_POINTS_INV</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">N_POINTS_INV <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of integration points for the sigma solver on the complex contour.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  64
+<TR><TD WITDH="20%"><A NAME="OBC_EQUILIBRIUM"><u>OBC_EQUILIBRIUM</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Compute the equilibrium density with open boundary conditions.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

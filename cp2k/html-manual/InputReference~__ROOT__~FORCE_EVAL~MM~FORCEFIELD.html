@@ -1,0 +1,85 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section FORCEFIELD                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section FORCEFIELD                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM.html">MM</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD.html">FORCEFIELD</A>.
+<BR><BR>Section specifying information regarding how to set up properly a force_field for the classical calculations. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~SPLINE.html">SPLINE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~NONBONDED.html">NONBONDED </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~NONBONDED14.html">NONBONDED14 </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~CHARGE.html">CHARGE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~CHARGES.html">CHARGES </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~SHELL.html">SHELL </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~BOND.html">BOND </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~BEND.html">BEND </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~TORSION.html">TORSION </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~IMPROPER.html">IMPROPER </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~OPBEND.html">OPBEND </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~DIPOLE.html">DIPOLE </A>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~MM~FORCEFIELD~QUADRUPOLE.html">QUADRUPOLE </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#PARMTYPE">PARMTYPE </A>
+<LI><A HREF="#PARM_FILE_NAME">PARM_FILE_NAME </A>
+<LI><A HREF="#VDW_SCALE14">VDW_SCALE14 </A>
+<LI><A HREF="#EI_SCALE14">EI_SCALE14 </A>
+<LI><A HREF="#SHIFT_CUTOFF">SHIFT_CUTOFF </A>
+<LI><A HREF="#DO_NONBONDED">DO_NONBONDED </A>
+<LI><A HREF="#IGNORE_MISSING_CRITICAL_PARAMS">IGNORE_MISSING_CRITICAL_PARAMS </A>
+<LI><A HREF="#MULTIPLE_POTENTIAL">MULTIPLE_POTENTIAL </A>
+<LI><A HREF="#ZBL_SCATTERING">ZBL_SCATTERING </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="PARMTYPE"><u>PARMTYPE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARMTYPE {OFF,CHM,G87,G96}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Define the kind of torsion potential</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  OFF
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>OFF</code>: Provides force field parameters through the input file</li>
+<li><code>CHM</code>: Provides force field parameters through an external file with CHARMM format</li>
+<li><code>G87</code>: Provides force field parameters through an external file with GROMOS 87 format</li>
+<li><code>G96</code>: Provides force field parameters through an external file with GROMOS 96 format</li>
+<li><code>AMBER</code>: Provides force field parameters through an external file with AMBER format (from v.8 on)</li>
+</ul><TR><TD WITDH="20%"><A NAME="PARM_FILE_NAME"><u>PARM_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARM_FILE_NAME {FILENAME}
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the filename that contains the parameters of the FF.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string<TR><TD WITDH="20%"><A NAME="VDW_SCALE14"><u>VDW_SCALE14</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VDW_SCALE14 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scaling factor for the VDW 1-4</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     1.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="EI_SCALE14"><u>EI_SCALE14</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EI_SCALE14 1.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Scaling factor for the electrostatics 1-4</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     0.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="SHIFT_CUTOFF"><u>SHIFT_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SHIFT_CUTOFF <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Add a constant energy shift to the real-space non-bonding interactions (both Van der Waals and electrostatic) such that the energy at the cutoff radius is zero. This makes the non-bonding interactions continuous at the cutoff.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical. Default value:  T
+<TR><TD WITDH="20%"><A NAME="DO_NONBONDED"><u>DO_NONBONDED</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">DO_NONBONDED T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Controls the computation of all the real-space (short-range) nonbonded interactions. This also includes the real-space corrections for excluded or scaled 1-2, 1-3 and 1-4 interactions. When set to F, the neighborlists are not created and all interactions that depend on them are not computed.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  T
+<TR><TD WITDH="20%"><A NAME="IGNORE_MISSING_CRITICAL_PARAMS"><u>IGNORE_MISSING_CRITICAL_PARAMS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">IGNORE_MISSING_BOND_PARAMS T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Do not abort when critical force-field parameters are missing. CP2K will run as if the terms containing the missing parameters are zero.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="MULTIPLE_POTENTIAL"><u>MULTIPLE_POTENTIAL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MULTIPLE_POTENTIAL T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Enables the possibility to define NONBONDED and NONBONDED14 as a sum of different kinds of potential. Useful for piecewise defined potentials.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="ZBL_SCATTERING"><u>ZBL_SCATTERING</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ZBL_SCATTERING T
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>A short range repulsive potential is added, to simulate collisions and scattering.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

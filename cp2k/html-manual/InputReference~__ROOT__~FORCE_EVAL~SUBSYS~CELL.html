@@ -1,0 +1,78 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section CELL                                                                            </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section CELL                                                                             </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS.html">SUBSYS</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~CELL.html">CELL</A>.
+<BR><BR>Input parameters needed to set up the CELL. This section can not be repeated.
+<H2> Subsections</H2>
+<UL>
+<LI><A HREF="InputReference~__ROOT__~FORCE_EVAL~SUBSYS~CELL~CELL_REF.html">CELL_REF </A>
+</UL>
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#A">A </A>
+<LI><A HREF="#B">B </A>
+<LI><A HREF="#C">C </A>
+<LI><A HREF="#ABC">ABC </A>
+<LI><A HREF="#ALPHA_BETA_GAMMA">ALPHA_BETA_GAMMA </A>
+<LI><A HREF="#CELL_FILE_NAME">CELL_FILE_NAME </A>
+<LI><A HREF="#CELL_FILE_FORMAT">CELL_FILE_FORMAT </A>
+<LI><A HREF="#PERIODIC">PERIODIC </A>
+<LI><A HREF="#MULTIPLE_UNIT_CELL">MULTIPLE_UNIT_CELL </A>
+<LI><A HREF="#SYMMETRY">SYMMETRY </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="A"><u>A</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">A  10.000  0.000  0.000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the Cartesian components for the cell vector A. This defines the first column of the h matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="B"><u>B</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">B   0.000 10.000  0.000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the Cartesian components for the cell vector B. This defines the second column of the h matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="C"><u>C</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">C   0.000  0.000 10.000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the Cartesian components for the cell vector C. This defines the third column of the h matrix.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="ABC"><u>ABC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ABC 10.000 10.000 10.000
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the lengths of the cell vectors A, B, and C, which defines the diagonal elements of h matrix for an orthorhombic cell. For non-orthorhombic cells it is possible either to specify the angles ALPHA, BETA, GAMMA via ALPHA_BETA_GAMMA keyword or alternatively use the keywords A, B, and C. The convention is that A lies along the X-axis, B is in the XY plane.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [angstrom].<TR><TD WITDH="20%"><A NAME="ALPHA_BETA_GAMMA"><u>ALPHA_BETA_GAMMA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALPHA_BETA_GAMMA [deg] 90.0 90.0 120.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the angles between the vectors A, B and C when using the ABC keyword. The convention is that A lies along the X-axis, B is in the XY plane. ALPHA is the angle between B and C, BETA is the angle between A and C and GAMMA the angle between A and B.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals. Default unit: [deg], default value:     9.0000000000000000E+01    9.0000000000000000E+01    9.0000000000000000E+01
+deg<TR><TD WIDTH="10%"><TD>variants: ANGLES<TR><TD WITDH="20%"><A NAME="CELL_FILE_NAME"><u>CELL_FILE_NAME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CELL_FILE_NAME <CHARACTER>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Possibility to read the cell from an external file</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a string<TR><TD WITDH="20%"><A NAME="CELL_FILE_FORMAT"><u>CELL_FILE_FORMAT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">CELL_FILE_FORMAT (CP2K|XSC)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the format of the cell file (if used)</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  CP2K
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>CP2K</code>: Cell info in the CP2K native format.</li>
+<li><code>XSC</code>: Cell info in the XSC format (NAMD)</li>
+</ul><TR><TD WITDH="20%"><A NAME="PERIODIC"><u>PERIODIC</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PERIODIC (x|y|z|xy|xz|yz|xyz|none)
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the directions for which periodic boundary conditions (PBC) will be applied. Important notice: This applies to the generation of the pair lists as well as to the application of the PBCs to positions. See the POISSON section to specify the periodicity used for the electrostatics. Typically the settings should be the same.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  XYZ
+<TR><TD WIDTH="10%"><TD>  valid keywords: X, Y, Z, XY, XZ, YZ, XYZ, NONE<TR><TD WITDH="20%"><A NAME="MULTIPLE_UNIT_CELL"><u>MULTIPLE_UNIT_CELL</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">MULTIPLE_UNIT_CELL 1 1 1
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specifies the numbers of repetition in space (X, Y, Z) of the defined cell, assuming it as a unit cell. This keyword affects only the CELL specification. The same keyword in SUBSYS%TOPOLOGY%MULTIPLE_UNIT_CELL should be modified in order to affect the coordinates specification.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 integers. Default value:  1 1 1
+<TR><TD WITDH="20%"><A NAME="SYMMETRY"><u>SYMMETRY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SYMMETRY monoclinic
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Imposes an initial cell symmetry.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  NONE
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>NONE</code>: No cell symmetry</li>
+<li><code>TRICLINIC</code>: Triclinic (a &ne; b &ne; c &ne; a, &alpha; &ne; &beta; &ne; &gamma; &ne; &alpha; &ne; 90&deg;)</li>
+<li><code>MONOCLINIC</code>: Monoclinic (a &ne; b &ne; c &ne; a, &alpha; = &gamma; = 90&deg;, &beta; &ne; 90&deg;)</li>
+<li><code>ORTHORHOMBIC</code>: Orthorhombic (a &ne; b &ne; c, &alpha; = &beta; = &gamma; = 90&deg;)</li>
+<li><code>TETRAGONAL_AB</code>: Tetragonal (a = b &ne; c, &alpha; = &beta; = &gamma; = 90&deg;)</li>
+<li><code>TETRAGONAL_AC</code>: Tetragonal (a = c &ne; b, &alpha; = &beta; = &gamma; = 90&deg;)</li>
+<li><code>TETRAGONAL_BC</code>: Tetragonal (a &ne; b = c, &alpha; = &beta; = &gamma; = 90&deg;)</li>
+<li><code>TETRAGONAL</code>: Tetragonal (alias for TETRAGONAL_AB)</li>
+<li><code>RHOMBOHEDRAL</code>: Rhombohedral (a = b = c, &alpha; = &beta; = &gamma; &ne; 90&deg;)</li>
+<li><code>HEXAGONAL</code>: Hexagonal (a = b &ne; c, &alpha; = &beta; = 90&deg;, &gamma; = 60&deg;)</li>
+<li><code>CUBIC</code>: Cubic (a = b = c, &alpha; = &beta; = &gamma; = 90&deg;)</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

@@ -1,0 +1,36 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section MT                                                                              </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section MT                                                                               </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~POISSON.html">POISSON</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~POISSON~MT.html">MT</A>.
+<BR><BR>Sets up parameters of  Martyna-Tuckerman poisson solver. Note that exact results are only guaranteed if the unit cell is twice as large as charge density (and serious artefacts can result if the cell is much smaller). This section can not be repeated.
+<BR><BR> This section cites following reference: 
+<A HREF="references.html#reference_53" TITLE="
+ Martyna, GJ; Tuckerman, ME. 
+ JOURNAL OF CHEMICAL PHYSICS, 110 (6), 2810-2821 (1999). 
+ A reciprocal space based method for treating long range interactions in
+ ab initio and force-field-based calculations in clusters.
+ http://dx.doi.org/10.1063/1.477923
+">[Martyna1999]</A>
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#ALPHA">ALPHA </A>
+<LI><A HREF="#REL_CUTOFF">REL_CUTOFF </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="ALPHA"><u>ALPHA</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">ALPHA real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Convergence parameter ALPHA*RMIN. Default value 7.0</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     7.0000000000000000E+00
+<TR><TD WITDH="20%"><A NAME="REL_CUTOFF"><u>REL_CUTOFF</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">REL_CUTOFF real
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify the multiplicative factor for the CUTOFF keyword in MULTI_GRID  section. The result gives the cutoff at which the 1/r non-periodic FFT3D is evaluated.Default is 2.0</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     2.0000000000000000E+00
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

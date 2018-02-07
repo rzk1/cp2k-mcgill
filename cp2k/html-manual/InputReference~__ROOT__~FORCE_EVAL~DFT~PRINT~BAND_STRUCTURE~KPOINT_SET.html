@@ -1,0 +1,32 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section KPOINT_SET                                                                      </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section KPOINT_SET                                                                       </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT.html">PRINT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~BAND_STRUCTURE.html">BAND_STRUCTURE</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~PRINT~BAND_STRUCTURE~KPOINT_SET.html">KPOINT_SET</A>.
+<BR><BR>Specifies a k-point line to be calculated. This section can be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#SPECIAL_POINT">SPECIAL_POINT </A>
+<LI><A HREF="#NPOINTS">NPOINTS </A>
+<LI><A HREF="#UNITS">UNITS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="SPECIAL_POINT"><u>SPECIAL_POINT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SPECIAL_POINT 0.0 0.0 0.0
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Coordinates of a special k-point</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     3 reals, and may repeat<TR><TD WITDH="20%"><A NAME="NPOINTS"><u>NPOINTS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of k-points along the line.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  0
+<TR><TD WITDH="20%"><A NAME="UNITS"><u>UNITS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">UNITS <value>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Special k-points are defined either in units of reciprocal lattice vectors or in Cartesian coordinates in uints of 2Pi/len. B_VECTOR: in multiples of the reciprocal lattice vectors (b). CART_ANGSTROM: In units of 2*Pi/Angstrom. CART_BOHR: In units of 2*Pi/Bohr.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: B_VECTOR
+</TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>

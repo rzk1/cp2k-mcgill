@@ -1,0 +1,78 @@
+<HTML><BODY>
+<HEAD><TITLE> The CP2K project : input section KPOINTS                                                                         </TITLE></HEAD>
+<META NAME="description" content="CP2K">
+<META NAME="keywords" contents="scientific,computing,chemistry,physics,documentation,help,manual,Fortran,parallel">
+<H1> Section KPOINTS                                                                          </H1>
+ <A HREF="index.html">Index of all sections</A>. This section is located at 
+<A HREF="InputReference~__ROOT__.html">__ROOT__</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL.html">FORCE_EVAL</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT.html">DFT</A>%<A HREF="InputReference~__ROOT__~FORCE_EVAL~DFT~KPOINTS.html">KPOINTS</A>.
+<BR><BR>Sets up the kpoints. This section can not be repeated.
+<H2> Subsections</H2>
+None
+<H2> Section keywords </H2>
+<UL>
+<LI><A HREF="#SCHEME">SCHEME </A>
+<LI><A HREF="#KPOINT">KPOINT </A>
+<LI><A HREF="#UNITS">UNITS </A>
+<LI><A HREF="#SYMMETRY">SYMMETRY </A>
+<LI><A HREF="#FULL_GRID">FULL_GRID </A>
+<LI><A HREF="#VERBOSE">VERBOSE </A>
+<LI><A HREF="#EPS_GEO">EPS_GEO </A>
+<LI><A HREF="#PARALLEL_GROUP_SIZE">PARALLEL_GROUP_SIZE </A>
+<LI><A HREF="#WAVEFUNCTIONS">WAVEFUNCTIONS </A>
+</UL>
+<H2> Keyword descriptions </H2>
+<TABLE>
+<TR><TD WITDH="20%"><A NAME="SCHEME"><u>SCHEME</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SCHEME {KPMETHOD} {integer} {integer} ..
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Kpoint scheme to be used.<br>Available options: NONE, GAMMA, MONKHORST-PACK, MACDONALD, and GENERAL.<br>For MONKHORST-PACK and MACDONALD the number of k points in all 3 dimensions has to be supplied along with the keyword. E.g. <pre>MONKHORST-PACK 12 12 8.</pre></i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a list of words<BR> This keyword cites following references: 
+<A HREF="references.html#reference_159" TITLE="
+ Monkhorst, HJ; Pack, JD. 
+ PHYSICAL REVIEW B, 13 (12), 5188-5192 (1976). 
+ Special points for Brillouin-zone integrations.
+ http://dx.doi.org/10.1103/PhysRevB.13.5188
+">[Monkhorst1976]</A>
+<A HREF="references.html#reference_160" TITLE="
+ MacDonald, AH. PHYSICAL REVIEW B, 18 (10), 5897-5899 (1978). 
+ Comment on special points for Brillouin-zone integrations.
+ http://dx.doi.org/10.1103/PhysRevB.18.5897
+">[MacDonald1978]</A>
+<TR><TD WITDH="20%"><A NAME="KPOINT"><u>KPOINT</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">KPOINT x  y  z  w
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Specify kpoint coordinates and weight.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects precisely     4 reals, and may repeat<TR><TD WITDH="20%"><A NAME="UNITS"><u>UNITS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">UNITS <value>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Special k-points are defined either in units of reciprocal lattice vectors or in Cartesian coordinates in uints of 2Pi/len. B_VECTOR: in multiples of the reciprocal lattice vectors (b). CART_ANGSTROM: In units of 2*Pi/Angstrom. CART_BOHR: In units of 2*Pi/Bohr.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a word. Default value: B_VECTOR
+<TR><TD WITDH="20%"><A NAME="SYMMETRY"><u>SYMMETRY</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">SYMMETRY <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use symmetry to reduce the number of kpoints.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="FULL_GRID"><u>FULL_GRID</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">FULL_GRID <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use full non-reduced kpoint grid.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="VERBOSE"><u>VERBOSE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">VERBOSE <LOGICAL>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Verbose output information.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a logical<TR><TD WIDTH="10%"><TD>This keyword behaves as a switch T
+. Default value:  F
+<TR><TD WITDH="20%"><A NAME="EPS_GEO"><u>EPS_GEO</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">EPS_GEO <real>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Accuracy in symmetry determination.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a real. Default value:     9.9999999999999995E-07
+<TR><TD WITDH="20%"><A NAME="PARALLEL_GROUP_SIZE"><u>PARALLEL_GROUP_SIZE</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">PARALLEL_GROUP_SIZE <integer>
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Number of processors to be used for a single kpoint.  This number must divide the total number of processes. The number of groups must divide the total number of kpoints. Value=-1 (smallest possible number of processes per group, satisfying the constraints). Value=0 (all processes). Value=n (exactly n processes).</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects an integer. Default value:  -1
+<TR><TD WITDH="20%"><A NAME="WAVEFUNCTIONS"><u>WAVEFUNCTIONS</u></A><TD WIDTH="80%">
+<TR><TD WIDTH="20%"><TD WIDTH="80%">WAVEFUNCTIONS REAL
+<TR><TD WIDTH="20%"><TD WIDTH="80%"><i>Use real/complex wavefunctions if possible.</i>
+<TR><TD WIDTH="10%"><TD> This keyword expects a keyword. Default value:  COMPLEX
+<TR><TD WIDTH="10%"><TD>  valid keywords:<ul> <li><code>REAL</code>: Use real wavefunctions (if possible by kpoints specified).</li>
+<li><code>COMPLEX</code>: Use complex wavefunctions (default).</li>
+</ul></TABLE>
+<BR><hr>Back to the <A HREF="https://www.cp2k.org/">CP2K homepage</A> or the latest version of <A HREF="https://manual.cp2k.org/trunk/">this manual</A>
+</BODY></HTML>
