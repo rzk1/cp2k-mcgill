@@ -377,6 +377,11 @@ CONTAINS
 
       almo_scf_env%calc_forces = calc_forces
       IF (calc_forces) THEN
+         IF (almo_scf_env%deloc_method.EQ.almo_deloc_x .OR. &
+             almo_scf_env%deloc_method.EQ.almo_deloc_xalmo_x .OR. &
+             almo_scf_env%deloc_method.EQ.almo_deloc_xalmo_1diag) THEN
+            CPABORT("Forces for perturbative methods are NYI. Change DELOCALIZE_METHOD")
+         ENDIF
          ! switch to ASPC after a certain number of exact steps is done
          IF (almo_scf_env%almo_history%istore.gt.(almo_scf_env%almo_history%nstore+1)) THEN
             IF ( almo_scf_env%opt_block_diag_pcg%eps_error_early .gt. 0.0_dp ) THEN

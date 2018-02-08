@@ -848,7 +848,7 @@ CONTAINS
          keyword, name="OCCUPIED_VOLUME_PENALTY_METHOD", &
          description="Penalty that prevents nonorthogonal orbitals from becoming linear dependent.", &
          usage="OCCUPIED_VOLUME_PENALTY_METHOD LNDET", &
-         default_i_val=almo_occ_vol_penalty_lndet, &
+         default_i_val=almo_occ_vol_penalty_none, &
          enum_c_vals=s2a("NONE", "LNDET"), &
          enum_desc=s2a("Do not use penalties", &
                        "Use -coeff*ln(det(MO-overlap)) term."), &
