@@ -1,9 +1,12 @@
-almo-fullx.inp                                        11      1e-11           -137.653972983204994
-almo-no-deloc.inp                                     11      9e-12           -137.557304851561014
-FH-chain.inp                                          11      3e-10            -98.108319997143496
-ion-pair.inp                                          11      1e-13           -115.006279154120705
-LiF.inp                                               11      3e-12           -127.53931597060651
-BNH2-sheet.inp  
-Si-CubicDiamond.inp
-zero-electron-frag.inp
+almo-fullx.inp                                        11      1e-08           -137.653972983204994
+almo-no-deloc.inp                                     11      1e-08           -137.557304851561014
+FH-chain.inp                                          11      1e-08            -98.108319997143496
+ion-pair.inp                                          11      1e-08           -115.006279154120705
+LiF.inp                                               11      1e-08           -127.53931597060651
+BNH2-sheet.inp                                        11      1e-14 
+Si-CubicDiamond.inp                                   11      1e-13
+zero-electron-frag.inp                                11      1e-08
+Si-cubic-penalty.inp                                  11      1e-12
+matrix-iterate.inp                                    11      1e-12
+FH-chain.strong.inp                                   11      1e-08
 #EOF
