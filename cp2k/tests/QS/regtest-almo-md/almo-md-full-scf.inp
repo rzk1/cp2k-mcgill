@@ -9,7 +9,7 @@
      ENSEMBLE NVE
      TIMESTEP 0.5
      TEMPERATURE 300
-     STEPS 4
+     STEPS 2
   &END
 &END
 
