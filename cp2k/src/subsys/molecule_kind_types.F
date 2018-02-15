@@ -192,9 +192,9 @@ MODULE molecule_kind_types
                                                            nfixd, nfixd_restraint, &
                                                            nmolecule, nshell
       TYPE(colvar_counters)                             :: ncolv
-      INTEGER                                           :: nsgf, nelectron, &
-                                                           nelectron_alpha, &
-                                                           nelectron_beta
+      INTEGER                                           :: nsgf, &
+                                                           nocca, &
+                                                           noccb
       INTEGER, DIMENSION(:), POINTER                    :: molecule_list
       LOGICAL                                           :: molname_generated
    END TYPE molecule_kind_type
@@ -552,9 +552,8 @@ CONTAINS
 !> \param nshell ...
 !> \param ntorsion ...
 !> \param molecule_list ...
-!> \param nelectron ...
-!> \param nelectron_alpha ...
-!> \param nelectron_beta ...
+!> \param nocca ...
+!> \param noccb ...
 !> \param bond_kind_set ...
 !> \param bend_kind_set ...
 !> \param ub_kind_set ...
@@ -573,7 +572,7 @@ CONTAINS
                                 nimpr, nopbend, nconstraint, nconstraint_fixd, nfixd, ncolv, ng3x3, ng4x6, &
                                 nvsite, nfixd_restraint, ng3x3_restraint, ng4x6_restraint, &
                                 nvsite_restraint, nrestraints, nmolecule, nsgf, nshell, ntorsion, &
-                                molecule_list, nelectron, nelectron_alpha, nelectron_beta, &
+                                molecule_list, nocca, noccb, &
                                 bond_kind_set, bend_kind_set, &
                                 ub_kind_set, impr_kind_set, opbend_kind_set, torsion_kind_set, &
                                 molname_generated)
@@ -608,8 +607,7 @@ CONTAINS
       INTEGER, INTENT(OUT), OPTIONAL :: ng3x3, ng4x6, nvsite, nfixd_restraint, ng3x3_restraint, &
          ng4x6_restraint, nvsite_restraint, nrestraints, nmolecule, nsgf, nshell, ntorsion
       INTEGER, DIMENSION(:), OPTIONAL, POINTER           :: molecule_list
-      INTEGER, INTENT(OUT), OPTIONAL                     :: nelectron, nelectron_alpha, &
-                                                            nelectron_beta
+      INTEGER, INTENT(OUT), OPTIONAL                     :: nocca, noccb
       TYPE(bond_kind_type), DIMENSION(:), OPTIONAL, &
          POINTER                                         :: bond_kind_set
       TYPE(bend_kind_type), DIMENSION(:), OPTIONAL, &
@@ -700,9 +698,8 @@ CONTAINS
          IF (PRESENT(nshell)) nshell = molecule_kind%nshell
          IF (PRESENT(ntorsion)) ntorsion = molecule_kind%ntorsion
          IF (PRESENT(nsgf)) nsgf = molecule_kind%nsgf
-         IF (PRESENT(nelectron)) nelectron = molecule_kind%nelectron
-         IF (PRESENT(nelectron_alpha)) nelectron_alpha = molecule_kind%nelectron_beta
-         IF (PRESENT(nelectron_beta)) nelectron_beta = molecule_kind%nelectron_alpha
+         IF (PRESENT(nocca)) nocca = molecule_kind%nocca
+         IF (PRESENT(noccb)) noccb = molecule_kind%noccb
          IF (PRESENT(molecule_list)) molecule_list => molecule_kind%molecule_list
 
       ELSE
@@ -850,7 +847,8 @@ CONTAINS
 !> \param torsion_kind_set ...
 !> \param impr_kind_set ...
 !> \param opbend_kind_set ...
-!> \param nelectron ...
+!> \param nocca ...
+!> \param noccb ...
 !> \param nsgf ...
 !> \param molname_generated ...
 !> \date    27.08.2003
@@ -867,7 +865,7 @@ CONTAINS
                                 nfixd_restraint, nshell, shell_list, &
                                 nvsite_restraint, bond_kind_set, bend_kind_set, &
                                 ub_kind_set, torsion_kind_set, impr_kind_set, &
-                                opbend_kind_set, nelectron, nsgf, &
+                                opbend_kind_set, nocca, noccb, nsgf, &
                                 molname_generated)
 
       TYPE(molecule_kind_type), POINTER                  :: molecule_kind
@@ -919,7 +917,7 @@ CONTAINS
          POINTER                                         :: impr_kind_set
       TYPE(opbend_kind_type), DIMENSION(:), OPTIONAL, &
          POINTER                                         :: opbend_kind_set
-      INTEGER, INTENT(IN), OPTIONAL                      :: nelectron, nsgf
+      INTEGER, INTENT(IN), OPTIONAL                      :: nocca, noccb, nsgf
       LOGICAL, INTENT(IN), OPTIONAL                      :: molname_generated
 
       CHARACTER(len=*), PARAMETER :: routineN = 'set_molecule_kind', &
@@ -942,7 +940,8 @@ CONTAINS
          IF (PRESENT(nbond)) molecule_kind%nbond = nbond
          IF (PRESENT(bond_list)) molecule_kind%bond_list => bond_list
          IF (PRESENT(nbend)) molecule_kind%nbend = nbend
-         IF (PRESENT(nelectron)) molecule_kind%nelectron = nelectron
+         IF (PRESENT(nocca)) molecule_kind%nocca = nocca
+         IF (PRESENT(noccb)) molecule_kind%noccb = noccb
          IF (PRESENT(nsgf)) molecule_kind%nsgf = nsgf
          IF (PRESENT(bend_list)) molecule_kind%bend_list => bend_list
          IF (PRESENT(nub)) molecule_kind%nub = nub

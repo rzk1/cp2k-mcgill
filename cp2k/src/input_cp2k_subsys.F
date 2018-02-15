@@ -1440,10 +1440,17 @@ CONTAINS
 
       CALL section_create(section, &
                           name="BS", &
-                          description="Define the required atomic orbital occupation "// &
-                          "assigned in initialization of the density matrix, by adding or "// &
-                          "subtracting electrons from specific angular momentum channels. "// &
-                          "It works only with GUESS ATOMIC.", &
+                          description="Define alternative atomic orbital configuration by "// &
+                          "adding or removing electrons from specified spin/angular momentum channels. "// &
+                          "This operation is useful for several purposes. First, it can generate "//&
+                          "two different wfns to break the spin symmetry in the initial guess "//&
+                          "(works only with GUESS ATOMIC). Second, it allows to assign alpha and "//&
+                          "beta electrons to atomic and molecular fragments. For this second purpose,"//&
+                          " only &ALPHA section is read. "//&
+                          "Note that &ALPHA section does not add/remove alpha electrons. "//&
+                          "The spin of the added/removed electron is specified in the S keyword. "//&
+                          "If restricted ATOMIC guess is required in fragment calculations it is "//&
+                          "suggested to keep both &ALPHA and &BETA sections the same.", &
                           n_keywords=0, &
                           n_subsections=2, &
                           repeats=.FALSE.)
@@ -1459,8 +1466,8 @@ CONTAINS
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
-      CALL section_create(subsection, name="ALPHA", description="alpha spin", &
-                          n_keywords=3, &
+      CALL section_create(subsection, name="ALPHA", description="config of the first wavefunction", &
+                          n_keywords=4, &
                           n_subsections=0, &
                           repeats=.FALSE.)
 
@@ -1488,6 +1495,18 @@ CONTAINS
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, &
+                          name="S", &
+                          variants=(/"S"/), &
+                          description="Spin of the orbitals whose"// &
+                          "occupation is changed. Used only for fragments. Alpha - 1, beta - 2.", &
+                          repeats=.FALSE., &
+                          n_var=-1, &
+                          default_i_val=-1, &
+                          usage="S 2")
+      CALL section_add_keyword(subsection, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, &
                           name="N", &
                           variants=(/"N"/), &
                           description="Principal quantum number of the "// &
@@ -1502,8 +1521,8 @@ CONTAINS
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
-      CALL section_create(subsection, name="BETA", description="beta spin", &
-                          n_keywords=3, &
+      CALL section_create(subsection, name="BETA", description="config of the second wavefunctions", &
+                          n_keywords=4, &
                           n_subsections=0, &
                           repeats=.FALSE.)
 
@@ -1527,6 +1546,19 @@ CONTAINS
                           n_var=-1, &
                           default_i_val=-1, &
                           usage="L 2")
+      CALL section_add_keyword(subsection, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, &
+                          name="S", &
+                          variants=(/"S"/), &
+                          description="Spin of the orbitals whose"// &
+                          "occupation is changed. Used only for fragments. Alpha - 1, beta - 2. "// &
+                          "Active only for unrestricted calculations", &
+                          repeats=.FALSE., &
+                          n_var=-1, &
+                          default_i_val=-1, &
+                          usage="S 2")
       CALL section_add_keyword(subsection, keyword)
       CALL keyword_release(keyword)
 

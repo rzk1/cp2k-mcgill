@@ -100,8 +100,11 @@ CONTAINS
       CALL get_molecule_set_info(molecule_set, &
                                  mol_to_first_atom=first_atom_of_frag, &
                                  mol_to_last_atom=last_atom_of_frag, &
-                                 mol_to_charge=charge_of_frag, &
-                                 mol_to_multiplicity=multip_of_frag)
+                                 mol_to_charge=charge_of_frag)
+                                 !mol_to_multiplicity=multip_of_frag)
+
+      ! RZK-warning: this code is limited to closed-shell molecules
+      multip_of_frag = 0
 
       CALL calcs_on_isolated_molecules(force_env, globenv, nmols, &
                                        first_atom_of_frag, last_atom_of_frag, charge_of_frag, multip_of_frag)

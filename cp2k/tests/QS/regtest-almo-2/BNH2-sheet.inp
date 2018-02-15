@@ -84,39 +84,19 @@
       ELEMENT   H
       BASIS_SET DZVP-GTH 
       POTENTIAL GTH-BLYP-q1
-      !&BS
-      !  &ALPHA
-      !    NEL -1
-      !    L    0
-      !    N    1
-      !  &END
-      !  ! BETA FUNCTION SHOULD BE THE SAME
-      !  ! TO AVOID WARNINGS
-      !  &BETA
-      !    NEL -1
-      !    L    0 
-      !    N    1
-      !  &END
-      !&END
+      &BS
+        &ALPHA
+          NEL -1  1
+          L    0  0
+          N    1  1
+          S    1  2
+        &END
+      &END
     &END KIND
     &KIND Hm
       ELEMENT   H
       BASIS_SET DZVP-GTH 
       POTENTIAL GTH-BLYP-q1
-      !&BS
-      !  &ALPHA
-      !    NEL  1
-      !    L    0
-      !    N    1
-      !  &END
-      !  ! BETA FUNCTION SHOULD BE THE SAME
-      !  ! TO AVOID WARNINGS
-      !  &BETA
-      !    NEL  1
-      !    L    0
-      !    N    1
-      !  &END
-      !&END
     &END KIND
     &KIND N
       BASIS_SET DZVP-GTH
@@ -126,13 +106,7 @@
           NEL  2
           L    1
           N    2
-        &END
-        ! BETA FUNCTION SHOULD BE THE SAME
-        ! TO AVOID WARNINGS
-        &BETA
-          NEL  2
-          L    1 
-          N    2
+          S    2
         &END
       &END
     &END KIND
@@ -144,13 +118,7 @@
           NEL -1 -1
           L    0  1
           N    2  2
-        &END
-        ! BETA FUNCTION SHOULD BE THE SAME
-        ! TO AVOID WARNINGS
-        &BETA
-          NEL -1 -1
-          L    0  1
-          N    2  2
+          S    1  1
         &END
       &END
     &END KIND

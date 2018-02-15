@@ -102,6 +102,7 @@ CONTAINS
                                                             uks
       REAL(KIND=dp)                                      :: ac, al, ear, ok, rk, scal, zeff
       REAL(KIND=dp), DIMENSION(0:lmat, 10, 2)            :: edelta
+      INTEGER, DIMENSION(0:lmat, 10, 2, 2)               :: abdelta
       REAL(KIND=dp), DIMENSION(:), POINTER               :: alpha_lpot, alpha_lsd, alpha_nlcc, ap, ce
       REAL(KIND=dp), DIMENSION(:, :), POINTER            :: cval_lpot, cval_lsd, cval_nlcc, hhp, zet
       REAL(KIND=dp), DIMENSION(:, :, :), POINTER         :: ccp, gcc, hp
@@ -420,7 +421,8 @@ CONTAINS
                                       ncalc=ncalc, &
                                       ncore=ncore, &
                                       nelem=nelem, &
-                                      edelta=edelta)
+                                      edelta=edelta, &
+                                      abdelta=abdelta)
 
       ! restricted or unrestricted?
       IF (SUM(ABS(edelta)) > 0.0_dp) THEN

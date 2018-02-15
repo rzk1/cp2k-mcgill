@@ -205,8 +205,8 @@ CONTAINS
                                    kind_number=ikind, &
                                    molname_generated=topology%molname_generated, &
                                    name=TRIM(name), &
-                                   nsgf=nsgf, &
-                                   nelectron=nelectron)
+                                   nsgf=nsgf)!, &
+                                   !nelectron=nelectron)
          END IF
       END DO
       CALL timestop(handle2)

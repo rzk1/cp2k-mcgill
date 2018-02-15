@@ -172,6 +172,7 @@ MODULE qs_kind_types
       INTEGER, DIMENSION(:, :), POINTER      :: addel => Null()
       INTEGER, DIMENSION(:, :), POINTER      :: laddel => Null()
       INTEGER, DIMENSION(:, :), POINTER      :: naddel => Null()
+      INTEGER, DIMENSION(:, :), POINTER      :: saddel => Null()
       TYPE(harmonics_atom_type), POINTER     :: harmonics => Null()
       TYPE(grid_atom_type), POINTER          :: grid_atom => Null()
       INTEGER                                :: ngrid_rad = 50
@@ -302,6 +303,9 @@ CONTAINS
             IF (ASSOCIATED(qs_kind_set(ikind)%laddel)) THEN
                DEALLOCATE (qs_kind_set(ikind)%laddel)
             END IF
+            IF (ASSOCIATED(qs_kind_set(ikind)%saddel)) THEN
+               DEALLOCATE (qs_kind_set(ikind)%saddel)
+            END IF
             IF (ASSOCIATED(qs_kind_set(ikind)%reltmat)) THEN
                DEALLOCATE (qs_kind_set(ikind)%reltmat)
             END IF
@@ -373,6 +377,7 @@ CONTAINS
 !> \param addel ...
 !> \param laddel ...
 !> \param naddel ...
+!> \param saddel ...
 !> \param orbitals ...
 !> \param max_scf ...
 !> \param eps_scf ...
@@ -401,7 +406,8 @@ CONTAINS
                           gpw_type_forced, harmonics, max_iso_not0, max_s_harm, grid_atom, &
                           ngrid_ang, ngrid_rad, lmax_rho0, &
                           dft_plus_u_atom, l_of_dft_plus_u, u_minus_j, dispersion, &
-                          bs_occupation, magnetization, no_optimize, addel, laddel, naddel, orbitals, &
+                          bs_occupation, magnetization, no_optimize, addel, laddel, naddel, & 
+                          saddel, orbitals, &
                           max_scf, eps_scf, smear, u_ramping, u_minus_j_target, eps_u_ramping, &
                           init_u_ramping_each_scf, reltmat, ghost, floating, name, element_symbol, &
                           pao_basis_size, pao_potentials, pao_descriptors)
@@ -438,7 +444,7 @@ CONTAINS
       LOGICAL, INTENT(OUT), OPTIONAL                     :: bs_occupation
       REAL(KIND=dp), INTENT(OUT), OPTIONAL               :: magnetization
       LOGICAL, INTENT(OUT), OPTIONAL                     :: no_optimize
-      INTEGER, DIMENSION(:, :), OPTIONAL, POINTER        :: addel, laddel, naddel
+      INTEGER, DIMENSION(:, :), OPTIONAL, POINTER        :: addel, laddel, naddel, saddel
       INTEGER, DIMENSION(:), OPTIONAL, POINTER           :: orbitals
       INTEGER, OPTIONAL                                  :: max_scf
       REAL(KIND=dp), OPTIONAL                            :: eps_scf
@@ -696,6 +702,7 @@ CONTAINS
       IF (PRESENT(addel)) addel => qs_kind%addel
       IF (PRESENT(laddel)) laddel => qs_kind%laddel
       IF (PRESENT(naddel)) naddel => qs_kind%naddel
+      IF (PRESENT(saddel)) saddel => qs_kind%saddel
 
       IF (PRESENT(magnetization)) magnetization = qs_kind%magnetization
 
@@ -1662,7 +1669,7 @@ CONTAINS
                              "for this atom kind.")
             END IF
             qs_kind%bs_occupation = .TRUE.
-            !Alpha spin
+            !WFN1: Alpha spin
             NULLIFY (spin_section)
             spin_section => section_vals_get_subs_vals(bs_section, "ALPHA")
             CALL section_vals_get(spin_section, explicit=explicit)
@@ -1674,6 +1681,16 @@ CONTAINS
                ALLOCATE (qs_kind%addel(SIZE(add_el), 2))
                qs_kind%addel = 0
                qs_kind%addel(1:SIZE(add_el), 1) = add_el(1:SIZE(add_el))
+
+               NULLIFY (add_el)
+               CALL section_vals_val_get(spin_section, &
+                                         keyword_name="S", i_vals=add_el)
+               CPASSERT(ASSOCIATED(add_el))
+               CPASSERT(SIZE(add_el) == SIZE(qs_kind%addel, 1))
+               ALLOCATE (qs_kind%saddel(SIZE(add_el), 2))
+               qs_kind%saddel = 0
+               qs_kind%saddel(1:SIZE(add_el), 1) = add_el(1:SIZE(add_el))
+
                NULLIFY (add_el)
                CALL section_vals_val_get(spin_section, &
                                          keyword_name="L", i_vals=add_el)
@@ -1682,6 +1699,7 @@ CONTAINS
                ALLOCATE (qs_kind%laddel(SIZE(add_el), 2))
                qs_kind%laddel = 0
                qs_kind%laddel(1:SIZE(add_el), 1) = add_el(1:SIZE(add_el))
+
                ALLOCATE (qs_kind%naddel(SIZE(add_el), 2))
                qs_kind%naddel = 0
                NULLIFY (add_el)
@@ -1695,7 +1713,7 @@ CONTAINS
                   END IF
                END IF
             END IF
-            !Beta spin
+            ! WFN2: Beta spin
             NULLIFY (spin_section)
             spin_section => section_vals_get_subs_vals(bs_section, "BETA")
             CALL section_vals_get(spin_section, explicit=explicit)
@@ -1707,6 +1725,14 @@ CONTAINS
                CPASSERT(SIZE(add_el) == SIZE(qs_kind%addel, 1))
                qs_kind%addel(1:SIZE(add_el), 2) = add_el(1:SIZE(add_el))
                qs_kind%addel(:, :) = qs_kind%addel(:, :)
+
+               NULLIFY (add_el)
+               CALL section_vals_val_get(spin_section, &
+                                         keyword_name="S", i_vals=add_el)
+               CPASSERT(ASSOCIATED(add_el))
+               CPASSERT(SIZE(add_el) == SIZE(qs_kind%addel, 1))
+               qs_kind%saddel(1:SIZE(add_el), 2) = add_el(1:SIZE(add_el))
+
                NULLIFY (add_el)
                CALL section_vals_val_get(spin_section, &
                                          keyword_name="L", i_vals=add_el)
@@ -2669,20 +2695,25 @@ CONTAINS
 !> \param nelem ...
 !> \param edelta ...
 ! **************************************************************************************************
-   SUBROUTINE init_atom_electronic_state(atomic_kind, qs_kind, ncalc, ncore, nelem, edelta)
+   SUBROUTINE init_atom_electronic_state(atomic_kind, qs_kind, ncalc, ncore, nelem, &
+      edelta, abdelta, a_minus_b)
 
       TYPE(atomic_kind_type), INTENT(IN)                 :: atomic_kind
       TYPE(qs_kind_type), INTENT(IN)                     :: qs_kind
       INTEGER, DIMENSION(0:lmat, 10), INTENT(OUT)        :: ncalc, ncore, nelem
       REAL(KIND=dp), DIMENSION(0:lmat, 10, 2), &
          INTENT(OUT)                                     :: edelta
+      INTEGER, DIMENSION(0:lmat, 10, 2, 2), &
+         INTENT(OUT)                                     :: abdelta
+      INTEGER, INTENT(OUT), OPTIONAL                     :: a_minus_b
 
       CHARACTER(len=*), PARAMETER :: routineN = 'init_atom_electronic_state', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: i, ii, is, l, ll, ne, nn, z
+      INTEGER                                            :: i, ii, is, l, ll, &
+                                                            ne, nn, z, spe
       INTEGER, DIMENSION(:), POINTER                     :: econf
-      INTEGER, DIMENSION(:, :), POINTER                  :: addel, laddel, naddel
+      INTEGER, DIMENSION(:, :), POINTER                  :: addel, laddel, naddel, saddel
       LOGICAL                                            :: bs_occupation
       REAL(KIND=dp)                                      :: dmag, magnetization
       TYPE(gth_potential_type), POINTER                  :: gth_potential
@@ -2695,13 +2726,32 @@ CONTAINS
                        sgp_potential=sgp_potential, &
                        magnetization=magnetization, &
                        bs_occupation=bs_occupation, &
-                       addel=addel, laddel=laddel, naddel=naddel)
+                       addel=addel, laddel=laddel, &
+                       naddel=naddel, saddel=saddel)
+
+      ! find the difference in the number of 
+      ! alpha and beta electrons in the standard 
+      ! electronic configuration
+      IF (PRESENT(a_minus_b)) THEN
+         a_minus_b=0
+         DO l = 0, 3
+            ll = 2*l+1
+            nn = ptable(z)%e_conv(l)
+            nn = MOD(nn, 2*ll)
+            IF (nn > ll) THEN
+               a_minus_b = a_minus_b + 2*ll - nn
+            ELSE
+               a_minus_b = a_minus_b + nn
+            END IF
+         END DO
+      END IF
 
       ! electronic state
       nelem = 0
       ncore = 0
       ncalc = 0
       edelta = 0.0_dp
+      abdelta = 0
       IF (ASSOCIATED(gth_potential)) THEN
          CALL get_potential(gth_potential, elec_conf=econf)
          CALL set_pseudo_state(econf, z, ncalc, ncore, nelem)
@@ -2734,6 +2784,8 @@ CONTAINS
          DO is = 1, 2
             DO i = 1, SIZE(addel, 1)
                ne = addel(i, is)
+               ! the spin of the electron being added/removed in a/b wfn
+               spe = saddel(i, is)
                l = laddel(i, is)
                nn = naddel(i, is)-l
                IF (ne /= 0) THEN
@@ -2742,19 +2794,23 @@ CONTAINS
                         IF (ncalc(l, ii) > 0) THEN
                            IF ((ncalc(l, ii)+ne) < 2*(2*l+1)+1) THEN
                               edelta(l, ii, is) = edelta(l, ii, is)+ne
+                              abdelta(l, ii, is, spe) = abdelta(l, ii, is, spe)+ne
                               nn = ii
                            ELSE
                               edelta(l, ii+1, is) = edelta(l, ii+1, is)+ne
+                              abdelta(l, ii+1, is, spe) = abdelta(l, ii+1, is, spe)+ne
                               nn = ii+1
                            END IF
                            EXIT
                         ELSE IF (ii == 1) THEN
                            edelta(l, ii, is) = edelta(l, ii, is)+ne
+                           abdelta(l, ii, is, spe) = abdelta(l, ii, is, spe)+ne
                            nn = ii
                         END IF
                      END DO
                   ELSE
                      edelta(l, nn, is) = edelta(l, nn, is)+ne
+                     abdelta(l, nn, is, spe) = abdelta(l, nn, is, spe)+ne
                   END IF
                   IF (ncalc(l, nn)+edelta(l, nn, is) < 0) THEN
                      edelta(l, nn, is) = -ncalc(l, nn)
@@ -2793,6 +2849,7 @@ CONTAINS
          ncore = 0
          ncalc = 0
          edelta = 0.0_dp
+         abdelta = 0
       END IF
 
    END SUBROUTINE init_atom_electronic_state

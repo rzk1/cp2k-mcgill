@@ -161,13 +161,14 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'num_ao_el_per_molecule', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: arbitrary_spin, iatom, ikind, imol, &
+      INTEGER                                            :: ARBITRARY_WFN, iatom, ikind, imol, &
                                                             ispin, n_ao, natom, nmol_kind, nsgf, &
-                                                            nspins, z_molecule
+                                                            nspins, z_molecule, a_minus_b, ne_spin
       INTEGER, DIMENSION(0:lmat, 10)                     :: ne_core, ne_elem, ne_explicit
       INTEGER, DIMENSION(2)                              :: n_occ_alpha_and_beta, n_occ
       REAL(KIND=dp)                                      :: charge_molecule, zeff, zeff_correction
       REAL(KIND=dp), DIMENSION(0:lmat, 10, 2)            :: edelta
+      INTEGER, DIMENSION(0:lmat, 10, 2, 2)               :: abdelta
       TYPE(all_potential_type), POINTER                  :: all_potential
       TYPE(atomic_kind_type), POINTER                    :: atomic_kind
       TYPE(gth_potential_type), POINTER                  :: gth_potential
@@ -182,15 +183,15 @@ CONTAINS
          natom = 0
 
          !   *** Initialize the molecule kind data structure ***
-         ARBITRARY_SPIN = 1
+         ARBITRARY_WFN = 1
          DO imol = 1, nmol_kind
 
             molecule_kind => molecule_kind_set(imol)
             CALL get_molecule_kind(molecule_kind=molecule_kind, &
                                    natom=natom)
-            !nelectron = 0
             n_ao = 0
             n_occ_alpha_and_beta(1:nspins) = 0
+            n_occ(1:nspins) = 0
             z_molecule = 0
 
             DO iatom = 1, natom
@@ -211,22 +212,31 @@ CONTAINS
                                                ncalc=ne_explicit, &
                                                ncore=ne_core, &
                                                nelem=ne_elem, &
-                                               edelta=edelta)
+                                               edelta=edelta, &
+                                               abdelta=abdelta, &
+                                               a_minus_b=a_minus_b)
 
-               ! If &BS section is used ATOMIC_GUESS is calculated twice
-               ! for two separate wfns with their own alpha-beta combinations
-               ! This is done to break the spin symmetry of the initial wfn
+               ! If &BS section is used then ATOMIC_GUESS is calculated twice
+               ! for two separate wfns with their own alpha-beta combinations.
+               ! This is done to break the spin symmetry of the initial wfn.
                ! For now, only alpha part of &BS is used to count electrons on
-               ! molecules
+               ! molecules.
+
                ! Get the number of explicit electrons (i.e. with orbitals)
-               ! For now, only the total number of electrons can be obtained
-               ! from init_atom_electronic_state
-               n_occ_alpha_and_beta(ARBITRARY_SPIN) = &
-                  n_occ_alpha_and_beta(ARBITRARY_SPIN)+SUM(ne_explicit)+ &
-                  SUM(NINT(2*edelta(:, :, ARBITRARY_SPIN)))
-               ! We need a way to specify the number of alpha and beta electrons 
+               n_occ_alpha_and_beta(ARBITRARY_WFN) = &
+                  n_occ_alpha_and_beta(ARBITRARY_WFN)+SUM(ne_explicit)+ &
+                  SUM(NINT(2*edelta(:, :, ARBITRARY_WFN)))
+
+               ! We need to specify the number of alpha and beta electrons 
                ! on each molecule (i.e. multiplicity is not enough)
-               !n_occ(ispin) = n_occ(ispin) + SUM(ne_explicit) + SUM(NINT(2*edelta(:, :, ispin)))
+               DO ispin=1, nspins
+                  IF (ispin == 1) THEN
+                     ne_spin = ( SUM(ne_explicit) + a_minus_b ) / 2
+                  ELSE
+                     ne_spin = ( SUM(ne_explicit) - a_minus_b ) / 2
+                  END IF
+                  n_occ(ispin) = n_occ(ispin) + ne_spin + SUM(abdelta(:, :, ARBITRARY_WFN ,ispin))
+               END DO
 
                IF (ASSOCIATED(all_potential)) THEN
                   CALL get_potential(potential=all_potential, zeff=zeff, &
@@ -258,9 +268,14 @@ CONTAINS
 
             ! At this point we have the number of electrons (alpha+beta) on the molecule
             !  as they are seen by the ATOMIC GUESS routines
-            charge_molecule = REAL(z_molecule-n_occ_alpha_and_beta(ARBITRARY_SPIN), dp)
+            DO ispin=1,nspins
+                  CPASSERT(n_occ(ispin).ge.0)
+            END DO
+            charge_molecule = REAL(z_molecule-n_occ_alpha_and_beta(ARBITRARY_WFN), dp)
             CALL set_molecule_kind(molecule_kind=molecule_kind, &
-                                   nelectron=n_occ_alpha_and_beta(ARBITRARY_SPIN), &
+                                   nocca=n_occ(1), &
+                                   noccb=n_occ(2), &
+                                   !nelectron=n_occ_alpha_and_beta(ARBITRARY_WFN), &
                                    charge=charge_molecule, &
                                    nsgf=n_ao)
 

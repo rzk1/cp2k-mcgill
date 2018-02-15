@@ -65,6 +65,7 @@ MODULE almo_scf
         dbcsr_distribution_get, dbcsr_distribution_type, dbcsr_filter, dbcsr_finalize, &
         dbcsr_get_info, dbcsr_get_stored_coordinates, dbcsr_multiply, dbcsr_nblkcols_total, &
         dbcsr_nblkrows_total, dbcsr_p_type, dbcsr_release, dbcsr_reserve_block2d, dbcsr_scale, &
+        dbcsr_print, &
         dbcsr_set, dbcsr_type, dbcsr_type_no_symmetry, dbcsr_type_symmetric, dbcsr_work_create
    USE domain_submatrix_methods,        ONLY: init_submatrices,&
                                               release_submatrices
@@ -193,6 +194,7 @@ CONTAINS
       TYPE(dft_control_type), POINTER                    :: dft_control
       TYPE(molecule_type), DIMENSION(:), POINTER         :: molecule_set
       TYPE(section_vals_type), POINTER                   :: input
+      INTEGER, DIMENSION(:,:), ALLOCATABLE               :: temp_nocc_of_domain
 
       CALL timeset(routineN, handle)
 
@@ -259,6 +261,8 @@ CONTAINS
       ALLOCATE (almo_scf_env%cpu_of_domain(ndomains))
       ALLOCATE (almo_scf_env%charge_of_domain(ndomains))
       ALLOCATE (almo_scf_env%multiplicity_of_domain(ndomains))
+      
+      ALLOCATE (temp_nocc_of_domain(ndomains, 2))
 
       ! fill out domain descriptors and group descriptors
       IF (almo_scf_env%domain_layout_mos == almo_domain_layout_molecular) THEN
@@ -267,31 +271,36 @@ CONTAINS
                                     atom_to_mol=almo_scf_env%domain_index_of_atom, &
                                     mol_to_first_atom=almo_scf_env%first_atom_of_domain, &
                                     mol_to_last_atom=almo_scf_env%last_atom_of_domain, &
-                                    mol_to_nelectrons=almo_scf_env%nocc_of_domain(1:ndomains, 1), &
+                                    !mol_to_nelectrons=almo_scf_env%nocc_of_domain(1:ndomains, 1), &
+                                    mol_to_abnelectrons=temp_nocc_of_domain, &
                                     mol_to_nbasis=almo_scf_env%nbasis_of_domain, &
-                                    mol_to_charge=almo_scf_env%charge_of_domain, &
-                                    mol_to_multiplicity=almo_scf_env%multiplicity_of_domain)
-         ! calculate number of alpha and beta occupied orbitals from
-         ! the number of electrons and multiplicity of each molecule
-         ! Na + Nb = Ne
-         ! Na - Nb = Mult - 1 (assume Na > Nb as we do not have more info from get_molecule_set_info)
+                                    mol_to_charge=almo_scf_env%charge_of_domain )
          DO idomain = 1, ndomains
-            nelec = almo_scf_env%nocc_of_domain(idomain, 1)
-            multip = almo_scf_env%multiplicity_of_domain(idomain)
-            nelec_a = (nelec+multip-1)/2
-            nelec_b = nelec-nelec_a
-            almo_scf_env%nocc_of_domain(idomain, 1) = nelec_a
+            !nelec = almo_scf_env%nocc_of_domain(idomain, 1)
+            !multip = almo_scf_env%multiplicity_of_domain(idomain)
+            !nelec_a = (nelec+multip-1)/2
+            !nelec_b = nelec-nelec_a
+            !almo_scf_env%nocc_of_domain(idomain, 1) = nelec_a
+            nelec_a = temp_nocc_of_domain(idomain,1)
+            nelec_b = temp_nocc_of_domain(idomain,2)
             IF (nelec_a .NE. nelec_b) THEN
                IF (nspins .EQ. 1) THEN
-                  WRITE (*, *) "Domain ", idomain, " out of ", ndomains, ". Electrons = ", nelec
+                  WRITE (*, *) "Domain ", idomain, " out of ", ndomains, ". Alpha electrons = ", nelec_a
+                  WRITE (*, *) "Domain ", idomain, " out of ", ndomains, ".  Beta electrons = ", nelec_b
                   CPABORT("odd e- -- use unrestricted methods")
                ENDIF
-               almo_scf_env%nocc_of_domain(idomain, 2) = nelec_b
+               !almo_scf_env%nocc_of_domain(idomain, 2) = nelec_b
                ! RZK-warning: open-shell procedures have not been tested yet
-               ! Stop the program now
-               CPABORT("Unrestricted ALMO methods are NYI")
+               !CPABORT("Unrestricted ALMO methods are NYI")
             ENDIF
          ENDDO
+         IF (nspins==1) THEN
+            almo_scf_env%nocc_of_domain(:,1)=temp_nocc_of_domain(:,1)
+         ELSE
+            almo_scf_env%nocc_of_domain(:,:)=temp_nocc_of_domain(:,:)
+         ENDIF 
+         DEALLOCATE (temp_nocc_of_domain)
+
          DO ispin = 1, nspins
             ! take care of the full virtual subspace
             almo_scf_env%nvirt_full_of_domain(:, ispin) = &
@@ -644,6 +653,8 @@ CONTAINS
 
       ENDIF !aspc_guess?
 
+CALL dbcsr_print(almo_scf_env%matrix_t_blk(1))
+CALL dbcsr_print(almo_scf_env%matrix_t_blk(2))
       DO ispin = 1, nspins
 
          CALL orthogonalize_mos(ket=almo_scf_env%matrix_t_blk(ispin), &
@@ -656,6 +667,7 @@ CONTAINS
                                 order_lanczos=almo_scf_env%order_lanczos, &
                                 eps_lanczos=almo_scf_env%eps_lanczos, &
                                 max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
 
          CALL almo_scf_t_to_proj(t=almo_scf_env%matrix_t_blk(ispin), &
                               p=almo_scf_env%matrix_p(ispin), &
