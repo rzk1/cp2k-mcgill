@@ -1068,7 +1068,7 @@ CONTAINS
             methodID = 1
             CALL pseudo_invert_matrix(data_p, data_copy, iblock_size, &
                                       methodID, &
-                                      range1=nocc(iblock_row), &    
+                                      range1=nocc(iblock_row), range2=nocc(iblock_row), &    
                                       !range1_thr,range2_thr,&
                                       shift=1.0E-5_dp)
             !!! IT IS EXTREMELY IMPORTANT THAT THE BLOCKS OF THE "OUT"  !!!
@@ -2155,7 +2155,7 @@ CONTAINS
             IF (PRESENT(eps_zero_eigenvalues)) THEN
                 IF(PRESENT(subm_s_inv_half)) THEN
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=n_domain_mos, &  
+                		range1=nmos(idomain), range2=n_domain_mos, &  
                         range1_thr=eps_zero_eigenvalues, &
                         bad_modes_projector_down=proj_array, &
                         s_inv_half=subm_s_inv_half(idomain)%mdata, &
@@ -2164,7 +2164,7 @@ CONTAINS
                         )
                 ELSE
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=n_domain_mos, &  
+                		range1=nmos(idomain), range2=n_domain_mos, &  
                         range1_thr=eps_zero_eigenvalues, &
                         bad_modes_projector_down=proj_array &
                         )
@@ -2172,13 +2172,13 @@ CONTAINS
             ELSE
                 IF(PRESENT(subm_s_inv_half)) THEN
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                           range1=n_domain_mos, &
+                           range1=nmos(idomain), range2=n_domain_mos, &
                            bad_modes_projector_down=proj_array, &
                            s_inv_half=subm_s_inv_half(idomain)%mdata, &
                            s_half=subm_s_inv(idomain)%mdata)
                 ELSE
                    CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                           range1=n_domain_mos, &
+                           range1=nmos(idomain), range2=n_domain_mos, &
                            bad_modes_projector_down=proj_array)
                 ENDIF
             ENDIF ! eps_zero_eigenvalues
@@ -2554,7 +2554,7 @@ CONTAINS
 !>       2012.04 created [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE pseudo_invert_matrix(A, Ainv, N, method, range1, range1_thr, &
+  SUBROUTINE pseudo_invert_matrix(A, Ainv, N, method, range1, range2, range1_thr, &
                                    shift, bad_modes_projector_down, s_inv_half, s_half)
 
       REAL(KIND=dp), DIMENSION(:, :), INTENT(IN)         :: A
@@ -2564,14 +2564,14 @@ CONTAINS
       REAL(KIND=dp), DIMENSION(:, :), INTENT(IN), OPTIONAL &
                                                          :: s_inv_half, s_half
       INTEGER, INTENT(IN)                                :: N, method
-      INTEGER, INTENT(IN), OPTIONAL                      :: range1
+      INTEGER, INTENT(IN), OPTIONAL                      :: range1, range2
       REAL(KIND=dp), INTENT(IN), OPTIONAL                :: range1_thr, shift
 
       CHARACTER(len=*), PARAMETER :: routineN = 'pseudo_invert_matrix', &
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle, ii, INFO, jj, LWORK, range1_eiv, &
-                                                            range2_eiv, unit_nr
+                                                            range2_eiv, range3_eiv, unit_nr
       LOGICAL                                            :: use_both, use_ranges
       REAL(KIND=dp)                                      :: my_shift
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
@@ -2670,13 +2670,14 @@ CONTAINS
 
          range1_eiv = 0
          range2_eiv = 0
-         
+         range3_eiv = 0
+
          IF (use_both) THEN
             DO jj = 1, N
-               IF ((jj .LE. range1) .AND. (eigenvalues(jj) .LT. range1_thr)) THEN
+               IF ((jj .LE. range2) .AND. (eigenvalues(jj) .LT. range1_thr)) THEN
                   temp1(jj, :) = temp2(:, jj)*0.0_dp
                   IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
-                  range1_eiv = range1_eiv+1         
+                  range1_eiv = range1_eiv+1       
                ELSE
                   temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
                   IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
@@ -2690,10 +2691,14 @@ CONTAINS
                      temp1(jj, :) = temp2(:, jj)*0.0_dp
                      IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
                      range1_eiv = range1_eiv+1
+                  ELSE IF(jj .LE. range2) THEN
+                     temp1(jj, :) = temp2(:, jj)*1.0_dp
+                     IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
+                     range2_eiv = range2_eiv+1
                   ELSE
                      temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
                      IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
-                     range2_eiv = range2_eiv+1
+                     range3_eiv = range3_eiv+1
                   ENDIF
                ENDDO
             ELSE
@@ -2756,7 +2761,6 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE pseudo_invert_matrix
-
 
 ! **************************************************************************************************
 !> \brief Find matrix power using diagonalization
