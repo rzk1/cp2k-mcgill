@@ -1265,10 +1265,10 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                   ENDDO
 
 
-                  DEALLOCATE(z2)
-                  DEALLOCATE(reim_diag)
-
                ENDDO ! end loop over idim0
+
+               DEALLOCATE(z2)
+               DEALLOCATE(reim_diag)
 
                localiz_coeff = 0.001
                localization_obj_function = localiz_coeff * localization_obj_function
