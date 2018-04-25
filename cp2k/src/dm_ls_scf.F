@@ -87,7 +87,7 @@ MODULE dm_ls_scf
 
    CHARACTER(len=*), PARAMETER, PRIVATE :: moduleN = 'dm_ls_scf'
 
-   PUBLIC :: ls_scf
+   PUBLIC :: ls_scf, report_matrix_sparsity
 
 CONTAINS
 

@@ -59,6 +59,7 @@ MODULE almo_scf_optimizer
         dbcsr_reserve_block2d, dbcsr_scale, dbcsr_set, dbcsr_set_diag, dbcsr_trace, dbcsr_triu, &
         dbcsr_nblkrows_total, dbcsr_nblkcols_total, dbcsr_print, &
         dbcsr_type, dbcsr_type_no_symmetry, dbcsr_work_create, dbcsr_get_block_p
+   USE dm_ls_scf,                       ONLY: report_matrix_sparsity
    USE domain_submatrix_methods,        ONLY: add_submatrices,&
                                               construct_submatrices,&
                                               copy_submatrices,&
@@ -84,6 +85,11 @@ MODULE almo_scf_optimizer
    USE qs_energy_types,                 ONLY: qs_energy_type
    USE qs_environment_types,            ONLY: get_qs_env,&
                                               qs_environment_type
+   USE qs_loc_utils,                    ONLY: compute_berry_operator
+   USE qs_localization_methods,         ONLY: initialize_weights
+   USE cell_types,                      ONLY: cell_type
+   USE cp_log_handling,                 ONLY: cp_to_string
+
 #include "./base/base_uses.f90"
 
    IMPLICIT NONE
@@ -784,7 +790,6 @@ CONTAINS
    SUBROUTINE almo_scf_xalmo_pcg(qs_env, almo_scf_env, optimizer, quench_t, &
                                  matrix_t_in, matrix_t_out, assume_t0_q0x, perturbation_only, &
                                  special_case)
-
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(almo_scf_env_type)                            :: almo_scf_env
       TYPE(optimizer_options_type)                       :: optimizer
@@ -799,7 +804,7 @@ CONTAINS
       INTEGER :: cg_iteration, dim0, eda_unit, fixed_line_search_niter, handle, ispin, iteration, &
          jj, line_search_iteration, max_iter, my_special_case, ndomains, nspins, occ1, &
          outer_iteration, outer_max_iter, prec_type, precond_domain_projector, unit_nr, &
-         zero_neg_eivi, penalty_order
+         zero_neg_eivi, penalty_order, nmoloc, nao, nmo, idim0, reim, ielem, dim_op, i, j
       LOGICAL :: converged, just_started, line_search, normalize_orbitals, &
          optimize_theta, outer_prepare_to_exit, prepare_to_exit, &
          blissful_neglect, &
@@ -808,7 +813,8 @@ CONTAINS
          eps_skip_gradients, g0, g1, grad_norm, grad_norm_frob, kappa, kin_energy, &
          line_search_error, next_step_size_guess, numer, spin_factor, step_size, &
          t1, t2, t_norm, tau, time_step, penalty_amplitude, &
-         penalty_func_new, det1, energy_ispin, denom2, tempreal, neg_thr
+         penalty_func_new, det1, energy_ispin, denom2, tempreal, neg_thr, &
+         localization_obj_function, fval, localiz_coeff
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: &
          penalty_occ_vol_g_prefactor, penalty_occ_vol_h_prefactor, grad_norm_spin
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: nocc
@@ -818,11 +824,16 @@ CONTAINS
                                                      prev_grad, prev_minus_prec_grad, &
                                                      prev_step, ST, step, m_sig_sqrti_ii, &
                                                      m_t_in_local, m_theta, prec_vv, &
-                                                     siginvTFTsiginv, STsiginv_0, grad 
+                                                     siginvTFTsiginv, STsiginv_0, grad, &
+                                                     tempNOcc, tempOccOcc
       TYPE(domain_submatrix_type), ALLOCATABLE, &
          DIMENSION(:,:)                                    :: domain_r_down, &
                                                            bad_modes_projector_down
       TYPE(section_vals_type), POINTER                   :: almo_print_section, input
+      TYPE(dbcsr_p_type), DIMENSION(:, :), POINTER       :: op_sm_set
+      REAL(dp), ALLOCATABLE, DIMENSION(:)                :: weights
+      REAL(dp), ALLOCATABLE, DIMENSION(:)                :: z2, reim_diag
+      TYPE(cell_type), POINTER                           :: cell
 
       CALL timeset(routineN, handle)
 
@@ -858,6 +869,31 @@ CONTAINS
          WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
       ENDIF
 
+      CALL get_qs_env(qs_env=qs_env, cell=cell)
+
+      IF (cell%orthorhombic) THEN
+         dim_op = 3
+      ELSE
+         dim_op = 6
+      END IF
+      ALLOCATE(weights(6))
+      weights=0.0_dp
+      CALL initialize_weights(cell, weights)
+      ALLOCATE (op_sm_set(2, dim_op))
+!CALL dbcsr_print(almo_scf_env%matrix_s(1))
+      DO i = 1, dim_op
+         DO j = 1, SIZE(op_sm_set, 1)
+            NULLIFY (op_sm_set(j, i)%matrix)
+            ALLOCATE (op_sm_set(j, i)%matrix)
+            CALL dbcsr_copy(op_sm_set(j, i)%matrix, almo_scf_env%matrix_s(1), &
+                            name="almo_scf_env%op_sm_"//TRIM(ADJUSTL(cp_to_string(j)))//"-"//TRIM(ADJUSTL(cp_to_string(i))))
+!CALL dbcsr_print(op_sm_set(j,i)%matrix)
+            CALL dbcsr_set(op_sm_set(j, i)%matrix, 0.0_dp)
+         ENDDO
+      END DO
+
+      CALL compute_berry_operator(qs_env, cell, op_sm_set, dim_op)
+
       ! set local parameters using developer's keywords
       ! RZK-warning: change to normal keywords later
       optimize_theta = almo_scf_env%logical05
@@ -879,6 +915,7 @@ CONTAINS
                           my_special_case .EQ. xalmo_case_fully_deloc )
       normalize_orbitals = penalty_occ_vol
       ! not used with lndet: penalty_order=2
+      !localiz_coeff = almo_scf_env%penalty%loc_vol_coeff 
       penalty_amplitude=almo_scf_env%penalty%occ_vol_coeff
       ALLOCATE(penalty_occ_vol_g_prefactor(nspins))
       ALLOCATE(penalty_occ_vol_h_prefactor(nspins))
@@ -958,6 +995,8 @@ CONTAINS
       ALLOCATE(step(nspins))
       ALLOCATE(prev_minus_prec_grad(nspins))
       ALLOCATE(m_sig_sqrti_ii(nspins))
+      ALLOCATE(tempNOcc(ispin))
+      ALLOCATE(tempOccOcc(ispin))
       DO ispin = 1, nspins
 
          ! init temporary storage
@@ -992,6 +1031,12 @@ CONTAINS
                            template=matrix_t_out(ispin), &
                            matrix_type=dbcsr_type_no_symmetry)
          CALL dbcsr_create(m_sig_sqrti_ii(ispin), &
+                           template=almo_scf_env%matrix_sigma_inv(ispin), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_create(tempNOcc(ispin), &
+                           template=matrix_t_out(ispin), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_create(tempOccOcc(ispin), &
                            template=almo_scf_env%matrix_sigma_inv(ispin), &
                            matrix_type=dbcsr_type_no_symmetry)
 
@@ -1076,7 +1121,6 @@ CONTAINS
          energy_new = 0.0_dp
          energy_old = 0.0_dp
          line_search_error = 0.0_dp
-
          t1 = m_walltime()
 
          DO
@@ -1110,6 +1154,8 @@ CONTAINS
                        order_lanczos=almo_scf_env%order_lanczos, &
                        eps_lanczos=almo_scf_env%eps_lanczos, &
                        max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+
+CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_scf_env%eps_filter)
 
                ! compute the global projectors (for the density matrix)
                CALL almo_scf_t_to_proj( &
@@ -1174,6 +1220,118 @@ CONTAINS
                   CALL dbcsr_trace(matrix_t_out(ispin), FTsiginv(ispin), energy_ispin)
                   energy_new = energy_new + energy_ispin*spin_factor
                ENDIF
+
+               ! LzL insert localization penaltyi
+               localization_obj_function = 0.0_dp
+               CALL dbcsr_get_info(almo_scf_env%matrix_sigma_inv(ispin), nfullrows_total=nmo)
+               ALLOCATE(z2(nmo))
+               ALLOCATE(reim_diag(nmo))
+
+ !              CALL dbcsr_print(op_sm_set(2), idim0)
+               DO idim0 = 1, SIZE(op_sm_set, 2) ! this loop is over miller ind
+
+                  z2(:) = 0.0_dp
+
+                  DO reim = 1, SIZE(op_sm_set, 1) ! this loop is over Re/Im 
+
+                     CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                             op_sm_set(reim, idim0)%matrix, &
+                             matrix_t_out(ispin), &
+                             0.0_dp, tempNOcc(ispin), &
+                             filter_eps=almo_scf_env%eps_filter)
+                     ! warning - save time by computing only the diagonal elements
+                     CALL dbcsr_multiply("T", "N", 1.0_dp, &
+                             matrix_t_out(ispin), &
+                             tempNOcc(ispin), &
+                             0.0_dp, tempOccOcc(ispin), &
+                             filter_eps=almo_scf_env%eps_filter)
+
+   
+                     CALL dbcsr_get_diag(tempOccOcc(ispin),reim_diag)
+                     z2(:) = z2(:) + reim_diag(:)*reim_diag(:)
+
+                  ENDDO
+
+                  DO ielem=1, nmo
+                     SELECT CASE(2) ! allows for selection of different spread functionals
+                     CASE (1) ! functional =  -W_I * log( |z_I|^2 )
+                        fval = -weights(idim0) * LOG( z2(ielem) )
+                     CASE (2) ! functional =  W_I * ( 1 - |z_I|^2 )
+                        fval = weights(idim0) - weights(idim0) * z2(ielem)
+                     CASE (3) ! functional =  W_I * ( 1 - |z_I| )
+                        fval = weights(idim0) - weights(idim0) * SQRT( z2(ielem) )
+                     END SELECT
+                     localization_obj_function = localization_obj_function + fval
+                  ENDDO
+
+
+                  DEALLOCATE(z2)
+                  DEALLOCATE(reim_diag)
+
+               ENDDO ! end loop over idim0
+
+               localiz_coeff = 0.001
+               localization_obj_function = localiz_coeff * localization_obj_function
+               !IF (penalty_local) THEN
+
+               !   CALL dbcsr_get_info(almo_scf_env%matrix_sigma_inv(ispin), nfullrows_total=nmo)
+               !   ALLOCATE(z2(nmo))
+               !   ALLOCATE(reim_diag(nmo))
+               !   CALL dbcsr_create(tempNOcc, &
+               !                     template=matrix_t_out(ispin), &
+               !                     matrix_type=dbcsr_type_no_symmetry)
+               !   CALL dbcsr_create(tempOccOcc, &
+               !                     template=almo_scf_env%matrix_sigma_inv(ispin), &
+               !                     matrix_type=dbcsr_type_no_symmetry)
+
+
+               !   DO idim0 = 1, SIZE(op_sm_set, 2) ! this loop is over miller ind
+
+               !      z2(:) = 0.0_dp
+
+               !      DO reim = 1, SIZE(op_sm_set, 1) ! this loop is over Re/Im 
+
+               !         CALL dbcsr_multiply("N", "N", 1.0_dp, &
+               !                 op_sm_set(reim, idim0), &
+               !                 matrix_t_out(ispin), &
+               !                 0.0_dp, tempNOcc, &
+               !                 filter_eps=eps_filter)
+               !         ! warning - save time by computing only the diagonal elements
+               !         CALL dbcsr_multiply("T", "N", 1.0_dp, &
+               !                 matrix_t_out(ispin), &
+               !                 tempNOcc, &
+               !                 0.0_dp, tempOccOcc, &
+               !                 filter_eps=eps_filter)
+
+   
+               !         CALL dbcsr_get_diag(tempOccOcc,reim_diag)
+               !         z2(:) = z2(:) + reim_diag(:)*reim_diag(:)
+
+               !      ENDDO
+
+               !      DO ielem=1, nmo
+               !         SELECT CASE(2) ! allows for selection of different spread functionals
+               !         CASE (1) ! functional =  -W_I * log( |z_I|^2 )
+               !            fval = -weights(idim0) * LOG( z2(ielem) )
+               !         CASE (2) ! functional =  W_I * ( 1 - |z_I|^2 )
+               !            fval = weights(idim0) - weights(idim0) * z2(ielem)
+               !         CASE (3) ! functional =  W_I * ( 1 - |z_I| )
+               !            fval = weights(idim0) - weights(idim0) * SQRT( z2(ielem) )
+               !         END SELECT
+               !         localization_obj_func = localization_obj_func + fval
+               !      ENDDO
+
+               !      CALL dbcsr_release(tempNOcc)
+               !      CALL dbcsr_release(tempOccOcc)
+
+               !      DEALLOCATE(z2)
+               !      DEALLOCATE(reim_diag)
+
+               !   ENDDO ! end loop over idim0
+
+               !   localization_obj_function = localiz_coeff * localization_obj_function
+
+               !ENDIF
 
                IF (penalty_occ_vol) THEN
 !CALL dbcsr_print(matrix_t_out(ispin))
@@ -1865,6 +2023,8 @@ CONTAINS
          CALL dbcsr_release(m_sig_sqrti_ii(ispin))
          CALL release_submatrices(domain_r_down(:,ispin))
          CALL release_submatrices(bad_modes_projector_down(:,ispin))
+         CALL dbcsr_release(tempNOcc(ispin))
+         CALL dbcsr_release(tempOccOcc(ispin))
       ENDDO ! ispin
 
       DEALLOCATE(prec_vv)
@@ -4971,6 +5131,30 @@ CONTAINS
                           1.0_dp, m_tmp_no_2, &
                           retain_sparsity=.TRUE.)
       CALL dbcsr_scale(m_tmp_no_2, 2.0_dp*spin_factor)
+
+      ! LzL Add gradient for Localization
+      !IF (penalty_local) THEN
+      !   op_sm_set = REAL(op_sm_set, KIND=dp)
+      !   op_fm_set = REAL(op_fm_set, KIND=dp) 
+      !   DO i = 1, SIZE(op_fm_set, 2)
+      !      DO j = 1, SIZE(op_fm_set, 1)
+      !         CALL cp_fm_set_all(op_fm_set(j, i)%matrix, 0.0_dp)
+      !         CALL cp_gemm("T", "N", nmoloc, nmoloc, nao, 1.0_dp, matrix_out, op_sm_set(j, i)%matrix, 0.0_dp, &
+      !                      BTij(j, i)%matrix)
+      !      ENDDO
+      !   ENDDO
+      !   DO i = 1, n
+      !      CALL cp_cfm_get_element(op_fm_set, i, i, zij(i, idim))     
+      !      CALL cp_cfm_get_element(BTij, i, i, kij(i, idim))     
+      !      SELECT CASE(2) ! allows for selection of different spread functionals
+      !      CASE (1) ! functional =  -W_I * log( |z_I|^2 )
+      !         fvald(i) = -4 * weights(idim ) * op_fm_set(i, idim) * kij(i, idim) / (ABS(zij(i, idim))**2)
+      !      CASE (2) ! functional =  W_I * ( 1 - |z_I|^2 )
+      !         fvald(i) = -4 * weights(idim) * op_fm_set(i, idim) * kij(i, idim)
+      !      CASE (3) ! functional =  W_I * ( 1 - |z_I| )
+      !         fvald(i) = -4 * weights(idim) * op_fm_set(i, idim) * kij(i, idim) / (2 * ABS(zij(i, idim)))
+      !      END SELECT
+      !   ENDDO
 
       ! add penalty on the occupied volume: det(sigma)
       IF (penalty_occ_vol) THEN

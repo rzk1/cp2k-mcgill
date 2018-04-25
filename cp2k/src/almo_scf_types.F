@@ -44,7 +44,7 @@ MODULE almo_scf_types
    ! methods that add penalty terms to the energy functional 
    TYPE penalty_type
 
-      REAL(KIND=dp)      :: occ_vol_coeff
+      REAL(KIND=dp)      :: occ_vol_coeff, loc_vol_coeff
       INTEGER            :: occ_vol_method
 
    END TYPE penalty_type
