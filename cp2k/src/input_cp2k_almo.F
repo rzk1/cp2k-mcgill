@@ -862,11 +862,11 @@ CONTAINS
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
-      !CALL keyword_create(keyword, name="LOCALIZATION_PENALTY_COEFF", &
-      !                    description="Multiplication factor that determines the strength of the localization penalty.", &
-      !                    usage="LOCALIZATION_PENALTY_COEFF 10.0", default_r_val=0.0_dp)
-      !CALL section_add_keyword(section, keyword)
-      !CALL keyword_release(keyword)
+      CALL keyword_create(keyword, name="LOCALIZATION_PENALTY_COEFF", &
+                          description="Multiplication factor that determines the strength of the localization penalty.", &
+                          usage="LOCALIZATION_PENALTY_COEFF 10.0", default_r_val=0.0_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
 
    END SUBROUTINE create_penalty_section
 

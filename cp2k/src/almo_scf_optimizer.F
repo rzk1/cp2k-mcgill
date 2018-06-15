@@ -58,7 +58,7 @@ MODULE almo_scf_optimizer
         dbcsr_norm_maxabsnorm, dbcsr_p_type, dbcsr_print_block_sum, dbcsr_release, &
         dbcsr_reserve_block2d, dbcsr_scale, dbcsr_set, dbcsr_set_diag, dbcsr_trace, dbcsr_triu, &
         dbcsr_nblkrows_total, dbcsr_nblkcols_total, dbcsr_print, &
-        dbcsr_type, dbcsr_type_no_symmetry, dbcsr_work_create, dbcsr_get_block_p
+        dbcsr_type, dbcsr_type_no_symmetry, dbcsr_work_create, dbcsr_get_block_p,  dbcsr_get_block_diag
    USE dm_ls_scf,                       ONLY: report_matrix_sparsity
    USE domain_submatrix_methods,        ONLY: add_submatrices,&
                                               construct_submatrices,&
@@ -915,7 +915,7 @@ CONTAINS
                           my_special_case .EQ. xalmo_case_fully_deloc )
       normalize_orbitals = penalty_occ_vol
       ! not used with lndet: penalty_order=2
-      !localiz_coeff = almo_scf_env%penalty%loc_vol_coeff 
+      localiz_coeff = almo_scf_env%penalty%loc_vol_coeff 
       penalty_amplitude=almo_scf_env%penalty%occ_vol_coeff
       ALLOCATE(penalty_occ_vol_g_prefactor(nspins))
       ALLOCATE(penalty_occ_vol_h_prefactor(nspins))
@@ -1227,7 +1227,13 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                ALLOCATE(z2(nmo))
                ALLOCATE(reim_diag(nmo))
 
- !              CALL dbcsr_print(op_sm_set(2), idim0)
+!DO i = 1, dim_op
+!   DO j = 1, SIZE(op_sm_set, 1)
+!      print*, i
+!      print*, j
+!      CALL dbcsr_print(op_sm_set(j,i)%matrix)
+!   ENDDO
+!END DO
                DO idim0 = 1, SIZE(op_sm_set, 2) ! this loop is over miller ind
 
                   z2(:) = 0.0_dp
@@ -1252,6 +1258,7 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
 
                   ENDDO
 
+                  
                   DO ielem=1, nmo
                      SELECT CASE(2) ! allows for selection of different spread functionals
                      CASE (1) ! functional =  -W_I * log( |z_I|^2 )
@@ -1270,7 +1277,7 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                DEALLOCATE(z2)
                DEALLOCATE(reim_diag)
 
-               localiz_coeff = 0.001
+               localiz_coeff = 0.0000001
                localization_obj_function = localiz_coeff * localization_obj_function
                !IF (penalty_local) THEN
 
@@ -1445,7 +1452,13 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                      envelope_amplitude=almo_scf_env%envelope_amplitude, &
                      eps_filter=almo_scf_env%eps_filter, &
                      spin_factor=spin_factor, &
-                     special_case=my_special_case)
+                     special_case=my_special_case, &
+                     op_sm_set=op_sm_set, &
+                     matrix_t_out=matrix_t_out(ispin), &
+                     weights=weights, &
+                     localiz_coeff = localiz_coeff, &
+                     nmo = nmo, &
+                     z2 = z2)
 
                ENDDO ! ispin
 
@@ -5030,13 +5043,17 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                                cpu_of_domain, domain_map, assume_t0_q0x, optimize_theta, &
                                normalize_orbitals, penalty_occ_vol, &
                                penalty_occ_vol_prefactor, envelope_amplitude, eps_filter, spin_factor, &
-                               special_case, m_sig_sqrti_ii)
+                               special_case, m_sig_sqrti_ii, op_sm_set, matrix_t_out, weights, localiz_coeff, nmo, z2)
+
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: m_grad_out
       TYPE(dbcsr_type), INTENT(IN)                       :: m_ks, m_s, m_t, m_t0, m_siginv, &
                                                             m_quench_t, m_FTsiginv, &
                                                             m_siginvTFTsiginv, m_ST, m_STsiginv0, &
                                                             m_theta
+      TYPE(dbcsr_p_type), DIMENSION(:, :), POINTER       :: op_sm_set
+      TYPE(dbcsr_type), INTENT(IN)                       :: matrix_t_out
+      REAL(dp), ALLOCATABLE, DIMENSION(:)                :: weights, z2
       TYPE(domain_submatrix_type), DIMENSION(:), &
          INTENT(IN)                                      :: domain_s_inv, domain_r_down
       INTEGER, DIMENSION(:), INTENT(IN)                  :: cpu_of_domain
@@ -5053,12 +5070,15 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
       CHARACTER(len=*), PARAMETER :: routineN = 'compute_gradient', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, nao
-      REAL(KIND=dp)                                      :: energy_g_norm, penalty_occ_vol_g_norm
+      INTEGER                                            :: handle, nao, idim0, reim, ielem, nmo
+      REAL(KIND=dp)                                      :: energy_g_norm, penalty_occ_vol_g_norm, &
+                                                            coeff, localiz_coeff 
       TYPE(dbcsr_type)                                   :: m_tmp_no_1, m_tmp_no_2, m_tmp_no_3, &
                                                             m_tmp_oo_1, m_tmp_oo_2
-
 !TYPE(dbcsr_type), INTENT(INOUT)          :: m_tmp_no_2
+      TYPE(dbcsr_type)                                   :: tempNOcc1, tempOccOcc1, temp1, &
+                                                            tempNOcc2, tempOccOcc2, temp2, &
+                                                            Re_diag, Im_diag
 
       CALL timeset(routineN, handle)
 
@@ -5084,6 +5104,33 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                         template=m_siginv, &
                         matrix_type=dbcsr_type_no_symmetry)
       CALL dbcsr_create(m_tmp_oo_2, &
+                        template=m_siginv, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(tempNOcc1, &
+                        template=matrix_t_out, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(tempNOcc2, &
+                        template=matrix_t_out, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(tempNOcc2, &
+                        template=matrix_t_out, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(tempOccOcc1, &
+                        template=m_siginv, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(tempOccOcc2, &
+                        template=m_siginv, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(temp1, &
+                        template=matrix_t_out, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(temp2, &
+                        template=matrix_t_out, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(Re_diag, &
+                        template=m_siginv, &
+                        matrix_type=dbcsr_type_no_symmetry)
+      CALL dbcsr_create(Im_diag, &
                         template=m_siginv, &
                         matrix_type=dbcsr_type_no_symmetry)
 
@@ -5134,28 +5181,77 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
 
       ! LzL Add gradient for Localization
       !IF (penalty_local) THEN
-      !   op_sm_set = REAL(op_sm_set, KIND=dp)
-      !   op_fm_set = REAL(op_fm_set, KIND=dp) 
-      !   DO i = 1, SIZE(op_fm_set, 2)
-      !      DO j = 1, SIZE(op_fm_set, 1)
-      !         CALL cp_fm_set_all(op_fm_set(j, i)%matrix, 0.0_dp)
-      !         CALL cp_gemm("T", "N", nmoloc, nmoloc, nao, 1.0_dp, matrix_out, op_sm_set(j, i)%matrix, 0.0_dp, &
-      !                      BTij(j, i)%matrix)
-      !      ENDDO
-      !   ENDDO
-      !   DO i = 1, n
-      !      CALL cp_cfm_get_element(op_fm_set, i, i, zij(i, idim))     
-      !      CALL cp_cfm_get_element(BTij, i, i, kij(i, idim))     
-      !      SELECT CASE(2) ! allows for selection of different spread functionals
-      !      CASE (1) ! functional =  -W_I * log( |z_I|^2 )
-      !         fvald(i) = -4 * weights(idim ) * op_fm_set(i, idim) * kij(i, idim) / (ABS(zij(i, idim))**2)
-      !      CASE (2) ! functional =  W_I * ( 1 - |z_I|^2 )
-      !         fvald(i) = -4 * weights(idim) * op_fm_set(i, idim) * kij(i, idim)
-      !      CASE (3) ! functional =  W_I * ( 1 - |z_I| )
-      !         fvald(i) = -4 * weights(idim) * op_fm_set(i, idim) * kij(i, idim) / (2 * ABS(zij(i, idim)))
-      !      END SELECT
-      !   ENDDO
+      DO idim0 = 1, SIZE(op_sm_set, 2) ! this loop is over miller ind
 
+         DO reim = 1, SIZE(op_sm_set, 1) ! this loop is over Re/Im 
+
+            IF (reim == 1) THEN
+                
+                CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                        op_sm_set(reim, idim0)%matrix, &
+                        matrix_t_out, &
+                        0.0_dp, tempNOcc1, &
+                        filter_eps=eps_filter)
+
+                ! warning - save time by computing only the diagonal elements
+                CALL dbcsr_multiply("T", "N", 1.0_dp, &
+                        matrix_t_out, &
+                        tempNOcc1, &
+                        0.0_dp, tempOccOcc1, &
+                        filter_eps=eps_filter)
+   
+                CALL dbcsr_get_block_diag(tempOccOcc1,Re_diag)
+
+                CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                                    tempNOcc1, &
+                                    Re_diag, &
+                                    0.0_dp, temp1, &
+                                    filter_eps=eps_filter)
+
+            ENDIF
+
+            IF (reim == 2) THEN
+
+                CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                        op_sm_set(reim, idim0)%matrix, &
+                        matrix_t_out, &
+                        0.0_dp, tempNOcc2, &
+                        filter_eps=eps_filter)
+                
+                ! warning - save time by computing only the diagonal elements
+                CALL dbcsr_multiply("T", "N", 1.0_dp, &
+                        matrix_t_out, &
+                        tempNOcc2, &
+                        0.0_dp, tempOccOcc2, &
+                        filter_eps=eps_filter)
+
+                CALL dbcsr_get_block_diag(tempOccOcc2,Im_diag)
+
+                CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                                    tempNOcc2, &
+                                    Im_diag, &
+                                    0.0_dp, temp2, &
+                                    filter_eps=eps_filter)
+
+            ENDIF
+
+         ENDDO
+
+         SELECT CASE(2) ! allows for selection of different spread functionals
+         CASE (1) ! functional =  -W_I * log( |z_I|^2 )
+            coeff = -4 * (weights(idim0) / z2(ielem))
+         CASE (2) ! functional =  W_I * ( 1 - |z_I|^2 )
+            coeff = -4 * weights(idim0)
+         CASE (3) ! functional =  W_I * ( 1 - |z_I| )
+            coeff = -4 * (weights(idim0) / (2 * z2(ielem) ))
+         END SELECT
+         CALL dbcsr_add(temp1, temp2, coeff, coeff)
+         !CALL dbcsr_add(grad_loc, temp1, 1.0_dp, 1.0_dp) 
+
+      ENDDO ! end loop over idim0
+      CALL dbcsr_add(m_tmp_no_2, temp1, 1.0_dp, localiz_coeff)
+
+          
       ! add penalty on the occupied volume: det(sigma)
       IF (penalty_occ_vol) THEN
          !RZK-warning CALL dbcsr_multiply("N","N",&
@@ -5180,6 +5276,7 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
          !WRITE (*, "(A30,2F20.10)") "Energy/penalty g norms (no norm): ", energy_g_norm, penalty_occ_vol_g_norm
          CALL dbcsr_add(m_tmp_no_2, m_tmp_no_1, 1.0_dp, 1.0_dp)
       ENDIF
+         
 
       ! take into account the factor from the normalization constraint
       IF (normalize_orbitals) THEN

@@ -221,9 +221,9 @@ CONTAINS
       CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"PRECONDITIONER",&
                                 i_val=almo_scf_env%opt_xalmo_newton_pcg_solver%preconditioner)
 
-      !CALL section_vals_val_get(penalty_section, &
-      !                          "LOCALIZATION_VOLUME_PENALTY_COEFF", &
-      !                          r_val=almo_scf_env%penalty%loc_vol_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "LOCALIZATION_PENALTY_COEFF", &
+                                r_val=almo_scf_env%penalty%loc_vol_coeff)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_COEFF", &
                                 r_val=almo_scf_env%penalty%occ_vol_coeff)

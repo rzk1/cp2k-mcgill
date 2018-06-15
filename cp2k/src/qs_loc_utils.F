@@ -45,7 +45,8 @@ MODULE qs_loc_utils
                                               dbcsr_get_block_p,&
                                               dbcsr_p_type,&
                                               dbcsr_set,&
-                                              dbcsr_type
+                                              dbcsr_type,&
+                                              dbcsr_print
    USE distribution_1d_types,           ONLY: distribution_1d_type
    USE input_constants,                 ONLY: &
         do_loc_crazy, do_loc_direct, do_loc_jacobi, do_loc_l1_norm_sd, do_loc_none, &
@@ -667,7 +668,7 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'get_berry_operator', &
          routineP = moduleN//':'//routineN
 
-      INTEGER :: dim_op, handle
+      INTEGER :: dim_op, handle, i, j
       TYPE(cell_type), POINTER                           :: cell
       TYPE(dbcsr_p_type), DIMENSION(:, :), POINTER       :: op_sm_set
 
@@ -677,6 +678,14 @@ CONTAINS
       CALL get_qs_loc_env(qs_loc_env=qs_loc_env, op_sm_set=op_sm_set, &
                           cell=cell, dim_op=dim_op)
       CALL compute_berry_operator(qs_env, cell, op_sm_set, dim_op)
+
+DO i = 1, dim_op
+   DO j = 1, SIZE(op_sm_set, 1)
+      print*, i
+      print*, j
+      CALL dbcsr_print(op_sm_set(j,i)%matrix)
+   ENDDO
+END DO
 
       CALL timestop(handle)
    END SUBROUTINE get_berry_operator
