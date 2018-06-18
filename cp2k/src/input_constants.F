@@ -48,7 +48,8 @@ MODULE input_constants
                                                do_qmmm = 3, &
                                                do_qmmmx = 4, &
                                                do_eip = 5, &
-                                               do_mixed = 6
+                                               do_mixed = 6, &
+                                               do_embed = 7
 
    ! QMMM
    REAL(KIND=dp), PARAMETER, PUBLIC         :: RADIUS_QMMM_DEFAULT = 0.80_dp, & ! Angstrom
@@ -205,6 +206,10 @@ MODULE input_constants
    ! Projection formulas for the maximum overlap method
    INTEGER, PARAMETER, PUBLIC               :: momproj_norm = 0, &
                                                momproj_sum = 1
+
+   ! Type of the MOM method
+   INTEGER, PARAMETER, PUBLIC               :: momtype_mom = 0, &
+                                               momtype_imom = 1
 
    INTEGER, PARAMETER, PUBLIC               :: almo_frz_none = 0, &
                                                almo_frz_isolated = 1, &
@@ -619,6 +624,11 @@ MODULE input_constants
                                                xas_dip_vel = 2
    INTEGER, PARAMETER, PUBLIC               :: xas_scf_default = 0, &
                                                xas_scf_general = 1
+
+   ! Form of dipole operator for TDDFPT oscillator strength calculation
+   INTEGER, PARAMETER, PUBLIC               :: tddfpt_dipole_berry = 1, &
+                                               tddfpt_dipole_length = 2, &
+                                               tddfpt_dipole_velocity = 3
 
    ! Linear Response for properties
    INTEGER, PARAMETER, PUBLIC               :: lr_none = 0, &
@@ -1079,5 +1089,10 @@ MODULE input_constants
                                                negfint_method_simpson = 1
    INTEGER, PARAMETER, PUBLIC               :: negfrun_main = 0, &
                                                negfrun_fermilevel = 1
+
+   ! DFT embedding: optimization of potential
+   INTEGER, PARAMETER, PUBLIC               :: embed_steep_desc = 0, &
+                                               embed_quasi_newton = 1, &
+                                               embed_level_shift = 2
 
 END MODULE input_constants
