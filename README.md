@@ -31,6 +31,8 @@ svn status --show-updates
 
 svn update
 
+* compile and test to see whether it works
+
 * check what changes git sees
 
 git status
