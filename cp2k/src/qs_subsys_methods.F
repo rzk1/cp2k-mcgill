@@ -162,10 +162,10 @@ CONTAINS
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: arbitrary_spin, iatom, ikind, imol, &
-                                                            ispin, n_ao, natom, nmol_kind, nsgf, &
-                                                            nspins, z_molecule
+                                                            n_ao, natom, nmol_kind, nsgf, nspins, &
+                                                            z_molecule
       INTEGER, DIMENSION(0:lmat, 10)                     :: ne_core, ne_elem, ne_explicit
-      INTEGER, DIMENSION(2)                              :: n_occ_alpha_and_beta, n_occ
+      INTEGER, DIMENSION(2)                              :: n_occ_alpha_and_beta
       REAL(KIND=dp)                                      :: charge_molecule, zeff, zeff_correction
       REAL(KIND=dp), DIMENSION(0:lmat, 10, 2)            :: edelta
       TYPE(all_potential_type), POINTER                  :: all_potential
@@ -224,7 +224,7 @@ CONTAINS
                n_occ_alpha_and_beta(ARBITRARY_SPIN) = &
                   n_occ_alpha_and_beta(ARBITRARY_SPIN)+SUM(ne_explicit)+ &
                   SUM(NINT(2*edelta(:, :, ARBITRARY_SPIN)))
-               ! We need a way to specify the number of alpha and beta electrons 
+               ! We need a way to specify the number of alpha and beta electrons
                ! on each molecule (i.e. multiplicity is not enough)
                !n_occ(ispin) = n_occ(ispin) + SUM(ne_explicit) + SUM(NINT(2*edelta(:, :, ispin)))
 

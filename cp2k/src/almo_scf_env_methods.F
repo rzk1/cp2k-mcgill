@@ -15,12 +15,12 @@ MODULE almo_scf_env_methods
                                               almo_scf_env_type
    USE cp_control_types,                ONLY: dft_control_type
    USE input_constants,                 ONLY: &
-        almo_constraint_distance, almo_deloc_xalmo_1diag, almo_domain_layout_atomic, &
-        almo_domain_layout_molecular, almo_frz_crystal, almo_mat_distr_molecular, almo_scf_diag, &
-        almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, tensor_orthogonal, &
-        almo_occ_vol_penalty_none, almo_occ_vol_penalty_lndet, &
-        almo_deloc_x_then_scf, almo_deloc_x, almo_deloc_scf, &
-        virt_full, virt_minimal, virt_number, almo_scf_skip, xalmo_trial_r0_out, almo_deloc_none
+        almo_constraint_distance, almo_deloc_none, almo_deloc_scf, almo_deloc_x, &
+        almo_deloc_x_then_scf, almo_deloc_xalmo_1diag, almo_domain_layout_atomic, &
+        almo_domain_layout_molecular, almo_frz_crystal, almo_mat_distr_molecular, &
+        almo_occ_vol_penalty_none, almo_scf_diag, almo_scf_pcg, almo_scf_skip, cg_hager_zhang, &
+        do_bondparm_vdw, molecular_guess, tensor_orthogonal, virt_full, virt_minimal, virt_number, &
+        xalmo_trial_r0_out
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type,&
                                               section_vals_val_get
@@ -107,8 +107,8 @@ CONTAINS
 
       INTEGER                                            :: handle
       TYPE(section_vals_type), POINTER :: almo_analysis_section, almo_opt_diis_section, &
-         almo_opt_pcg_section, almo_scf_section, xalmo_opt_pcg_section, &
-         xalmo_opt_newton_pcg_section, matrix_iterate_section, penalty_section
+         almo_opt_pcg_section, almo_scf_section, matrix_iterate_section, penalty_section, &
+         xalmo_opt_newton_pcg_section, xalmo_opt_pcg_section
 
       CALL timeset(routineN, handle)
 
@@ -120,10 +120,10 @@ CONTAINS
       xalmo_opt_pcg_section => section_vals_get_subs_vals(almo_scf_section, &
                                                           "XALMO_OPTIMIZER_PCG")
       almo_analysis_section => section_vals_get_subs_vals(almo_scf_section, "ANALYSIS")
-      xalmo_opt_newton_pcg_section => section_vals_get_subs_vals(xalmo_opt_pcg_section,&
-                             "XALMO_NEWTON_PCG_SOLVER")
+      xalmo_opt_newton_pcg_section => section_vals_get_subs_vals(xalmo_opt_pcg_section, &
+                                                                 "XALMO_NEWTON_PCG_SOLVER")
       matrix_iterate_section => section_vals_get_subs_vals(almo_scf_section, &
-                                                          "MATRIX_ITERATE")
+                                                           "MATRIX_ITERATE")
       penalty_section => section_vals_get_subs_vals(almo_scf_section, "PENALTY")
 
       ! read user input
@@ -134,7 +134,7 @@ CONTAINS
                                 i_val=almo_scf_env%almo_scf_guess)
       CALL section_vals_val_get(almo_scf_section, "ALMO_ALGORITHM", &
                                 i_val=almo_scf_env%almo_update_algorithm)
-      CALL section_vals_val_get(almo_scf_section,"XALMO_TRIAL_WF",&
+      CALL section_vals_val_get(almo_scf_section, "XALMO_TRIAL_WF", &
                                 i_val=almo_scf_env%xalmo_trial_wf)
       CALL section_vals_val_get(almo_scf_section, "MO_OVERLAP_INV_ALG", &
                                 i_val=almo_scf_env%sigma_inv_algorithm)
@@ -205,20 +205,20 @@ CONTAINS
                                 r_val=almo_scf_env%opt_xalmo_pcg%lin_search_eps_error)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "LIN_SEARCH_STEP_SIZE_GUESS", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%lin_search_step_size_guess)
-      CALL section_vals_val_get(xalmo_opt_pcg_section, "NEGLECT_THRESHOLD", &
+      CALL section_vals_val_get(xalmo_opt_pcg_section, "PRECOND_FILTER_THRESHOLD", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%neglect_threshold)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "CONJUGATOR", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%conjugator)
       CALL section_vals_val_get(xalmo_opt_pcg_section, "PRECONDITIONER", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%preconditioner)
 
-      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"EPS_ERROR",&
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section, "EPS_ERROR", &
                                 r_val=almo_scf_env%opt_xalmo_newton_pcg_solver%eps_error)
-      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"MAX_ITER",&
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section, "MAX_ITER", &
                                 i_val=almo_scf_env%opt_xalmo_newton_pcg_solver%max_iter)
-      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"MAX_ITER_OUTER_LOOP",&
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section, "MAX_ITER_OUTER_LOOP", &
                                 i_val=almo_scf_env%opt_xalmo_newton_pcg_solver%max_iter_outer_loop)
-      CALL section_vals_val_get(xalmo_opt_newton_pcg_section,"PRECONDITIONER",&
+      CALL section_vals_val_get(xalmo_opt_newton_pcg_section, "PRECONDITIONER", &
                                 i_val=almo_scf_env%opt_xalmo_newton_pcg_solver%preconditioner)
 
       CALL section_vals_val_get(penalty_section, &
@@ -409,15 +409,15 @@ CONTAINS
       ENDIF
 
       ! check for conflicts between options
-      IF (almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out .AND. &
-          almo_scf_env%almo_update_algorithm.EQ.almo_scf_skip .AND. &
-          almo_scf_env%almo_scf_guess.NE.molecular_guess) THEN
-        CPABORT("R0 projector requires optimized ALMOs")
+      IF (almo_scf_env%xalmo_trial_wf .EQ. xalmo_trial_r0_out .AND. &
+          almo_scf_env%almo_update_algorithm .EQ. almo_scf_skip .AND. &
+          almo_scf_env%almo_scf_guess .NE. molecular_guess) THEN
+         CPABORT("R0 projector requires optimized ALMOs")
       ENDIF
-      
-      IF (almo_scf_env%deloc_method.EQ.almo_deloc_none .AND. &
-          almo_scf_env%almo_update_algorithm.EQ.almo_scf_skip) THEN
-        CPABORT("No optimization requested")
+
+      IF (almo_scf_env%deloc_method .EQ. almo_deloc_none .AND. &
+          almo_scf_env%almo_update_algorithm .EQ. almo_scf_skip) THEN
+         CPABORT("No optimization requested")
       ENDIF
 
       IF (almo_scf_env%deloc_truncate_virt .EQ. virt_number .AND. &
@@ -469,9 +469,9 @@ CONTAINS
 
       ! check penalty settings
       IF (almo_scf_env%penalty%occ_vol_method .NE. almo_occ_vol_penalty_none) THEN
-         IF (almo_scf_env%deloc_method.NE.almo_deloc_x .AND. &
-             almo_scf_env%deloc_method.NE.almo_deloc_scf .AND. &
-             almo_scf_env%deloc_method.NE.almo_deloc_x_then_scf) THEN
+         IF (almo_scf_env%deloc_method .NE. almo_deloc_x .AND. &
+             almo_scf_env%deloc_method .NE. almo_deloc_scf .AND. &
+             almo_scf_env%deloc_method .NE. almo_deloc_x_then_scf) THEN
             CPABORT("Occupied volume penalty seems to work only with completely delocalized orbitals")
          ENDIF
       ENDIF ! end penalty settings

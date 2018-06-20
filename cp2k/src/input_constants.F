@@ -915,8 +915,8 @@ MODULE input_constants
    INTEGER, PARAMETER, PUBLIC   :: xalmo_case_block_diag = 0, &
                                    xalmo_case_fully_deloc = 1, &
                                    xalmo_case_normal = -1
-   INTEGER, PARAMETER, PUBLIC   :: xalmo_trial_simplex=0,&
-                                   xalmo_trial_r0_out=1
+   INTEGER, PARAMETER, PUBLIC   :: xalmo_trial_simplex = 0, &
+                                   xalmo_trial_r0_out = 1
 
    ! parameters for CT methods
    INTEGER, PARAMETER, PUBLIC   :: tensor_orthogonal = 1, &

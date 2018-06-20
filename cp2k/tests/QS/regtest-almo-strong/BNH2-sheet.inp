@@ -52,7 +52,7 @@
 
   &SUBSYS
     &CELL
-      ABC 5.294 5.294 5.50
+      ABC 2.647 2.647 5.0
       ALPHA_BETA_GAMMA 90.0 90.0 120.0
       MULTIPLE_UNIT_CELL 1 1 1
     &END CELL
@@ -63,26 +63,14 @@
       MULTIPLE_UNIT_CELL 1 1 1
     &END
     &COORD
-      B        -0.0000140593        0.0000388012        0.1936123633 B1
-      Hm        0.0000430521        0.0001485418        1.3944393573 B1
-      B         2.6468070063       -0.0000486973        0.1936640186 B2
-      Hm        2.6467569556       -0.0000974940        1.3944820806 B2
-      B         3.9702789978        2.2922673920        0.1936083991 B3
-      Hm        3.9703334098        2.2922506933        1.3944308719 B3
-      B         1.3233378196        2.2922712221        0.1936331944 B4
-      Hm        1.3232482259        2.2922198814        1.3944533999 B4
-      N        -0.0000270480        1.5281530481       -0.2704620778 N1
-      Hp       -0.0000315057        1.5283997099       -1.3173280033 N1
-      N         1.3233752487       -0.7640591328       -0.2704029426 N2
-      Hp        1.3235558562       -0.7641589662       -1.3172697795 N2
-      N        -1.3234094967       -0.7640476946       -0.2703421909 N3
-      Hp       -1.3235756465       -0.7641293115       -1.3172094156 N3
-      N         2.6468096976        1.5281506152       -0.2701451424 N4
-      Hp        2.6467924875        1.5281412426       -1.3170154052 N4
+      B        0.0000        0.0000      0.1936 B1
+      Hm       0.0000        0.0000      1.3944 B1
+      N        0.0000        1.5282     -0.2704 N1
+      Hp       0.0000        1.5282     -1.3173 N1
     &END COORD
     &KIND Hp
       ELEMENT   H
-      BASIS_SET DZVP-GTH 
+      BASIS_SET SZV-GTH 
       POTENTIAL GTH-BLYP-q1
       !&BS
       !  &ALPHA
@@ -101,7 +89,7 @@
     &END KIND
     &KIND Hm
       ELEMENT   H
-      BASIS_SET DZVP-GTH 
+      BASIS_SET SZV-GTH 
       POTENTIAL GTH-BLYP-q1
       !&BS
       !  &ALPHA
@@ -119,7 +107,7 @@
       !&END
     &END KIND
     &KIND N
-      BASIS_SET DZVP-GTH
+      BASIS_SET SZV-GTH
       POTENTIAL GTH-BLYP-q5
       &BS
         &ALPHA
@@ -137,7 +125,7 @@
       &END
     &END KIND
     &KIND B
-      BASIS_SET DZVP-GTH
+      BASIS_SET SZV-GTH
       POTENTIAL GTH-BLYP-q3
       &BS
         &ALPHA

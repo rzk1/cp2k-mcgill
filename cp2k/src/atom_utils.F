@@ -1879,12 +1879,11 @@ CONTAINS
 
       CHARACTER(len=*), PARAMETER :: routineN = 'slater_density', routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: i, l, n
+      INTEGER                                            :: counter, i, l, mc, mm(0:lmat), mo, n
       INTEGER, DIMENSION(lmat+1, 7)                      :: ne
       REAL(KIND=dp)                                      :: a, pf
-      INTEGER                                            :: mc, mm(0:lmat), mo, counter
 
-      ! fill out a table with the total number of electrons 
+      ! fill out a table with the total number of electrons
       ! core + valence. format ne(l,n)
       ne = 0
       mm = get_maxn_occ(state%core)
@@ -1892,16 +1891,16 @@ CONTAINS
          mo = state%maxn_occ(l)
          IF (SUM(state%core(l, :)) == 0) THEN
             DO counter = 1, mo
-              ne(l+1,l+counter) = NINT(state%occ(l, counter))
+               ne(l+1, l+counter) = NINT(state%occ(l, counter))
             ENDDO
          ELSE
             mc = mm(l) ! number of levels in the core
             CPASSERT(SUM(state%occ(l, 1:mc)) == 0)
             DO counter = 1, mc
-              ne(l+1,l+counter) = NINT(state%core(l, counter))
+               ne(l+1, l+counter) = NINT(state%core(l, counter))
             ENDDO
-            DO counter=mc+1, mc+mo
-              ne(l+1,l+counter) = NINT(state%occ(l, counter))
+            DO counter = mc+1, mc+mo
+               ne(l+1, l+counter) = NINT(state%occ(l, counter))
             ENDDO
          END IF
       END DO

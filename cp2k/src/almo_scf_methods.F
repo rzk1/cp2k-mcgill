@@ -10,27 +10,26 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_methods
-   USE cp_dbcsr_cholesky,               ONLY: cp_dbcsr_cholesky_decompose, &
-                                              cp_dbcsr_cholesky_invert
-   USE cp_para_types,                   ONLY: cp_para_env_type
-   USE cp_blacs_env,                    ONLY: cp_blacs_env_type
    USE almo_scf_types,                  ONLY: almo_scf_env_type,&
                                               almo_scf_history_type
    USE bibliography,                    ONLY: Kolafa2004,&
                                               cite_reference
+   USE cp_blacs_env,                    ONLY: cp_blacs_env_type
+   USE cp_dbcsr_cholesky,               ONLY: cp_dbcsr_cholesky_decompose,&
+                                              cp_dbcsr_cholesky_invert
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_get_default_unit_nr,&
                                               cp_logger_type
+   USE cp_para_types,                   ONLY: cp_para_env_type
    USE dbcsr_api,                       ONLY: &
-        dbcsr_add, dbcsr_add_on_diag, dbcsr_copy, dbcsr_create, dbcsr_desymmetrize, &
-        dbcsr_distribution_get, dbcsr_distribution_type, dbcsr_filter, dbcsr_finalize, &
-        dbcsr_frobenius_norm, dbcsr_get_block_p, dbcsr_get_diag, dbcsr_get_info, &
+        dbcsr_add, dbcsr_add_on_diag, dbcsr_copy, dbcsr_create, dbcsr_distribution_get, &
+        dbcsr_distribution_type, dbcsr_filter, dbcsr_finalize, dbcsr_frobenius_norm, &
+        dbcsr_get_block_p, dbcsr_get_diag, dbcsr_get_info, dbcsr_get_stored_coordinates, &
         dbcsr_init_random, dbcsr_iterator_blocks_left, dbcsr_iterator_next_block, &
         dbcsr_iterator_start, dbcsr_iterator_stop, dbcsr_iterator_type, dbcsr_multiply, &
-        dbcsr_nblkcols_total, dbcsr_norm, dbcsr_norm_maxabsnorm, dbcsr_print, dbcsr_release, &
-        dbcsr_reserve_block2d, dbcsr_scale, dbcsr_set, dbcsr_set_diag, dbcsr_transposed, &
-        dbcsr_type, dbcsr_type_no_symmetry, dbcsr_type_symmetric, dbcsr_work_create, &
-        dbcsr_get_stored_coordinates, dbcsr_nblkrows_total
+        dbcsr_nblkcols_total, dbcsr_nblkrows_total, dbcsr_print, dbcsr_release, &
+        dbcsr_reserve_block2d, dbcsr_set, dbcsr_set_diag, dbcsr_transposed, dbcsr_type, &
+        dbcsr_type_no_symmetry, dbcsr_type_symmetric, dbcsr_work_create
    USE domain_submatrix_methods,        ONLY: &
         add_submatrices, construct_dbcsr_from_submatrices, construct_submatrices, &
         copy_submatrices, copy_submatrix_data, init_submatrices, multiply_submatrices, &
@@ -41,12 +40,12 @@ MODULE almo_scf_methods
                                               select_row_col
    USE input_constants,                 ONLY: almo_domain_layout_molecular,&
                                               almo_mat_distr_atomic,&
-                                              almo_scf_diag, &
-                                              spd_inversion_ls_hotelling, &
-                                              spd_inversion_ls_taylor, &
-                                              spd_inversion_dense_cholesky
+                                              almo_scf_diag,&
+                                              spd_inversion_dense_cholesky,&
+                                              spd_inversion_ls_hotelling,&
+                                              spd_inversion_ls_taylor
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
-                                              invert_Taylor, &
+                                              invert_Taylor,&
                                               matrix_sqrt_Newton_Schulz
    USE kinds,                           ONLY: dp
    USE mathlib,                         ONLY: binomial
@@ -498,7 +497,7 @@ CONTAINS
 
          ! 5. KS_blk=KS_blk-TMP4_blk
          CALL dbcsr_copy(almo_scf_env%matrix_ks_blk(ispin), &
-                 almo_scf_env%matrix_ks(ispin), keep_sparsity=.TRUE.)
+                         almo_scf_env%matrix_ks(ispin), keep_sparsity=.TRUE.)
          CALL dbcsr_add(almo_scf_env%matrix_ks_blk(ispin), &
                         matrix_tmp4, &
                         1.0_dp, -1.0_dp)
@@ -920,8 +919,8 @@ CONTAINS
             ENDIF
 
             block_needed = .TRUE.
-            IF (almo_scf_env%nocc_of_domain(iblock_col,ispin).EQ.0 .AND. &
-                almo_scf_env%nvirt_of_domain(iblock_col,ispin).EQ.0 ) THEN
+            IF (almo_scf_env%nocc_of_domain(iblock_col, ispin) .EQ. 0 .AND. &
+                almo_scf_env%nvirt_of_domain(iblock_col, ispin) .EQ. 0) THEN
                block_needed = .FALSE.
             ENDIF
 
@@ -953,7 +952,7 @@ CONTAINS
                !!! T, V, E_o, E_v
 
                ! copy eigenvectors into two dbcsr matrices - occupied and virtuals
-               nocc_of_block = almo_scf_env%nocc_of_domain(iblock_col,ispin)
+               nocc_of_block = almo_scf_env%nocc_of_domain(iblock_col, ispin)
                IF (nocc_of_block .GT. 0) THEN
                   NULLIFY (p_new_block)
                   CALL dbcsr_reserve_block2d(matrix_t_blk_orthog, iblock_row, iblock_col, p_new_block)
@@ -970,7 +969,7 @@ CONTAINS
                ENDIF
 
                ! now virtuals
-               nvirt_of_block = almo_scf_env%nvirt_of_domain(iblock_col,ispin)
+               nvirt_of_block = almo_scf_env%nvirt_of_domain(iblock_col, ispin)
                IF (nvirt_of_block .GT. 0) THEN
                   NULLIFY (p_new_block)
                   CALL dbcsr_reserve_block2d(matrix_v_blk_orthog, iblock_row, iblock_col, p_new_block)
@@ -1068,7 +1067,7 @@ CONTAINS
             methodID = 1
             CALL pseudo_invert_matrix(data_p, data_copy, iblock_size, &
                                       methodID, &
-                                      range1=nocc(iblock_row), range2=nocc(iblock_row), &    
+                                      range1=nocc(iblock_row), range2=nocc(iblock_row), &
                                       !range1_thr,range2_thr,&
                                       shift=1.0E-5_dp)
             !!! IT IS EXTREMELY IMPORTANT THAT THE BLOCKS OF THE "OUT"  !!!
@@ -1299,16 +1298,18 @@ CONTAINS
 !> \param metric ...
 !> \param retain_locality ...
 !> \param only_normalize ...
+!> \param nocc_of_domain ...
 !> \param eps_filter ...
 !> \param order_lanczos ...
 !> \param eps_lanczos ...
 !> \param max_iter_lanczos ...
+!> \param overlap_sqrti ...
 !> \par History
 !>       2012.03 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE orthogonalize_mos(ket, overlap, metric, retain_locality, only_normalize, &
-      nocc_of_domain, eps_filter, order_lanczos, eps_lanczos, max_iter_lanczos, overlap_sqrti)
+                                nocc_of_domain, eps_filter, order_lanczos, eps_lanczos, max_iter_lanczos, overlap_sqrti)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: ket, overlap
       TYPE(dbcsr_type), INTENT(IN)                       :: metric
@@ -1318,7 +1319,7 @@ CONTAINS
       INTEGER, INTENT(IN)                                :: order_lanczos
       REAL(KIND=dp), INTENT(IN)                          :: eps_lanczos
       INTEGER, INTENT(IN)                                :: max_iter_lanczos
-      TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL          :: overlap_sqrti 
+      TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL          :: overlap_sqrti
 
       CHARACTER(LEN=*), PARAMETER :: routineN = 'orthogonalize_mos', &
          routineP = moduleN//':'//routineN
@@ -1359,15 +1360,15 @@ CONTAINS
                         matrix_type=dbcsr_type_no_symmetry)
 
       ! compute sqrt and sqrt_inv of the blocked MO overlap
-      CALL set_zero_electron_blocks_in_mo_mo_matrix(overlap,nocc_of_domain,1.0_dp)
+      CALL set_zero_electron_blocks_in_mo_mo_matrix(overlap, nocc_of_domain, 1.0_dp)
       CALL matrix_sqrt_Newton_Schulz(matrix_sigma_blk_sqrt, matrix_sigma_blk_sqrt_inv, &
                                      overlap, threshold=eps_filter, &
                                      order=order_lanczos, &
                                      eps_lanczos=eps_lanczos, &
                                      max_iter_lanczos=max_iter_lanczos)
-      CALL set_zero_electron_blocks_in_mo_mo_matrix(overlap,nocc_of_domain,0.0_dp)
+      CALL set_zero_electron_blocks_in_mo_mo_matrix(overlap, nocc_of_domain, 0.0_dp)
       !CALL set_zero_electron_blocks_in_mo_mo_matrix(matrix_sigma_blk_sqrt,nocc_of_domain,0.0_dp)
-      CALL set_zero_electron_blocks_in_mo_mo_matrix(matrix_sigma_blk_sqrt_inv,nocc_of_domain,0.0_dp)
+      CALL set_zero_electron_blocks_in_mo_mo_matrix(matrix_sigma_blk_sqrt_inv, nocc_of_domain, 0.0_dp)
 
       CALL dbcsr_create(matrix_t_blk_tmp, &
                         template=ket, &
@@ -1384,8 +1385,8 @@ CONTAINS
 
       ! return overlap SQRT_INV if necessary
       IF (PRESENT(overlap_sqrti)) THEN
-         CALL dbcsr_copy(overlap_sqrti,&
-                 matrix_sigma_blk_sqrt_inv)
+         CALL dbcsr_copy(overlap_sqrti, &
+                         matrix_sigma_blk_sqrt_inv)
       ENDIF
 
       CALL dbcsr_release(matrix_t_blk_tmp)
@@ -1403,18 +1404,25 @@ CONTAINS
 !> \param p ...
 !> \param eps_filter ...
 !> \param orthog_orbs ...
+!> \param nocc_of_domain ...
 !> \param s ...
 !> \param sigma ...
 !> \param sigma_inv ...
 !> \param use_guess ...
 !> \param algorithm to inver sigma: 0 - Hotelling (linear), 1 - Cholesky (cubic, low prefactor)
+!> \param para_env ...
+!> \param blacs_env ...
+!> \param eps_lanczos ...
+!> \param max_iter_lanczos ...
+!> \param inverse_accelerator ...
+!> \param inv_eps_factor ...
 !> \par History
 !>       2011.07 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE almo_scf_t_to_proj(t, p, eps_filter, orthog_orbs, nocc_of_domain, s, sigma, sigma_inv, &
-                              use_guess, algorithm, para_env, blacs_env, eps_lanczos, &
-                              max_iter_lanczos, inverse_accelerator, inv_eps_factor)
+                                 use_guess, algorithm, para_env, blacs_env, eps_lanczos, &
+                                 max_iter_lanczos, inverse_accelerator, inv_eps_factor)
 
       TYPE(dbcsr_type), INTENT(IN)                       :: t
       TYPE(dbcsr_type), INTENT(INOUT)                    :: p
@@ -1424,38 +1432,35 @@ CONTAINS
       TYPE(dbcsr_type), INTENT(IN), OPTIONAL             :: s
       TYPE(dbcsr_type), INTENT(INOUT), OPTIONAL          :: sigma, sigma_inv
       LOGICAL, INTENT(IN), OPTIONAL                      :: use_guess
-      INTEGER, INTENT(IN), OPTIONAL                      :: algorithm, &
-                                                            max_iter_lanczos, &
-                                                            inverse_accelerator
-      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_lanczos, &
-                                                            inv_eps_factor
-      TYPE(cp_para_env_type), POINTER, OPTIONAL          :: para_env
-      TYPE(cp_blacs_env_type), POINTER, OPTIONAL         :: blacs_env
+      INTEGER, INTENT(IN), OPTIONAL                      :: algorithm
+      TYPE(cp_para_env_type), OPTIONAL, POINTER          :: para_env
+      TYPE(cp_blacs_env_type), OPTIONAL, POINTER         :: blacs_env
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: eps_lanczos
+      INTEGER, INTENT(IN), OPTIONAL                      :: max_iter_lanczos, inverse_accelerator
+      REAL(KIND=dp), INTENT(IN), OPTIONAL                :: inv_eps_factor
 
       CHARACTER(LEN=*), PARAMETER :: routineN = 'almo_scf_t_to_proj', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, &
-                                                            my_algorithm, &
-                                                            my_accelerator
-      REAL(KIND=dp)                                      :: my_inv_eps_factor
+      INTEGER                                            :: handle, my_accelerator, my_algorithm
       LOGICAL                                            :: use_sigma_inv_guess
+      REAL(KIND=dp)                                      :: my_inv_eps_factor
       TYPE(dbcsr_type)                                   :: t_tmp
 
       CALL timeset(routineN, handle)
 
       ! make sure that S, sigma and sigma_inv are present for non-orthogonal orbitals
       IF (.NOT. orthog_orbs) THEN
-         IF ((.NOT. PRESENT(s)) .OR. (.NOT. PRESENT(sigma)) .OR. & 
+         IF ((.NOT. PRESENT(s)) .OR. (.NOT. PRESENT(sigma)) .OR. &
              (.NOT. PRESENT(sigma_inv)) .OR. (.NOT. PRESENT(nocc_of_domain))) THEN
             CPABORT("Nonorthogonal orbitals need more input")
          ENDIF
       ENDIF
 
-      my_algorithm=0
-      IF (PRESENT(algorithm)) my_algorithm=algorithm
+      my_algorithm = 0
+      IF (PRESENT(algorithm)) my_algorithm = algorithm
 
-      IF (my_algorithm==1 .AND. (.NOT.PRESENT(para_env) .OR. .NOT.PRESENT(blacs_env))) &
+      IF (my_algorithm == 1 .AND. (.NOT. PRESENT(para_env) .OR. .NOT. PRESENT(blacs_env))) &
          CPABORT("PARA and BLACS env are necessary for cholesky algorithm")
 
       use_sigma_inv_guess = .FALSE.
@@ -1465,10 +1470,10 @@ CONTAINS
 
       my_accelerator = 1
       IF (PRESENT(inverse_accelerator)) my_accelerator = inverse_accelerator
-     
+
       my_inv_eps_factor = 10.0_dp
       IF (PRESENT(inv_eps_factor)) my_inv_eps_factor = inv_eps_factor
- 
+
       IF (orthog_orbs) THEN
 
          CALL dbcsr_multiply("N", "T", 1.0_dp, t, t, &
@@ -1487,52 +1492,52 @@ CONTAINS
                              filter_eps=eps_filter)
 
          ! invert MO overlap
-         CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma,nocc_of_domain,1.0_dp)
+         CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma, nocc_of_domain, 1.0_dp)
          SELECT CASE (my_algorithm)
          CASE (spd_inversion_ls_taylor)
 
-            CALL invert_Taylor( & 
-               matrix_inverse=sigma_inv, & 
-               matrix=sigma, & 
-               use_inv_as_guess=use_sigma_inv_guess, & 
+            CALL invert_Taylor( &
+               matrix_inverse=sigma_inv, &
+               matrix=sigma, &
+               use_inv_as_guess=use_sigma_inv_guess, &
                threshold=eps_filter*my_inv_eps_factor, &
                filter_eps=eps_filter, &
                !accelerator_order=my_accelerator, &
                !eps_lanczos=eps_lanczos, &
                !max_iter_lanczos=max_iter_lanczos, &
-               silent=.FALSE.) 
+               silent=.FALSE.)
 
          CASE (spd_inversion_ls_hotelling)
 
-            CALL invert_Hotelling( & 
-               matrix_inverse=sigma_inv, & 
-               matrix=sigma, & 
-               use_inv_as_guess=use_sigma_inv_guess, & 
+            CALL invert_Hotelling( &
+               matrix_inverse=sigma_inv, &
+               matrix=sigma, &
+               use_inv_as_guess=use_sigma_inv_guess, &
                threshold=eps_filter*my_inv_eps_factor, &
                filter_eps=eps_filter, &
                accelerator_order=my_accelerator, &
                eps_lanczos=eps_lanczos, &
                max_iter_lanczos=max_iter_lanczos, &
-               silent=.FALSE.) 
+               silent=.FALSE.)
 
          CASE (spd_inversion_dense_cholesky)
 
-            ! invert using cholesky 
-            CALL dbcsr_copy(sigma_inv, sigma)  
-            CALL cp_dbcsr_cholesky_decompose(sigma_inv,& 
-                    para_env=para_env,& 
-                    blacs_env=blacs_env) 
-            CALL cp_dbcsr_cholesky_invert(sigma_inv,& 
-                    para_env=para_env,& 
-                    blacs_env=blacs_env,& 
-                    upper_to_full=.TRUE.) 
-            CALL dbcsr_filter(sigma_inv,& 
-                    eps=eps_filter)
+            ! invert using cholesky
+            CALL dbcsr_copy(sigma_inv, sigma)
+            CALL cp_dbcsr_cholesky_decompose(sigma_inv, &
+                                             para_env=para_env, &
+                                             blacs_env=blacs_env)
+            CALL cp_dbcsr_cholesky_invert(sigma_inv, &
+                                          para_env=para_env, &
+                                          blacs_env=blacs_env, &
+                                          upper_to_full=.TRUE.)
+            CALL dbcsr_filter(sigma_inv, &
+                              eps=eps_filter)
          CASE DEFAULT
-            CPABORT("Illegal MO overalp inversion algorithm") 
+            CPABORT("Illegal MO overalp inversion algorithm")
          END SELECT
-         CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma,nocc_of_domain,0.0_dp)
-         CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma_inv,nocc_of_domain,0.0_dp)
+         CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma, nocc_of_domain, 0.0_dp)
+         CALL set_zero_electron_blocks_in_mo_mo_matrix(sigma_inv, nocc_of_domain, 0.0_dp)
 
          ! TMP=T.SigInv
          CALL dbcsr_multiply("N", "N", 1.0_dp, t, sigma_inv, 0.0_dp, t_tmp, &
@@ -1550,36 +1555,37 @@ CONTAINS
 
    END SUBROUTINE almo_scf_t_to_proj
 
-
 ! **************************************************************************************************
 !> \brief self-explanatory
-!> \param 
+!> \param matrix ...
+!> \param nocc_of_domain ...
+!> \param value ...
+!> \param
 !> \par History
 !>       2016.12 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
-   SUBROUTINE set_zero_electron_blocks_in_mo_mo_matrix(matrix,nocc_of_domain,value)
+   SUBROUTINE set_zero_electron_blocks_in_mo_mo_matrix(matrix, nocc_of_domain, value)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: matrix
       INTEGER, DIMENSION(:), INTENT(IN)                  :: nocc_of_domain
       REAL(KIND=dp), INTENT(IN)                          :: value
 
-      INTEGER                                            :: hold, iblock_col, &
-                                                            iblock_row, mynode, &
+      INTEGER                                            :: hold, iblock_col, iblock_row, mynode, &
                                                             nblkrows_tot, row
-      LOGICAL                                            :: tr, found
-      TYPE(dbcsr_distribution_type)                      :: dist
+      LOGICAL                                            :: found, tr
       REAL(KIND=dp), DIMENSION(:, :), POINTER            :: p_new_block
-         
+      TYPE(dbcsr_distribution_type)                      :: dist
+
       CALL dbcsr_get_info(matrix, distribution=dist)
       CALL dbcsr_distribution_get(dist, mynode=mynode)
       !mynode = dbcsr_mp_mynode(dbcsr_distribution_mp(dbcsr_distribution(matrix)))
       CALL dbcsr_work_create(matrix, work_mutable=.TRUE.)
 
       nblkrows_tot = dbcsr_nblkrows_total(matrix)
-      
+
       DO row = 1, nblkrows_tot
-         IF (nocc_of_domain(row)==0) THEN
+         IF (nocc_of_domain(row) == 0) THEN
             tr = .FALSE.
             iblock_row = row
             iblock_col = row
@@ -1980,21 +1986,25 @@ CONTAINS
 !>         0. simple preconditioner
 !> \param matrix_main ...
 !> \param subm_s_inv ...
+!> \param subm_s_inv_half ...
+!> \param subm_s_half ...
 !> \param subm_r_down ...
 !> \param matrix_trimmer ...
 !> \param dpattern ...
 !> \param map ...
 !> \param node_of_domain ...
 !> \param preconditioner ...
+!> \param bad_modes_projector_down ...
 !> \param use_trimmer ...
+!> \param eps_zero_eigenvalues ...
 !> \param my_action ...
 !> \par History
 !>       2013.01 created [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
    SUBROUTINE construct_domain_preconditioner(matrix_main, subm_s_inv, subm_s_inv_half, subm_s_half, &
-                 subm_r_down, matrix_trimmer, dpattern, map, node_of_domain, preconditioner, &
-                 bad_modes_projector_down, use_trimmer, eps_zero_eigenvalues, my_action)
+                                              subm_r_down, matrix_trimmer, dpattern, map, node_of_domain, preconditioner, &
+                                              bad_modes_projector_down, use_trimmer, eps_zero_eigenvalues, my_action)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: matrix_main
       TYPE(domain_submatrix_type), DIMENSION(:), &
@@ -2153,34 +2163,34 @@ CONTAINS
             ENDIF
 
             IF (PRESENT(eps_zero_eigenvalues)) THEN
-                IF(PRESENT(subm_s_inv_half)) THEN
-                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=nmos(idomain), range2=n_domain_mos, &  
-                        range1_thr=eps_zero_eigenvalues, &
-                        bad_modes_projector_down=proj_array, &
-                        s_inv_half=subm_s_inv_half(idomain)%mdata, &
-                        s_half=subm_s_half(idomain)%mdata &
-                        !metric_inv=subm_s_inv(idomain)%mdata &
-                        )
-                ELSE
-                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                		range1=nmos(idomain), range2=n_domain_mos, &  
-                        range1_thr=eps_zero_eigenvalues, &
-                        bad_modes_projector_down=proj_array &
-                        )
-                ENDIF
+               IF (PRESENT(subm_s_inv_half)) THEN
+                  CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
+                                            range1=nmos(idomain), range2=n_domain_mos, &
+                                            range1_thr=eps_zero_eigenvalues, &
+                                            bad_modes_projector_down=proj_array, &
+                                            s_inv_half=subm_s_inv_half(idomain)%mdata, &
+                                            s_half=subm_s_half(idomain)%mdata &
+                                            !metric_inv=subm_s_inv(idomain)%mdata &
+                                            )
+               ELSE
+                  CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
+                                            range1=nmos(idomain), range2=n_domain_mos, &
+                                            range1_thr=eps_zero_eigenvalues, &
+                                            bad_modes_projector_down=proj_array &
+                                            )
+               ENDIF
             ELSE
-                IF(PRESENT(subm_s_inv_half)) THEN
-                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                           range1=nmos(idomain), range2=n_domain_mos, &
-                           bad_modes_projector_down=proj_array, &
-                           s_inv_half=subm_s_inv_half(idomain)%mdata, &
-                           s_half=subm_s_inv(idomain)%mdata)
-                ELSE
-                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1,&
-                           range1=nmos(idomain), range2=n_domain_mos, &
-                           bad_modes_projector_down=proj_array)
-                ENDIF
+               IF (PRESENT(subm_s_inv_half)) THEN
+                  CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
+                                            range1=nmos(idomain), range2=n_domain_mos, &
+                                            bad_modes_projector_down=proj_array, &
+                                            s_inv_half=subm_s_inv_half(idomain)%mdata, &
+                                            s_half=subm_s_inv(idomain)%mdata)
+               ELSE
+                  CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
+                                            range1=nmos(idomain), range2=n_domain_mos, &
+                                            bad_modes_projector_down=proj_array)
+               ENDIF
             ENDIF ! eps_zero_eigenvalues
             !!!TRIM ENDIF
 
@@ -2191,9 +2201,9 @@ CONTAINS
                CALL copy_submatrices(subm_main(idomain), bad_modes_projector_down(idomain), .FALSE.)
                CALL copy_submatrix_data(proj_array, bad_modes_projector_down(idomain))
             ENDIF
- 
+
             DEALLOCATE (Minv)
-            IF (PRESENT(bad_modes_projector_down)) THEN 
+            IF (PRESENT(bad_modes_projector_down)) THEN
                DEALLOCATE (proj_array)
             ENDIF
 
@@ -2360,7 +2370,6 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE construct_domain_s_inv
-
 
 ! **************************************************************************************************
 !> \brief Constructs subblocks of the covariant-covariant projectors (i.e. DM without spin factor)
@@ -2548,24 +2557,26 @@ CONTAINS
 !> \param range1 ...
 !> \param range2 ...
 !> \param range1_thr ...
-!> \param range2_thr ...
 !> \param shift ...
+!> \param bad_modes_projector_down ...
+!> \param s_inv_half ...
+!> \param s_half ...
 !> \par History
 !>       2012.04 created [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
 ! **************************************************************************************************
-  SUBROUTINE pseudo_invert_matrix(A, Ainv, N, method, range1, range2, range1_thr, &
+   SUBROUTINE pseudo_invert_matrix(A, Ainv, N, method, range1, range2, range1_thr, &
                                    shift, bad_modes_projector_down, s_inv_half, s_half)
 
       REAL(KIND=dp), DIMENSION(:, :), INTENT(IN)         :: A
       REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT)      :: Ainv
-      REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT), OPTIONAL &
-                                                         :: bad_modes_projector_down
-      REAL(KIND=dp), DIMENSION(:, :), INTENT(IN), OPTIONAL &
-                                                         :: s_inv_half, s_half
       INTEGER, INTENT(IN)                                :: N, method
       INTEGER, INTENT(IN), OPTIONAL                      :: range1, range2
       REAL(KIND=dp), INTENT(IN), OPTIONAL                :: range1_thr, shift
+      REAL(KIND=dp), DIMENSION(:, :), INTENT(INOUT), &
+         OPTIONAL                                        :: bad_modes_projector_down
+      REAL(KIND=dp), DIMENSION(:, :), INTENT(IN), &
+         OPTIONAL                                        :: s_inv_half, s_half
 
       CHARACTER(len=*), PARAMETER :: routineN = 'pseudo_invert_matrix', &
          routineP = moduleN//':'//routineN
@@ -2599,7 +2610,7 @@ CONTAINS
                use_ranges = .FALSE.
             ENDIF
          ENDIF
-         
+
          IF ((PRESENT(s_half) .AND. (.NOT. PRESENT(s_inv_half))) .OR. (PRESENT(s_inv_half) .AND. (.NOT. PRESENT(s_half)))) THEN
             CPABORT("Domain overlap matrix missing")
          ENDIF
@@ -2644,7 +2655,7 @@ CONTAINS
          ENDIF
          ! Query the optimal workspace for dsyev
          LWORK = -1
-         ALLOCATE (WORK(MAX(1, LWORK)))        
+         ALLOCATE (WORK(MAX(1, LWORK)))
          CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
 
          LWORK = INT(WORK(1))
@@ -2652,7 +2663,7 @@ CONTAINS
          ! Allocate the workspace and solve the eigenproblem
          ALLOCATE (WORK(MAX(1, LWORK)))
          CALL DSYEV('V', 'L', N, Ainv, N, eigenvalues, WORK, LWORK, INFO)
-         
+
          IF (INFO .NE. 0) THEN
             IF (unit_nr > 0) WRITE (unit_nr, *) 'EIGENSYSTEM ERROR MESSAGE: ', INFO
             CPABORT("Eigenproblem routine failed")
@@ -2665,7 +2676,7 @@ CONTAINS
          ! invert eigenvalues and use eigenvectors to compute pseudo Ainv
          ! project out near-zero eigenvalue modes
          ALLOCATE (temp2(N, N))
-         IF (PRESENT(bad_modes_projector_down)) ALLOCATE(temp3(N, N))         
+         IF (PRESENT(bad_modes_projector_down)) ALLOCATE (temp3(N, N))
          temp2 = Ainv
 
          range1_eiv = 0
@@ -2677,13 +2688,13 @@ CONTAINS
                IF ((jj .LE. range2) .AND. (eigenvalues(jj) .LT. range1_thr)) THEN
                   temp1(jj, :) = temp2(:, jj)*0.0_dp
                   IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
-                  range1_eiv = range1_eiv+1       
+                  range1_eiv = range1_eiv+1
                ELSE
                   temp1(jj, :) = temp2(:, jj)/(eigenvalues(jj)+my_shift)
                   IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*0.0_dp
                   range2_eiv = range2_eiv+1
                ENDIF
-            ENDDO         
+            ENDDO
          ELSE
             IF (use_ranges) THEN
                DO jj = 1, N
@@ -2691,7 +2702,7 @@ CONTAINS
                      temp1(jj, :) = temp2(:, jj)*0.0_dp
                      IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
                      range1_eiv = range1_eiv+1
-                  ELSE IF(jj .LE. range2) THEN
+                  ELSE IF (jj .LE. range2) THEN
                      temp1(jj, :) = temp2(:, jj)*1.0_dp
                      IF (PRESENT(bad_modes_projector_down)) temp3(jj, :) = Ainv(:, jj)*1.0_dp
                      range2_eiv = range2_eiv+1
@@ -2717,7 +2728,7 @@ CONTAINS
          ENDIF
          !WRITE(*,*) ' EIV RANGES: ', range1_eiv, range2_eiv, range3_eiv
          IF (PRESENT(bad_modes_projector_down)) THEN
-            IF(PRESENT(s_half)) THEN
+            IF (PRESENT(s_half)) THEN
                CALL DSYMM('L', 'U', N, N, 1.0_dp, s_half, N, temp2, N, 0.0_dp, Ainv, N)
                CALL DSYMM('R', 'U', N, N, 1.0_dp, s_half, N, temp3, N, 0.0_dp, temp4, N)
                CALL DGEMM('N', 'N', N, N, N, 1.0_dp, Ainv, N, temp4, N, 0.0_dp, bad_modes_projector_down, N)
@@ -2725,7 +2736,7 @@ CONTAINS
                CALL DGEMM('N', 'N', N, N, N, 1.0_dp, temp2, N, temp3, N, 0.0_dp, bad_modes_projector_down, N)
             ENDIF
          ENDIF
-         
+
          IF (PRESENT(s_inv_half)) THEN
             CALL DSYMM('L', 'U', N, N, 1.0_dp, s_inv_half, N, temp2, N, 0.0_dp, temp4, N)
             CALL DSYMM('R', 'U', N, N, 1.0_dp, s_inv_half, N, temp1, N, 0.0_dp, temp2, N)
@@ -2734,7 +2745,7 @@ CONTAINS
             CALL DGEMM('N', 'N', N, N, N, 1.0_dp, temp2, N, temp1, N, 0.0_dp, Ainv, N)
          ENDIF
          DEALLOCATE (temp1, temp2, temp4)
-         IF (PRESENT(bad_modes_projector_down)) DEALLOCATE(temp3)
+         IF (PRESENT(bad_modes_projector_down)) DEALLOCATE (temp3)
          DEALLOCATE (eigenvalues)
 
       CASE DEFAULT
@@ -2788,7 +2799,7 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'pseudo_matrix_power', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, ii, INFO, jj, LWORK, range1_eiv, &
+      INTEGER                                            :: handle, INFO, jj, LWORK, range1_eiv, &
                                                             range2_eiv, unit_nr
       LOGICAL                                            :: use_both, use_ranges, use_thr
       REAL(KIND=dp)                                      :: my_shift
@@ -2806,7 +2817,6 @@ CONTAINS
          unit_nr = -1
       END IF
 
-
       IF (PRESENT(range1) .AND. PRESENT(range1_thr)) THEN
          use_both = .TRUE.
       ELSE
@@ -2815,14 +2825,13 @@ CONTAINS
             use_ranges = .TRUE.
          ELSE
             use_ranges = .FALSE.
-            IF(PRESENT(range1_thr)) THEN
+            IF (PRESENT(range1_thr)) THEN
                use_thr = .TRUE.
-            ELSE 
+            ELSE
                use_thr = .FALSE.
             ENDIF
          ENDIF
       ENDIF
-
 
       my_shift = 0.0_dp
       IF (PRESENT(shift)) THEN
@@ -2854,18 +2863,17 @@ CONTAINS
       END IF
       DEALLOCATE (WORK)
 
-         !WRITE(*,*) "EIGENVALS: "
-         !WRITE(*,'(4F13.9)') eigenvalues(:)
+      !WRITE(*,*) "EIGENVALS: "
+      !WRITE(*,'(4F13.9)') eigenvalues(:)
 
-         ! invert eigenvalues and use eigenvectors to compute pseudo Ainv
-         ! project out near-zero eigenvalue modes
+      ! invert eigenvalues and use eigenvectors to compute pseudo Ainv
+      ! project out near-zero eigenvalue modes
       ALLOCATE (temp2(N, N))
 
       temp2 = Apow
 
       range1_eiv = 0
       range2_eiv = 0
-         
 
       IF (use_both) THEN
          DO jj = 1, N
@@ -2875,7 +2883,7 @@ CONTAINS
             ELSE
                temp1(jj, :) = temp2(:, jj)*((eigenvalues(jj)+my_shift)**power)
             ENDIF
-         ENDDO         
+         ENDDO
       ELSE
          IF (use_ranges) THEN
             DO jj = 1, N
@@ -2892,11 +2900,11 @@ CONTAINS
                   IF (eigenvalues(jj) .LT. range1_thr) THEN
                      temp1(jj, :) = temp2(:, jj)*0.0_dp
 
-                        range1_eiv = range1_eiv+1
+                     range1_eiv = range1_eiv+1
                   ELSE
                      temp1(jj, :) = temp2(:, jj)*((eigenvalues(jj)+my_shift)**power)
                   ENDIF
-               ENDDO               
+               ENDDO
             ELSE
                DO jj = 1, N
                   temp1(jj, :) = temp2(:, jj)*((eigenvalues(jj)+my_shift)**power)
@@ -3038,6 +3046,7 @@ CONTAINS
 !> \param order_lanczos ...
 !> \param eps_lanczos ...
 !> \param max_iter_lanczos ...
+!> \param nocc_of_domain ...
 !> \par History
 !>       2016.11 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -3058,7 +3067,7 @@ CONTAINS
       INTEGER, INTENT(IN)                                :: order_lanczos
       REAL(KIND=dp), INTENT(IN)                          :: eps_lanczos
       INTEGER, INTENT(IN)                                :: max_iter_lanczos
-      INTEGER, DIMENSION(:,:), INTENT(IN)                :: nocc_of_domain
+      INTEGER, DIMENSION(:, :), INTENT(IN)               :: nocc_of_domain
 
       CHARACTER(len=*), PARAMETER :: routineN = 'xalmo_initial_guess', &
          routineP = moduleN//':'//routineN
@@ -3163,7 +3172,7 @@ CONTAINS
                                       metric=m_overlap, &
                                       retain_locality=.TRUE., &
                                       only_normalize=.FALSE., &
-                                      nocc_of_domain=nocc_of_domain(:,ispin), &
+                                      nocc_of_domain=nocc_of_domain(:, ispin), &
                                       eps_filter=eps_filter, &
                                       order_lanczos=order_lanczos, &
                                       eps_lanczos=eps_lanczos, &
@@ -3183,7 +3192,7 @@ CONTAINS
                                    metric=m_overlap, &
                                    retain_locality=.TRUE., &
                                    only_normalize=.FALSE., &
-                                   nocc_of_domain=nocc_of_domain(:,ispin), &
+                                   nocc_of_domain=nocc_of_domain(:, ispin), &
                                    eps_filter=eps_filter, &
                                    order_lanczos=order_lanczos, &
                                    eps_lanczos=eps_lanczos, &
