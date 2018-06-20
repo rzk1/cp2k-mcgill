@@ -1277,8 +1277,9 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                DEALLOCATE(z2)
                DEALLOCATE(reim_diag)
 
-               localiz_coeff = 0.0000001
+               !localiz_coeff = 0.0000001
                localization_obj_function = localiz_coeff * localization_obj_function
+               energy_new=energy_new+localization_obj_function
                !IF (penalty_local) THEN
 
                !   CALL dbcsr_get_info(almo_scf_env%matrix_sigma_inv(ispin), nfullrows_total=nmo)
@@ -1390,7 +1391,7 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                      WRITE(unit_nr,*) "penalty c0: ", penalty_occ_vol_g_prefactor(ispin)
                      WRITE(unit_nr,*) "penalty c1: ", penalty_occ_vol_h_prefactor(ispin)
                      WRITE(unit_nr,*) "penalty c0*c1: ", penalty_occ_vol_g_prefactor(ispin)*penalty_occ_vol_h_prefactor(ispin)
-                     WRITE(unit_nr,*) "energy, penalty: ", energy_new, penalty_func_new
+                     WRITE(unit_nr,*) "energy, penalty: ", energy_new-localization_obj_function, penalty_func_new
                   ENDIF
                   ! this is not pure energy anymore
                   energy_new=energy_new+penalty_func_new
@@ -1897,15 +1898,17 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                   t2-t1
                IF (penalty_occ_vol) THEN
                   WRITE(unit_nr,'(T2,A19,F23.10)') &
-                          "Energy component:", energy_new-penalty_func_new
+                          "Energy component:", energy_new-penalty_func_new-localization_obj_function
                   WRITE(unit_nr,'(T2,A19,F23.10)') &
                           "Penalty component:", penalty_func_new
+                  WRITE(unit_nr,'(T2,A19,F23.10)') &
+                          "Localization component:", localization_obj_function
                ENDIF
             ENDIF
 
             IF (my_special_case.eq.xalmo_case_block_diag) THEN
                IF (penalty_occ_vol) THEN
-                  almo_scf_env%almo_scf_energy=energy_new-penalty_func_new
+                  almo_scf_env%almo_scf_energy=energy_new-penalty_func_new-localization_obj_function
                ELSE
                   almo_scf_env%almo_scf_energy=energy_new
                ENDIF
