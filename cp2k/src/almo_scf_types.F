@@ -19,7 +19,7 @@ MODULE almo_scf_types
    USE input_constants,                 ONLY: &
         cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, &
         cg_liu_storey, cg_polak_ribiere, cg_zero, optimizer_diis, optimizer_pcg, &
-        xalmo_prec_domain, xalmo_prec_zero, xalmo_prec_full
+        xalmo_prec_domain, xalmo_prec_full, xalmo_prec_zero
    USE kinds,                           ONLY: dp
 #include "./base/base_uses.f90"
 
@@ -36,19 +36,18 @@ MODULE almo_scf_types
                                    almo_mat_dim_domains = 5, &
                                    almo_mat_dim_virt_disc = 6
    REAL(KIND=dp), PARAMETER, PUBLIC :: almo_max_cutoff_multiplier = 2.2_dp
-   
+
    PUBLIC :: almo_scf_env_type, optimizer_options_type, &
              print_optimizer_options, almo_scf_env_release, &
              almo_scf_history_type
 
-   ! methods that add penalty terms to the energy functional 
+   ! methods that add penalty terms to the energy functional
    TYPE penalty_type
 
       REAL(KIND=dp)      :: occ_vol_coeff
       INTEGER            :: occ_vol_method
 
    END TYPE penalty_type
-
 
    ! almo-based electronic structure analysis
    TYPE almo_analysis_type
@@ -59,7 +58,6 @@ MODULE almo_scf_types
       INTEGER :: frozen_mo_energy_term
 
    END TYPE almo_analysis_type
-
 
    TYPE optimizer_options_type
 

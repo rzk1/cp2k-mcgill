@@ -1,0 +1,26 @@
+#   1) nixpkgs/16.09   5) intel/2016.4   6) openmpi/2.1.1   7) StdEnv/2016.4    8) fftw-mpi/3.3.6
+#  11) libint/1.1.6   12) libxc/4.2.1
+
+CC         = mpicc
+FC         = mpif90
+LD         = mpif90
+AR         = xiar -r
+
+DFLAGS     = -D__MKL -D__INTEL -D__FFTW3 -D__parallel -D__SCALAPACK
+DFLAGS     += -D__LIBXC
+DFLAGS     += -D__LIBINT
+
+CPPFLAGS   = -C -traditional $(DFLAGS)
+#CPPFLAGS   += -I'/home/rzk/project/group/libxc/libxc-4.2.1-intel-2016.4/include'
+
+FCFLAGS    = $(DFLAGS) -O3 -xHost -heap-arrays 64 -fpp -free -unroll -pc 64 -convert big_endian
+#FCFLAGS    += -I'/home/rzk/project/group/libxc/libxc-4.2.1-intel-2016.4/include'
+
+LDFLAGS    = $(FCFLAGS)
+#LDFLAGS    += -L'/home/rzk/project/group/libxc/libxc-4.2.1-intel-2016.4/lib'
+
+LIBS       = -lfftw3 -lfftw3_mpi -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_openmpi_lp64 -lpthread -lm -ldl 
+LIBS       += -lxcf03 -lxc 
+LIBS       += -lint -lderiv
+
+OBJECTS_ARCHITECTURE = machine_intel.o

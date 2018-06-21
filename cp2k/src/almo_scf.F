@@ -11,17 +11,6 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf
-   USE mathlib,                         ONLY: binomial
-   USE qs_rho_types,                    ONLY: qs_rho_get,&
-                                              qs_rho_type
-   USE qs_energy_types,                 ONLY: qs_energy_type
-   USE qs_initial_guess,                ONLY: calculate_atomic_block_dm,&
-                                              calculate_mopac_dm
-   USE qs_kind_types,                   ONLY: qs_kind_type
-   USE particle_types,                  ONLY: particle_type
-   USE mscfg_types,                     ONLY: get_matrix_from_submatrices,&
-                                              molecular_scf_guess_env_type
-   USE cp_para_types,                   ONLY: cp_para_env_type
    USE almo_scf_methods,                ONLY: almo_scf_p_blk_to_t_blk,&
                                               almo_scf_t_to_proj,&
                                               distribute_domains,&
@@ -29,12 +18,11 @@ MODULE almo_scf
    USE almo_scf_optimizer,              ONLY: almo_scf_block_diagonal,&
                                               almo_scf_xalmo_eigensolver,&
                                               almo_scf_xalmo_pcg
-   USE almo_scf_qs,                     ONLY: almo_scf_construct_quencher,&
-                                              init_almo_ks_matrix_via_qs, &
-                                              construct_qs_mos, &
-                                              almo_dm_to_almo_ks, &
-                                              matrix_almo_create,&
+   USE almo_scf_qs,                     ONLY: almo_dm_to_almo_ks,&
+                                              almo_scf_construct_quencher,&
                                               calculate_w_matrix_almo,&
+                                              construct_qs_mos,&
+                                              init_almo_ks_matrix_via_qs,&
                                               matrix_almo_create,&
                                               matrix_qs_to_almo
    USE almo_scf_types,                  ONLY: almo_mat_dim_aobasis,&
@@ -73,10 +61,10 @@ MODULE almo_scf
         almo_deloc_none, almo_deloc_scf, almo_deloc_x, almo_deloc_x_then_scf, &
         almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, almo_deloc_xk, &
         almo_domain_layout_molecular, almo_mat_distr_atomic, almo_mat_distr_molecular, &
-        almo_scf_diag, almo_scf_dm_sign, almo_scf_pcg, atomic_guess, molecular_guess, &
-        optimizer_diis, optimizer_pcg, restart_guess, virt_full, virt_number, virt_occ_size, &
-        xalmo_case_block_diag, xalmo_case_fully_deloc, xalmo_case_normal, &
-        almo_scf_skip, xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg
+        almo_scf_diag, almo_scf_dm_sign, almo_scf_pcg, almo_scf_skip, atomic_guess, &
+        molecular_guess, optimizer_diis, optimizer_lin_eq_pcg, optimizer_pcg, restart_guess, &
+        virt_full, virt_number, virt_occ_size, xalmo_case_block_diag, xalmo_case_fully_deloc, &
+        xalmo_case_normal, xalmo_trial_r0_out
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
@@ -89,17 +77,13 @@ MODULE almo_scf
    USE mscfg_types,                     ONLY: get_matrix_from_submatrices,&
                                               molecular_scf_guess_env_type
    USE particle_types,                  ONLY: particle_type
-   USE qs_energy_types,                 ONLY: qs_energy_type
    USE qs_environment_types,            ONLY: get_qs_env,&
                                               qs_environment_type
    USE qs_initial_guess,                ONLY: calculate_atomic_block_dm,&
                                               calculate_mopac_dm
    USE qs_kind_types,                   ONLY: qs_kind_type
-   USE qs_ks_methods,                   ONLY: qs_ks_update_qs_env
-   USE qs_ks_types,                     ONLY: qs_ks_did_change
    USE qs_mo_types,                     ONLY: get_mo_set,&
                                               mo_set_p_type
-   USE qs_rho_methods,                  ONLY: qs_rho_update_rho
    USE qs_rho_types,                    ONLY: qs_rho_get,&
                                               qs_rho_type
    USE qs_scf_post_scf,                 ONLY: qs_scf_compute_properties
@@ -211,7 +195,7 @@ CONTAINS
       almo_scf_env%opt_block_diag_pcg%optimizer_type = optimizer_pcg
       almo_scf_env%opt_xalmo_diis%optimizer_type = optimizer_diis
       almo_scf_env%opt_xalmo_pcg%optimizer_type = optimizer_pcg
-      almo_scf_env%opt_xalmo_newton_pcg_solver%optimizer_type=optimizer_lin_eq_pcg
+      almo_scf_env%opt_xalmo_newton_pcg_solver%optimizer_type = optimizer_lin_eq_pcg
 
       ! get info from the qs_env
       CALL get_qs_env(qs_env, &
@@ -386,50 +370,50 @@ CONTAINS
 
       almo_scf_env%calc_forces = calc_forces
       IF (calc_forces) THEN
-         IF (almo_scf_env%deloc_method.EQ.almo_deloc_x .OR. &
-             almo_scf_env%deloc_method.EQ.almo_deloc_xalmo_x .OR. &
-             almo_scf_env%deloc_method.EQ.almo_deloc_xalmo_1diag) THEN
+         IF (almo_scf_env%deloc_method .EQ. almo_deloc_x .OR. &
+             almo_scf_env%deloc_method .EQ. almo_deloc_xalmo_x .OR. &
+             almo_scf_env%deloc_method .EQ. almo_deloc_xalmo_1diag) THEN
             CPABORT("Forces for perturbative methods are NYI. Change DELOCALIZE_METHOD")
          ENDIF
          ! switch to ASPC after a certain number of exact steps is done
-         IF (almo_scf_env%almo_history%istore.gt.(almo_scf_env%almo_history%nstore+1)) THEN
-            IF ( almo_scf_env%opt_block_diag_pcg%eps_error_early .gt. 0.0_dp ) THEN
-               almo_scf_env%opt_block_diag_pcg%eps_error=almo_scf_env%opt_block_diag_pcg%eps_error_early
-               almo_scf_env%opt_block_diag_pcg%early_stopping_on=.TRUE.
-               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
+         IF (almo_scf_env%almo_history%istore .GT. (almo_scf_env%almo_history%nstore+1)) THEN
+            IF (almo_scf_env%opt_block_diag_pcg%eps_error_early .GT. 0.0_dp) THEN
+               almo_scf_env%opt_block_diag_pcg%eps_error = almo_scf_env%opt_block_diag_pcg%eps_error_early
+               almo_scf_env%opt_block_diag_pcg%early_stopping_on = .TRUE.
+               IF (unit_nr > 0) WRITE (*, *) "ALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
             ENDIF
-            IF ( almo_scf_env%opt_block_diag_diis%eps_error_early .gt. 0.0_dp ) THEN
-               almo_scf_env%opt_block_diag_diis%eps_error=almo_scf_env%opt_block_diag_diis%eps_error_early
-               almo_scf_env%opt_block_diag_diis%early_stopping_on=.TRUE.
-               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_DIIS: EPS_ERROR_EARLY is on"
+            IF (almo_scf_env%opt_block_diag_diis%eps_error_early .GT. 0.0_dp) THEN
+               almo_scf_env%opt_block_diag_diis%eps_error = almo_scf_env%opt_block_diag_diis%eps_error_early
+               almo_scf_env%opt_block_diag_diis%early_stopping_on = .TRUE.
+               IF (unit_nr > 0) WRITE (*, *) "ALMO_OPTIMIZER_DIIS: EPS_ERROR_EARLY is on"
             ENDIF
-            IF ( almo_scf_env%opt_block_diag_pcg%max_iter_early .gt. 0 ) THEN
-               almo_scf_env%opt_block_diag_pcg%max_iter=almo_scf_env%opt_block_diag_pcg%max_iter_early
-               almo_scf_env%opt_block_diag_pcg%early_stopping_on=.TRUE.
-               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
+            IF (almo_scf_env%opt_block_diag_pcg%max_iter_early .GT. 0) THEN
+               almo_scf_env%opt_block_diag_pcg%max_iter = almo_scf_env%opt_block_diag_pcg%max_iter_early
+               almo_scf_env%opt_block_diag_pcg%early_stopping_on = .TRUE.
+               IF (unit_nr > 0) WRITE (*, *) "ALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
             ENDIF
-            IF ( almo_scf_env%opt_block_diag_diis%max_iter_early .gt. 0 ) THEN
-               almo_scf_env%opt_block_diag_diis%max_iter=almo_scf_env%opt_block_diag_diis%max_iter_early
-               almo_scf_env%opt_block_diag_diis%early_stopping_on=.TRUE.
-               IF (unit_nr > 0) WRITE(*,*) "ALMO_OPTIMIZER_DIIS: MAX_ITER_EARLY is on"
+            IF (almo_scf_env%opt_block_diag_diis%max_iter_early .GT. 0) THEN
+               almo_scf_env%opt_block_diag_diis%max_iter = almo_scf_env%opt_block_diag_diis%max_iter_early
+               almo_scf_env%opt_block_diag_diis%early_stopping_on = .TRUE.
+               IF (unit_nr > 0) WRITE (*, *) "ALMO_OPTIMIZER_DIIS: MAX_ITER_EARLY is on"
             ENDIF
          ELSE
-            almo_scf_env%opt_block_diag_diis%early_stopping_on=.FALSE.
-            almo_scf_env%opt_block_diag_pcg%early_stopping_on=.FALSE.
+            almo_scf_env%opt_block_diag_diis%early_stopping_on = .FALSE.
+            almo_scf_env%opt_block_diag_pcg%early_stopping_on = .FALSE.
          ENDIF
-         IF (almo_scf_env%xalmo_history%istore.gt.(almo_scf_env%xalmo_history%nstore+1)) THEN
-            IF ( almo_scf_env%opt_xalmo_pcg%eps_error_early .gt. 0.0_dp ) THEN
-               almo_scf_env%opt_xalmo_pcg%eps_error=almo_scf_env%opt_xalmo_pcg%eps_error_early
-               almo_scf_env%opt_xalmo_pcg%early_stopping_on=.TRUE.
-               IF (unit_nr > 0) WRITE(*,*) "XALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
+         IF (almo_scf_env%xalmo_history%istore .GT. (almo_scf_env%xalmo_history%nstore+1)) THEN
+            IF (almo_scf_env%opt_xalmo_pcg%eps_error_early .GT. 0.0_dp) THEN
+               almo_scf_env%opt_xalmo_pcg%eps_error = almo_scf_env%opt_xalmo_pcg%eps_error_early
+               almo_scf_env%opt_xalmo_pcg%early_stopping_on = .TRUE.
+               IF (unit_nr > 0) WRITE (*, *) "XALMO_OPTIMIZER_PCG: EPS_ERROR_EARLY is on"
             ENDIF
-            IF ( almo_scf_env%opt_xalmo_pcg%max_iter_early .gt. 0.0_dp ) THEN
-               almo_scf_env%opt_xalmo_pcg%max_iter=almo_scf_env%opt_xalmo_pcg%max_iter_early
-               almo_scf_env%opt_xalmo_pcg%early_stopping_on=.TRUE.
-               IF (unit_nr > 0) WRITE(*,*) "XALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
+            IF (almo_scf_env%opt_xalmo_pcg%max_iter_early .GT. 0.0_dp) THEN
+               almo_scf_env%opt_xalmo_pcg%max_iter = almo_scf_env%opt_xalmo_pcg%max_iter_early
+               almo_scf_env%opt_xalmo_pcg%early_stopping_on = .TRUE.
+               IF (unit_nr > 0) WRITE (*, *) "XALMO_OPTIMIZER_PCG: MAX_ITER_EARLY is on"
             ENDIF
          ELSE
-            almo_scf_env%opt_xalmo_pcg%early_stopping_on=.FALSE.
+            almo_scf_env%opt_xalmo_pcg%early_stopping_on = .FALSE.
          ENDIF
       ENDIF
 
@@ -472,9 +456,9 @@ CONTAINS
 
       ! initialization of the KS matrix
       CALL init_almo_ks_matrix_via_qs(qs_env, &
-              almo_scf_env%matrix_ks, &
-              almo_scf_env%mat_distr_aos, &
-              almo_scf_env%eps_filter)
+                                      almo_scf_env%matrix_ks, &
+                                      almo_scf_env%mat_distr_aos, &
+                                      almo_scf_env%eps_filter)
       CALL construct_qs_mos(qs_env, almo_scf_env)
 
       CALL timestop(handle)
@@ -497,11 +481,11 @@ CONTAINS
          routineP = moduleN//':'//routineN
 
       CHARACTER(LEN=default_path_length)                 :: file_name, project_name
-      INTEGER                                            :: handle, iaspc, &
-                                                            ispin, istore, naspc, unit_nr, nspins
-      REAL(KIND=dp)                                      :: alpha, cs_pos, energy
+      INTEGER                                            :: handle, iaspc, ispin, istore, naspc, &
+                                                            nspins, unit_nr
       INTEGER, DIMENSION(2)                              :: nelectron_spin
       LOGICAL                                            :: aspc_guess, has_unit_metric
+      REAL(KIND=dp)                                      :: alpha, cs_pos, energy
       TYPE(atomic_kind_type), DIMENSION(:), POINTER      :: atomic_kind_set
       TYPE(cp_logger_type), POINTER                      :: logger
       TYPE(cp_para_env_type), POINTER                    :: para_env
@@ -662,7 +646,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(2))
                                 metric=almo_scf_env%matrix_s_blk(1), &
                                 retain_locality=.TRUE., &
                                 only_normalize=.FALSE., &
-                                nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                nocc_of_domain=almo_scf_env%nocc_of_domain(:, ispin), &
                                 eps_filter=almo_scf_env%eps_filter, &
                                 order_lanczos=almo_scf_env%order_lanczos, &
                                 eps_lanczos=almo_scf_env%eps_lanczos, &
@@ -670,20 +654,20 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(2))
 CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
 
          CALL almo_scf_t_to_proj(t=almo_scf_env%matrix_t_blk(ispin), &
-                              p=almo_scf_env%matrix_p(ispin), &
-                              eps_filter=almo_scf_env%eps_filter, &
-                              orthog_orbs=.FALSE., &
-                              nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
-                              s=almo_scf_env%matrix_s(1), &
-                              sigma=almo_scf_env%matrix_sigma(ispin), &
-                              sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
-                              use_guess=.FALSE., &
-                              algorithm=almo_scf_env%sigma_inv_algorithm, &
-                              eps_lanczos=almo_scf_env%eps_lanczos, &
-                              max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
-                              inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
-                              para_env=almo_scf_env%para_env, &
-                              blacs_env=almo_scf_env%blacs_env)
+                                 p=almo_scf_env%matrix_p(ispin), &
+                                 eps_filter=almo_scf_env%eps_filter, &
+                                 orthog_orbs=.FALSE., &
+                                 nocc_of_domain=almo_scf_env%nocc_of_domain(:, ispin), &
+                                 s=almo_scf_env%matrix_s(1), &
+                                 sigma=almo_scf_env%matrix_sigma(ispin), &
+                                 sigma_inv=almo_scf_env%matrix_sigma_inv(ispin), &
+                                 use_guess=.FALSE., &
+                                 algorithm=almo_scf_env%sigma_inv_algorithm, &
+                                 eps_lanczos=almo_scf_env%eps_lanczos, &
+                                 max_iter_lanczos=almo_scf_env%max_iter_lanczos, &
+                                 inv_eps_factor=almo_scf_env%matrix_iter_eps_error_factor, &
+                                 para_env=almo_scf_env%para_env, &
+                                 blacs_env=almo_scf_env%blacs_env)
 
       ENDDO
 
@@ -693,11 +677,11 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
       ENDIF
 
       CALL almo_dm_to_almo_ks(qs_env, &
-              almo_scf_env%matrix_p, &
-              almo_scf_env%matrix_ks, &
-              energy, &
-              almo_scf_env%eps_filter, &
-              almo_scf_env%mat_distr_aos)
+                              almo_scf_env%matrix_p, &
+                              almo_scf_env%matrix_ks, &
+                              energy, &
+                              almo_scf_env%eps_filter, &
+                              almo_scf_env%mat_distr_aos)
 
       IF (unit_nr > 0) THEN
          IF (almo_scf_env%almo_scf_guess .EQ. molecular_guess) THEN
@@ -720,7 +704,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
 !> \author Rustam Khaliullin
 ! **************************************************************************************************
    SUBROUTINE almo_scf_store_extrapolation_data(almo_scf_env)
-      TYPE(almo_scf_env_type)                              :: almo_scf_env
+      TYPE(almo_scf_env_type)                            :: almo_scf_env
 
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_scf_store_extrapolation_data', &
          routineP = moduleN//':'//routineN
@@ -876,9 +860,8 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
 
       CHARACTER(len=13)                                  :: neig_string
       CHARACTER(len=33)                                  :: deloc_method_string
-      INTEGER                                            :: handle, idomain, &
-                                                            sum_temp, index1_prev
-      INTEGER, DIMENSION(:), ALLOCATABLE                 :: nneighbors
+      INTEGER                                            :: handle, idomain, index1_prev, sum_temp
+      INTEGER, ALLOCATABLE, DIMENSION(:)                 :: nneighbors
 
       CALL timeset(routineN, handle)
 
@@ -888,8 +871,8 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
 
          WRITE (unit_nr, '(T2,A,T48,E33.3)') "eps_filter:", almo_scf_env%eps_filter
 
-         IF (almo_scf_env%almo_update_algorithm.EQ.almo_scf_skip) THEN
-            WRITE(unit_nr,'(T2,A)') "skip optimization of block-diagonal ALMOs"
+         IF (almo_scf_env%almo_update_algorithm .EQ. almo_scf_skip) THEN
+            WRITE (unit_nr, '(T2,A)') "skip optimization of block-diagonal ALMOs"
          ELSE
             WRITE (unit_nr, '(T2,A)') "optimization of block-diagonal ALMOs:"
             SELECT CASE (almo_scf_env%almo_update_algorithm)
@@ -979,44 +962,44 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
          ! print fragment's statistics
          WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
          WRITE (unit_nr, '(T2,A,T48,I33)') "Total fragments:", &
-               almo_scf_env%ndomains
+            almo_scf_env%ndomains
 
          sum_temp = SUM(almo_scf_env%nbasis_of_domain(:))
          WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
             "Basis set size per fragment (min, av, max, total):", &
             MINVAL(almo_scf_env%nbasis_of_domain(:)), &
-            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            (1.0_dp*sum_temp)/almo_scf_env%ndomains, &
             MAXVAL(almo_scf_env%nbasis_of_domain(:)), &
             sum_temp
          !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
          !         MINVAL(almo_scf_env%nbasis_of_domain(:)), &
-         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, &
          !         MAXVAL(almo_scf_env%nbasis_of_domain(:)), &
          !         sum_temp
 
-         sum_temp = SUM(almo_scf_env%nocc_of_domain(:,:))
+         sum_temp = SUM(almo_scf_env%nocc_of_domain(:, :))
          WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
             "Occupied MOs per fragment (min, av, max, total):", &
-            MINVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
-            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
-            MAXVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
+            MINVAL(SUM(almo_scf_env%nocc_of_domain, DIM=2)), &
+            (1.0_dp*sum_temp)/almo_scf_env%ndomains, &
+            MAXVAL(SUM(almo_scf_env%nocc_of_domain, DIM=2)), &
             sum_temp
          !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
          !         MINVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
-         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, &
          !         MAXVAL( SUM(almo_scf_env%nocc_of_domain, DIM=2) ), &
          !         sum_temp
 
-         sum_temp = SUM(almo_scf_env%nvirt_of_domain(:,:))
+         sum_temp = SUM(almo_scf_env%nvirt_of_domain(:, :))
          WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
             "Virtual MOs per fragment (min, av, max, total):", &
-            MINVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
-            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
-            MAXVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
+            MINVAL(SUM(almo_scf_env%nvirt_of_domain, DIM=2)), &
+            (1.0_dp*sum_temp)/almo_scf_env%ndomains, &
+            MAXVAL(SUM(almo_scf_env%nvirt_of_domain, DIM=2)), &
             sum_temp
          !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
          !         MINVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
-         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, &
          !         MAXVAL( SUM(almo_scf_env%nvirt_of_domain, DIM=2) ), &
          !         sum_temp
 
@@ -1024,17 +1007,17 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
          WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
             "Charges per fragment (min, av, max, total):", &
             MINVAL(almo_scf_env%charge_of_domain(:)), &
-            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+            (1.0_dp*sum_temp)/almo_scf_env%ndomains, &
             MAXVAL(almo_scf_env%charge_of_domain(:)), &
             sum_temp
          !WRITE (unit_nr, '(T2,I13,F13.3,I13,I13)') &
          !         MINVAL(almo_scf_env%charge_of_domain(:)), &
-         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
+         !         (1.0_dp*sum_temp) / almo_scf_env%ndomains, &
          !         MAXVAL(almo_scf_env%charge_of_domain(:)), &
          !         sum_temp
 
          ! compute the number of neighbors of each fragment
-         ALLOCATE(nneighbors(almo_scf_env%ndomains))
+         ALLOCATE (nneighbors(almo_scf_env%ndomains))
 
          DO idomain = 1, almo_scf_env%ndomains
 
@@ -1048,7 +1031,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
             CASE (almo_deloc_none)
                nneighbors(idomain) = 0
             CASE (almo_deloc_x, almo_deloc_scf, almo_deloc_x_then_scf)
-               nneighbors(idomain) = almo_scf_env%ndomains - 1 ! minus self
+               nneighbors(idomain) = almo_scf_env%ndomains-1 ! minus self
             CASE (almo_deloc_xalmo_1diag, almo_deloc_xalmo_x, almo_deloc_xalmo_scf)
                nneighbors(idomain) = almo_scf_env%domain_map(1)%index1(idomain)-index1_prev-1 ! minus self
             CASE DEFAULT
@@ -1060,9 +1043,9 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
          sum_temp = SUM(nneighbors(:))
          WRITE (unit_nr, '(T2,A,T53,I5,F9.2,I5,I9)') &
             "Deloc. neighbors of fragment (min, av, max, total):", &
-            MINVAL( nneighbors(:) ), &
-            (1.0_dp*sum_temp) / almo_scf_env%ndomains, & 
-            MAXVAL( nneighbors(:) ), &
+            MINVAL(nneighbors(:)), &
+            (1.0_dp*sum_temp)/almo_scf_env%ndomains, &
+            MAXVAL(nneighbors(:)), &
             sum_temp
 
          WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
@@ -1082,7 +1065,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
                CASE (almo_deloc_x, almo_deloc_scf, almo_deloc_x_then_scf)
                   neig_string = "ALL"
                CASE (almo_deloc_xalmo_1diag, almo_deloc_xalmo_x, almo_deloc_xalmo_scf)
-                  WRITE (neig_string, '(I13)') nneighbors(idomain) 
+                  WRITE (neig_string, '(I13)') nneighbors(idomain)
                CASE DEFAULT
                   neig_string = "N/A"
                END SELECT
@@ -1133,7 +1116,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
 
          WRITE (unit_nr, '()')
 
-         DEALLOCATE(nneighbors)
+         DEALLOCATE (nneighbors)
 
       ENDIF ! unit_nr > 0
 
@@ -1181,7 +1164,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
          CALL matrix_qs_to_almo(matrix_s, almo_scf_env%matrix_s(1), &
                                 almo_scf_env%mat_distr_aos, .FALSE.)
          CALL dbcsr_copy(almo_scf_env%matrix_s_blk(1), &
-                 almo_scf_env%matrix_s(1), keep_sparsity=.TRUE.)
+                         almo_scf_env%matrix_s(1), keep_sparsity=.TRUE.)
       ENDIF
 
       CALL dbcsr_filter(almo_scf_env%matrix_s(1), almo_scf_env%eps_filter)
@@ -1237,7 +1220,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
 
       SELECT CASE (almo_scf_env%almo_update_algorithm)
       CASE (almo_scf_pcg)
-       
+
          ! ALMO PCG optimizer as a special case of XALMO PCG
          CALL almo_scf_xalmo_pcg(qs_env=qs_env, &
                                  almo_scf_env=almo_scf_env, &
@@ -1255,7 +1238,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
                                    metric=almo_scf_env%matrix_s_blk(1), &
                                    retain_locality=.TRUE., &
                                    only_normalize=.FALSE., &
-                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:, ispin), &
                                    eps_filter=almo_scf_env%eps_filter, &
                                    order_lanczos=almo_scf_env%order_lanczos, &
                                    eps_lanczos=almo_scf_env%eps_lanczos, &
@@ -1264,27 +1247,27 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
          !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
 
       CASE (almo_scf_diag)
-       
+
          ! mixing/DIIS optimizer
          CALL almo_scf_block_diagonal(qs_env, almo_scf_env, &
                                       almo_scf_env%opt_block_diag_diis)
 
       CASE (almo_scf_skip)
-    
+
          DO ispin = 1, almo_scf_env%nspins
             CALL orthogonalize_mos(ket=almo_scf_env%matrix_t_blk(ispin), &
                                    overlap=almo_scf_env%matrix_sigma_blk(ispin), &
                                    metric=almo_scf_env%matrix_s_blk(1), &
                                    retain_locality=.TRUE., &
                                    only_normalize=.FALSE., &
-                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:, ispin), &
                                    eps_filter=almo_scf_env%eps_filter, &
                                    order_lanczos=almo_scf_env%order_lanczos, &
                                    eps_lanczos=almo_scf_env%eps_lanczos, &
                                    max_iter_lanczos=almo_scf_env%max_iter_lanczos)
          ENDDO
          !CALL almo_scf_t_blk_to_t_blk_orthonormal(almo_scf_env)
-    
+
       END SELECT
 
       ! we might need a copy of the converged KS and sigma_inv
@@ -1434,7 +1417,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
                                  matrix_t_in=almo_scf_env%matrix_t_blk, &
                                  matrix_t_out=almo_scf_env%matrix_t, &
                                  !assume_t0_q0x=.TRUE., &
-                                 assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
+                                 assume_t0_q0x=(almo_scf_env%xalmo_trial_wf .EQ. xalmo_trial_r0_out), &
                                  perturbation_only=.TRUE., &
                                  special_case=xalmo_case_fully_deloc)
 
@@ -1467,7 +1450,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
                                     matrix_t_in=almo_scf_env%matrix_t_blk, &
                                     matrix_t_out=almo_scf_env%matrix_t, &
                                     !assume_t0_q0x=.TRUE., &
-                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
+                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf .EQ. xalmo_trial_r0_out), &
                                     perturbation_only=.TRUE., &
                                     special_case=xalmo_case_normal)
 
@@ -1500,7 +1483,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
                                     matrix_t_in=almo_scf_env%matrix_t_blk, &
                                     matrix_t_out=almo_scf_env%matrix_t, &
                                     !assume_t0_q0x=.TRUE., &
-                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf.EQ.xalmo_trial_r0_out),&
+                                    assume_t0_q0x=(almo_scf_env%xalmo_trial_wf .EQ. xalmo_trial_r0_out), &
                                     perturbation_only=.FALSE., &
                                     special_case=xalmo_case_normal)
 
@@ -1602,7 +1585,7 @@ CALL dbcsr_print(almo_scf_env%matrix_t_blk(ispin))
                                    metric=almo_scf_env%matrix_s(1), &
                                    retain_locality=.FALSE., &
                                    only_normalize=.FALSE., &
-                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:, ispin), &
                                    eps_filter=almo_scf_env%eps_filter, &
                                    order_lanczos=almo_scf_env%order_lanczos, &
                                    eps_lanczos=almo_scf_env%eps_lanczos, &

@@ -20,8 +20,8 @@
       RETURN_ORTHOGONALIZED_MOS  F
 
       &ALMO_OPTIMIZER_DIIS
-        MAX_ITER                 50
-        EPS_ERROR                1.0E-7
+        MAX_ITER                 30
+        EPS_ERROR                5.0E-4
         N_DIIS                   7
       &END ALMO_OPTIMIZER_DIIS
       
@@ -30,7 +30,7 @@
       
       &XALMO_OPTIMIZER_PCG
         MAX_ITER                 100
-        EPS_ERROR                1.0E-7
+        EPS_ERROR                5.0E-4
         CONJUGATOR               FLETCHER
         LIN_SEARCH_EPS_ERROR     0.05
         LIN_SEARCH_STEP_SIZE_GUESS 0.1
@@ -40,7 +40,7 @@
     &END ALMO_SCF
     
     &MGRID
-      CUTOFF 320
+      CUTOFF 200 ! 320
       NGRIDS 5
     &END MGRID
     &XC
@@ -60,11 +60,11 @@
 @INCLUDE 'FH-chain.xyz'
     &END COORD
     &KIND H
-      BASIS_SET DZVP-GTH
+      BASIS_SET SZV-GTH
       POTENTIAL GTH-BLYP-q1
     &END KIND
     &KIND F
-      BASIS_SET DZVP-GTH
+      BASIS_SET SZV-GTH
       POTENTIAL GTH-BLYP-q7
     &END KIND
   &END SUBSYS

@@ -16,13 +16,13 @@ MODULE input_cp2k_almo
    USE input_constants,                 ONLY: &
         almo_deloc_none, almo_deloc_scf, almo_deloc_x, almo_deloc_x_then_scf, &
         almo_deloc_xalmo_1diag, almo_deloc_xalmo_scf, almo_deloc_xalmo_x, almo_frz_crystal, &
-        almo_frz_none, almo_scf_diag, almo_scf_pcg, atomic_guess, cg_dai_yuan, cg_fletcher, &
-        cg_fletcher_reeves, cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, &
-        cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, xalmo_prec_zero, xalmo_prec_domain, &
-        xalmo_prec_full, spd_inversion_ls_hotelling, spd_inversion_dense_cholesky, almo_scf_skip, &
-        xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg, spd_inversion_ls_taylor, &
-        almo_occ_vol_penalty_none, almo_occ_vol_penalty_lndet
-
+        almo_frz_none, almo_occ_vol_penalty_lndet, almo_occ_vol_penalty_none, almo_scf_diag, &
+        almo_scf_pcg, almo_scf_skip, atomic_guess, cg_dai_yuan, cg_fletcher, cg_fletcher_reeves, &
+        cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, cg_zero, &
+        molecular_guess, optimizer_diis, optimizer_lin_eq_pcg, optimizer_pcg, &
+        spd_inversion_dense_cholesky, spd_inversion_ls_hotelling, spd_inversion_ls_taylor, &
+        xalmo_prec_domain, xalmo_prec_full, xalmo_prec_zero, xalmo_trial_r0_out, &
+        xalmo_trial_simplex
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
                                               keyword_type
@@ -133,29 +133,29 @@ CONTAINS
                           default_i_val=almo_scf_diag, &
                           !enum_c_vals=s2a("DIAG", "DM_SIGN","PCG"),&
                           !enum_c_vals=s2a("DIAG", "PCG"), &
-                          enum_c_vals=s2a("DIAG", "PCG", "SKIP"),&
+                          enum_c_vals=s2a("DIAG", "PCG", "SKIP"), &
                           enum_desc=s2a("DIIS-accelerated diagonalization controlled by ALMO_OPTIMIZER_DIIS. "// &
                                         "Recommended for large systems containing small fragments.", &
                                         !"Update the density matrix using linear scaling routines. "//&
                                         !"Recommended if large fragments are present.",&
                                         "Energy minimization with a PCG algorithm controlled by ALMO_OPTIMIZER_PCG.", &
-                                        "Skip optimization of block-diagonal ALMOs."),&
+                                        "Skip optimization of block-diagonal ALMOs."), &
                           !enum_i_vals=(/almo_scf_diag,almo_scf_dm_sign,almo_scf_pcg/),&
-                          enum_i_vals=(/almo_scf_diag,almo_scf_pcg,almo_scf_skip/))
+                          enum_i_vals=(/almo_scf_diag, almo_scf_pcg, almo_scf_skip/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
-       CALL keyword_create(keyword, name="XALMO_TRIAL_WF",&
-            description="Determines the form of the trial XALMOs.",&
-            usage="XALMO_TRIAL_WF SIMPLE",&
-            default_i_val=xalmo_trial_r0_out,&
-            enum_c_vals=s2a("SIMPLE", "PROJECT_R0_OUT"),&
-            enum_desc=s2a("Straightforward AO-basis expansion.",&
-                          "Block-diagonal ALMOs plus the XALMO term projected onto the unoccupied "//&
-                          "ALMO-subspace."),&
-            enum_i_vals=(/xalmo_trial_simplex,xalmo_trial_r0_out/))
-       CALL section_add_keyword(section,keyword)
-       CALL keyword_release(keyword)
+      CALL keyword_create(keyword, name="XALMO_TRIAL_WF", &
+                          description="Determines the form of the trial XALMOs.", &
+                          usage="XALMO_TRIAL_WF SIMPLE", &
+                          default_i_val=xalmo_trial_r0_out, &
+                          enum_c_vals=s2a("SIMPLE", "PROJECT_R0_OUT"), &
+                          enum_desc=s2a("Straightforward AO-basis expansion.", &
+                                        "Block-diagonal ALMOs plus the XALMO term projected onto the unoccupied "// &
+                                        "ALMO-subspace."), &
+                          enum_i_vals=(/xalmo_trial_simplex, xalmo_trial_r0_out/))
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
 
       CALL keyword_create( &
          keyword, name="DELOCALIZE_METHOD", &
@@ -188,12 +188,12 @@ CONTAINS
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
-      CALL keyword_create(keyword, name="RETURN_ORTHOGONALIZED_MOS",&
-           description="Orthogonalize final ALMOs before they are returned"// &
-           "to Quickstep (i.e. for calculation of properties)", &
-           usage="RETURN_ORTHOGONALIZED_MOS .TRUE.", default_l_val=.TRUE.,&
-           lone_keyword_l_val=.TRUE.)
-      CALL section_add_keyword(section,keyword)
+      CALL keyword_create(keyword, name="RETURN_ORTHOGONALIZED_MOS", &
+                          description="Orthogonalize final ALMOs before they are returned"// &
+                          "to Quickstep (i.e. for calculation of properties)", &
+                          usage="RETURN_ORTHOGONALIZED_MOS .TRUE.", default_l_val=.TRUE., &
+                          lone_keyword_l_val=.TRUE.)
+      CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       !CALL keyword_create(keyword, name="DELOCALIZE_EPS_ITER",&
@@ -646,16 +646,16 @@ CONTAINS
          CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of extended ALMOs.", &
                              n_keywords=10, n_subsections=1, repeats=.FALSE.)
-         NULLIFY(subsection)
-         CALL create_optimizer_section(subsection,optimizer_newton_pcg_solver)
+         NULLIFY (subsection)
+         CALL create_optimizer_section(subsection, optimizer_newton_pcg_solver)
          CALL section_add_subsection(section, subsection)
          CALL section_release(subsection)
          optimizer_type = optimizer_pcg
-       CASE(optimizer_newton_pcg_solver)
-          CALL section_create(section,"XALMO_NEWTON_PCG_SOLVER",&
-               description="Controls an iterative solver of the Newton-Raphson linear equation.",&
-               n_keywords=4, n_subsections=0, repeats=.FALSE.)
-          optimizer_type=optimizer_lin_eq_pcg
+      CASE (optimizer_newton_pcg_solver)
+         CALL section_create(section, "XALMO_NEWTON_PCG_SOLVER", &
+                             description="Controls an iterative solver of the Newton-Raphson linear equation.", &
+                             n_keywords=4, n_subsections=0, repeats=.FALSE.)
+         optimizer_type = optimizer_lin_eq_pcg
       CASE DEFAULT
          CPABORT("No default values allowed")
       END SELECT
@@ -677,14 +677,14 @@ CONTAINS
 
       ! add common keywords
       CALL keyword_create(keyword, name="MAX_ITER_EARLY", &
-                          description="Maximum number of iterations for truncated SCF "//&
+                          description="Maximum number of iterations for truncated SCF "// &
                           "(e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.", &
                           usage="MAX_ITER_EARLY 5", default_i_val=-1)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="EPS_ERROR_EARLY", &
-                          description="Target value of the MAX norm of the error for truncated SCF "//&
+                          description="Target value of the MAX norm of the error for truncated SCF "// &
                           "(e.g. Langevin-corrected MD). Negative values mean that this keyword is not used.", &
                           usage="EPS_ERROR_EARLY 1.E-2", default_r_val=-1.0_dp)
       CALL section_add_keyword(section, keyword)
@@ -701,9 +701,9 @@ CONTAINS
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
 
-      CASE (optimizer_pcg,optimizer_lin_eq_pcg)
+      CASE (optimizer_pcg, optimizer_lin_eq_pcg)
 
-         IF (optimizer_type.EQ.optimizer_pcg) THEN
+         IF (optimizer_type .EQ. optimizer_pcg) THEN
 
             CALL keyword_create(keyword, name="LIN_SEARCH_EPS_ERROR", &
                                 description="Target value of the gradient norm during the linear search", &
@@ -732,10 +732,15 @@ CONTAINS
                                               cg_dai_yuan, cg_hager_zhang/))
             CALL section_add_keyword(section, keyword)
             CALL keyword_release(keyword)
-            
-            CALL keyword_create(keyword, name="NEGLECT_THRESHOLD", &
-                                description="The threshold of eigenvalues for neglect method", &
-                                usage="NEGLECT_THRESHOLD 0.1", default_r_val=0.5_dp)
+
+            CALL keyword_create(keyword, name="PRECOND_FILTER_THRESHOLD", &
+                                description="Select eigenvalues of the preconditioner "// &
+                                "that are smaller than the threshold and project out the "// & 
+                                "corresponding eigenvectors from the gradient. No matter "// &
+                                "how large the threshold is the maximum number of projected "// &
+                                "eienvectors for a fragment equals to the number of occupied "// &
+                                "orbitals of fragment's neighbors.", &
+                                usage="PRECOND_FILTER_THRESHOLD 0.1", default_r_val=0.5_dp)
             CALL section_add_keyword(section, keyword)
             CALL keyword_release(keyword)
 
@@ -755,16 +760,14 @@ CONTAINS
                              default_i_val=1, &
                              enum_c_vals=s2a("NONE", "DEFAULT", "DOMAIN", "FULL"), &
                              enum_desc=s2a("Do not use preconditioner", &
-                             "Same as DOMAIN preconditioner", &
-                             "Invert preconditioner domain-by-domain."// & 
-                             " The main component of the linear scaling algorithm", &
-                             "Solve linear equations step=-H.grad on the entire space"), &
+                                           "Same as DOMAIN preconditioner", &
+                                           "Invert preconditioner domain-by-domain."// &
+                                           " The main component of the linear scaling algorithm", &
+                                           "Solve linear equations step=-H.grad on the entire space"), &
                              enum_i_vals=(/xalmo_prec_zero, xalmo_prec_domain, &
-                             xalmo_prec_domain, xalmo_prec_full/))
+                                           xalmo_prec_domain, xalmo_prec_full/))
          CALL section_add_keyword(section, keyword)
          CALL keyword_release(keyword)
-
-
 
       END SELECT
 
@@ -782,20 +785,19 @@ CONTAINS
       TYPE(section_type), POINTER                        :: section
 
       TYPE(keyword_type), POINTER                        :: keyword
-      TYPE(section_type), POINTER                        :: subsection
 
       CPASSERT(.NOT. ASSOCIATED(section))
       NULLIFY (section)
 
       CALL section_create(section, "MATRIX_ITERATE", &
-                          description="Controls linear scaling iterative procedure on matrices: inversion, sqrti, etc. " // &
+                          description="Controls linear scaling iterative procedure on matrices: inversion, sqrti, etc. "// &
                           "High-order Lanczos accelerates convergence provided it can estimate the eigenspectrum correctly.", &
                           n_keywords=4, n_subsections=0, repeats=.FALSE.)
 
       NULLIFY (keyword)
 
       CALL keyword_create(keyword, name="EPS_TARGET_FACTOR", &
-                          description="Multiplication factor that determines acceptable error in the iterative procedure. " // &
+                          description="Multiplication factor that determines acceptable error in the iterative procedure. "// &
                           "Acceptable error = EPS_TARGET_FACTOR * EPS_FILTER", &
                           usage="EPS_TARGET_FACTOR 100.0", default_r_val=10.0_dp)
       CALL section_add_keyword(section, keyword)
@@ -822,7 +824,7 @@ CONTAINS
    END SUBROUTINE create_matrix_iterate_section
 
 ! **************************************************************************************************
-!> \brief The section controls penalty methods 
+!> \brief The section controls penalty methods
 !> \param section ...
 !> \par History
 !>       2018.01 created [Rustam Z Khaliullin]
@@ -833,7 +835,6 @@ CONTAINS
       TYPE(section_type), POINTER                        :: section
 
       TYPE(keyword_type), POINTER                        :: keyword
-      TYPE(section_type), POINTER                        :: subsection
 
       CPASSERT(.NOT. ASSOCIATED(section))
       NULLIFY (section)

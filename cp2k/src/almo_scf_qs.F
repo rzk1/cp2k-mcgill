@@ -72,7 +72,6 @@ MODULE almo_scf_qs
    USE qs_rho_methods,                  ONLY: qs_rho_update_rho
    USE qs_rho_types,                    ONLY: qs_rho_get,&
                                               qs_rho_type
-   USE qs_scf_initialization,           ONLY: qs_scf_env_initialize
    USE qs_scf_types,                    ONLY: qs_scf_env_type,&
                                               scf_env_create
 #include "./base/base_uses.f90"
@@ -86,7 +85,7 @@ MODULE almo_scf_qs
    PUBLIC :: matrix_almo_create, &
              almo_scf_construct_quencher, &
              calculate_w_matrix_almo, &
-             init_almo_ks_matrix_via_qs, & 
+             init_almo_ks_matrix_via_qs, &
              almo_scf_update_ks_energy, &
              construct_qs_mos, &
              matrix_qs_to_almo, &
@@ -130,7 +129,7 @@ CONTAINS
       INTEGER, DIMENSION(:), POINTER :: blk_distr, blk_sizes, block_sizes_new, cluster_distr, &
          cluster_distr_new, col_cluster_new, col_distr_new, col_sizes_new, distr_new_array, &
          row_cluster_new, row_distr_new, row_sizes_new
-      LOGICAL                                            :: active, tr, one_dim_is_mo
+      LOGICAL                                            :: active, one_dim_is_mo, tr
       REAL(KIND=dp), DIMENSION(:, :), POINTER            :: p_new_block
       TYPE(dbcsr_distribution_type)                      :: dist_new, dist_qs
 
@@ -240,7 +239,7 @@ CONTAINS
                      block_sizes_new(:) = almo_scf_env%nocc_of_domain(:, spin_key)
                      ! Handle zero-electron fragments by adding one-orbital that
                      ! must remain zero at all times
-                     WHERE ( block_sizes_new == 0 ) block_sizes_new = 1
+                     WHERE (block_sizes_new == 0) block_sizes_new = 1
                   ELSE IF (size_keys(dimen) == almo_mat_dim_virt_disc) THEN
                      block_sizes_new(:) = almo_scf_env%nvirt_disc_of_domain(:, spin_key)
                   ELSE IF (size_keys(dimen) == almo_mat_dim_virt_full) THEN
@@ -388,27 +387,27 @@ CONTAINS
 
                one_dim_is_mo = .FALSE.
                DO dimen = 1, 2 ! 1 - row, 2 - column dimension
-                  IF (size_keys(dimen) == almo_mat_dim_occ ) one_dim_is_mo = .TRUE.
+                  IF (size_keys(dimen) == almo_mat_dim_occ) one_dim_is_mo = .TRUE.
                ENDDO
-               IF (one_dim_is_mo .AND. almo_scf_env%nocc_of_domain(row, spin_key)==0) active = .FALSE. 
-               
-               one_dim_is_mo = .FALSE.
-               DO dimen = 1, 2
-                  IF (size_keys(dimen) == almo_mat_dim_virt ) one_dim_is_mo = .TRUE.
-               ENDDO
-               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_of_domain(row, spin_key)==0) active = .FALSE. 
-               
-               one_dim_is_mo = .FALSE.
-               DO dimen = 1, 2
-                  IF (size_keys(dimen) == almo_mat_dim_virt_disc ) one_dim_is_mo = .TRUE.
-               ENDDO
-               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_disc_of_domain(row, spin_key)==0) active = .FALSE. 
+               IF (one_dim_is_mo .AND. almo_scf_env%nocc_of_domain(row, spin_key) == 0) active = .FALSE.
 
                one_dim_is_mo = .FALSE.
                DO dimen = 1, 2
-                  IF (size_keys(dimen) == almo_mat_dim_virt_full ) one_dim_is_mo = .TRUE.
+                  IF (size_keys(dimen) == almo_mat_dim_virt) one_dim_is_mo = .TRUE.
                ENDDO
-               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_full_of_domain(row, spin_key)==0) active = .FALSE. 
+               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_of_domain(row, spin_key) == 0) active = .FALSE.
+
+               one_dim_is_mo = .FALSE.
+               DO dimen = 1, 2
+                  IF (size_keys(dimen) == almo_mat_dim_virt_disc) one_dim_is_mo = .TRUE.
+               ENDDO
+               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_disc_of_domain(row, spin_key) == 0) active = .FALSE.
+
+               one_dim_is_mo = .FALSE.
+               DO dimen = 1, 2
+                  IF (size_keys(dimen) == almo_mat_dim_virt_full) one_dim_is_mo = .TRUE.
+               ENDDO
+               IF (one_dim_is_mo .AND. almo_scf_env%nvirt_full_of_domain(row, spin_key) == 0) active = .FALSE.
 
                IF (active) THEN
                   NULLIFY (p_new_block)
@@ -522,6 +521,10 @@ CONTAINS
 
 ! **************************************************************************************************
 !> \brief Initialization of the QS and ALMO KS matrix
+!> \param qs_env ...
+!> \param matrix_ks ...
+!> \param mat_distr_aos ...
+!> \param eps_filter ...
 !> \par History
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -536,16 +539,12 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'init_almo_ks_matrix_via_qs', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, ispin, ncol_fm, nrow_fm, nspin
+      INTEGER                                            :: handle, ispin, nspin
       TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_qs_ks, matrix_qs_s
-      TYPE(cp_fm_struct_type), POINTER                   :: fm_struct_tmp
-      TYPE(cp_fm_type), POINTER                          :: mo_fm_copy
       TYPE(dft_control_type), POINTER                    :: dft_control
-      TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos
       TYPE(neighbor_list_set_p_type), DIMENSION(:), &
          POINTER                                         :: sab_orb
       TYPE(qs_ks_env_type), POINTER                      :: ks_env
-      TYPE(qs_scf_env_type), POINTER                     :: scf_env
 
       CALL timeset(routineN, handle)
 
@@ -567,7 +566,7 @@ CONTAINS
          DO ispin = 1, nspin
             ALLOCATE (matrix_qs_ks(ispin)%matrix)
             CALL dbcsr_create(matrix_qs_ks(ispin)%matrix, &
-                    template=matrix_qs_s(1)%matrix)
+                              template=matrix_qs_s(1)%matrix)
             CALL cp_dbcsr_alloc_block_from_nbl(matrix_qs_ks(ispin)%matrix, sab_orb)
             CALL dbcsr_set(matrix_qs_ks(ispin)%matrix, 0.0_dp)
          ENDDO
@@ -577,7 +576,7 @@ CONTAINS
       ! copy to ALMO
       DO ispin = 1, nspin
          CALL matrix_qs_to_almo(matrix_qs_ks(ispin)%matrix, &
-                 matrix_ks(ispin), mat_distr_aos, .FALSE.)
+                                matrix_ks(ispin), mat_distr_aos, .FALSE.)
          CALL dbcsr_filter(matrix_ks(ispin), eps_filter)
       ENDDO
 
@@ -587,6 +586,8 @@ CONTAINS
 
 ! **************************************************************************************************
 !> \brief Create MOs in the QS env to be able to return ALMOs to QS
+!> \param qs_env ...
+!> \param almo_scf_env ...
 !> \par History
 !>       2016.12 created [Yifei Shi]
 !> \author Yifei Shi
@@ -607,7 +608,6 @@ CONTAINS
       TYPE(qs_scf_env_type), POINTER                     :: scf_env
 
       CALL timeset(routineN, handle)
-
 
       ! create and init scf_env (this is necessary to return MOs to qs)
       NULLIFY (mos, mo_fm_copy, fm_struct_tmp, scf_env)
@@ -653,6 +653,8 @@ CONTAINS
 ! **************************************************************************************************
 !> \brief return density matrix to the qs_env
 !> \param qs_env ...
+!> \param matrix_p ...
+!> \param mat_distr_aos ...
 !> \par History
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -693,8 +695,9 @@ CONTAINS
 !> \brief uses the ALMO density matrix
 !>        to compute KS matrix (inside QS environment) and the new energy
 !> \param qs_env ...
-!> \param almo_scf_env ...
-!> \param energy_new ...
+!> \param matrix_p ...
+!> \param energy_total ...
+!> \param mat_distr_aos ...
 !> \par History
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
@@ -702,8 +705,8 @@ CONTAINS
    SUBROUTINE almo_dm_to_qs_ks(qs_env, matrix_p, energy_total, mat_distr_aos)
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(dbcsr_type), DIMENSION(:)                     :: matrix_p
-      INTEGER, INTENT(IN)                                :: mat_distr_aos
       REAL(KIND=dp)                                      :: energy_total
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
 
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_dm_to_qs_ks', &
          routineP = moduleN//':'//routineN
@@ -713,7 +716,7 @@ CONTAINS
 
       CALL timeset(routineN, handle)
 
-      NULLIFY(energy)
+      NULLIFY (energy)
       CALL get_qs_env(qs_env, energy=energy)
       CALL almo_dm_to_qs_env(qs_env, matrix_p, mat_distr_aos)
       CALL qs_ks_update_qs_env(qs_env, calculate_forces=.FALSE., just_energy=.FALSE., &
@@ -727,22 +730,28 @@ CONTAINS
 ! **************************************************************************************************
 !> \brief uses the ALMO density matrix
 !>        to compute ALMO KS matrix and the new energy
+!> \param qs_env ...
+!> \param matrix_p ...
+!> \param matrix_ks ...
+!> \param energy_total ...
+!> \param eps_filter ...
+!> \param mat_distr_aos ...
 !> \par History
 !>       2011.05 created [Rustam Z Khaliullin]
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
    SUBROUTINE almo_dm_to_almo_ks(qs_env, matrix_p, matrix_ks, energy_total, eps_filter, &
-      mat_distr_aos)
+                                 mat_distr_aos)
 
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(dbcsr_type), DIMENSION(:)                     :: matrix_p, matrix_ks
-      INTEGER, INTENT(IN)                                :: mat_distr_aos
       REAL(KIND=dp)                                      :: energy_total, eps_filter
+      INTEGER, INTENT(IN)                                :: mat_distr_aos
 
       CHARACTER(len=*), PARAMETER :: routineN = 'almo_dm_to_almo_ks', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, nspins, ispin
+      INTEGER                                            :: handle, ispin, nspins
       TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_qs_ks
 
       CALL timeset(routineN, handle)
@@ -754,17 +763,16 @@ CONTAINS
 
       ! get KS matrix from the QS env and convert to the ALMO format
       CALL get_qs_env(qs_env, matrix_ks=matrix_qs_ks)
-      DO ispin=1, nspins
+      DO ispin = 1, nspins
          CALL matrix_qs_to_almo(matrix_qs_ks(ispin)%matrix, &
-                 matrix_ks(ispin), &
-                 mat_distr_aos, .FALSE.)
+                                matrix_ks(ispin), &
+                                mat_distr_aos, .FALSE.)
          CALL dbcsr_filter(matrix_ks(ispin), eps_filter)
       ENDDO
 
       CALL timestop(handle)
 
    END SUBROUTINE almo_dm_to_almo_ks
-
 
 ! **************************************************************************************************
 !> \brief update qs_env total energy
@@ -1288,7 +1296,7 @@ CONTAINS
                   contact1_radius = cp_unit_to_cp2k(contact1_radius, "angstrom")
                   contact2_radius = cp_unit_to_cp2k(contact2_radius, "angstrom")
 
-                  !RZK-warning the procedure is faulty for molecules: 
+                  !RZK-warning the procedure is faulty for molecules:
                   ! the closest contacts should be found using
                   ! the element specific radii
 

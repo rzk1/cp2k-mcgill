@@ -161,11 +161,11 @@ CONTAINS
       CHARACTER(len=*), PARAMETER :: routineN = 'num_ao_el_per_molecule', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: ARBITRARY_WFN, iatom, ikind, imol, &
+      INTEGER                                            :: arbitrary_spin, iatom, ikind, imol, &
                                                             ispin, n_ao, natom, nmol_kind, nsgf, &
                                                             nspins, z_molecule, a_minus_b, ne_spin
       INTEGER, DIMENSION(0:lmat, 10)                     :: ne_core, ne_elem, ne_explicit
-      INTEGER, DIMENSION(2)                              :: n_occ_alpha_and_beta, n_occ
+      INTEGER, DIMENSION(2)                              :: n_occ_alpha_and_beta
       REAL(KIND=dp)                                      :: charge_molecule, zeff, zeff_correction
       REAL(KIND=dp), DIMENSION(0:lmat, 10, 2)            :: edelta
       INTEGER, DIMENSION(0:lmat, 10, 2, 2)               :: abdelta
@@ -183,7 +183,7 @@ CONTAINS
          natom = 0
 
          !   *** Initialize the molecule kind data structure ***
-         ARBITRARY_WFN = 1
+         arbitrary_spin = 1
          DO imol = 1, nmol_kind
 
             molecule_kind => molecule_kind_set(imol)
@@ -223,9 +223,9 @@ CONTAINS
                ! molecules.
 
                ! Get the number of explicit electrons (i.e. with orbitals)
-               n_occ_alpha_and_beta(ARBITRARY_WFN) = &
-                  n_occ_alpha_and_beta(ARBITRARY_WFN)+SUM(ne_explicit)+ &
-                  SUM(NINT(2*edelta(:, :, ARBITRARY_WFN)))
+               n_occ_alpha_and_beta(arbitrary_spin) = &
+                  n_occ_alpha_and_beta(arbitrary_spin)+SUM(ne_explicit)+ &
+                  SUM(NINT(2*edelta(:, :, arbitrary_spin)))
 
                ! We need to specify the number of alpha and beta electrons 
                ! on each molecule (i.e. multiplicity is not enough)
@@ -235,7 +235,7 @@ CONTAINS
                   ELSE
                      ne_spin = ( SUM(ne_explicit) - a_minus_b ) / 2
                   END IF
-                  n_occ(ispin) = n_occ(ispin) + ne_spin + SUM(abdelta(:, :, ARBITRARY_WFN ,ispin))
+                  n_occ(ispin) = n_occ(ispin) + ne_spin + SUM(abdelta(:, :, arbitrary_spin ,ispin))
                END DO
 
                IF (ASSOCIATED(all_potential)) THEN
@@ -271,11 +271,11 @@ CONTAINS
             DO ispin=1,nspins
                   CPASSERT(n_occ(ispin).ge.0)
             END DO
-            charge_molecule = REAL(z_molecule-n_occ_alpha_and_beta(ARBITRARY_WFN), dp)
+            charge_molecule = REAL(z_molecule-n_occ_alpha_and_beta(arbitrary_spin), dp)
             CALL set_molecule_kind(molecule_kind=molecule_kind, &
                                    nocca=n_occ(1), &
                                    noccb=n_occ(2), &
-                                   !nelectron=n_occ_alpha_and_beta(ARBITRARY_WFN), &
+                                   !nelectron=n_occ_alpha_and_beta(arbitrary_spin), &
                                    charge=charge_molecule, &
                                    nsgf=n_ao)
 

@@ -363,7 +363,7 @@ CONTAINS
 ! **************************************************************************************************
 !> \brief Is the loop over molecules requested?
 !> \param force_env ...
-!> \retval do_mol_loop ...
+!> \return ...
 !> \par History
 !>       10.2014 created [Rustam Z. Khaliullin]
 !> \author Rustam Z. Khaliullin
@@ -377,8 +377,7 @@ CONTAINS
 
       INTEGER                                            :: almo_guess_type, frz_term_type, &
                                                             method_name_id, scf_guess_type
-      LOGICAL                                            :: is_crystal, is_fast_dirty, &
-                                                            almo_scf_is_on
+      LOGICAL                                            :: almo_scf_is_on, is_crystal, is_fast_dirty
       TYPE(molecular_scf_guess_env_type), POINTER        :: mscfg_env
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(section_vals_type), POINTER                   :: force_env_section, subsection
@@ -387,7 +386,7 @@ CONTAINS
       ! What kind of options are we using in the loop ?
       is_fast_dirty = .TRUE.
       is_crystal = .FALSE.
-      almo_scf_is_on= .FALSE.
+      almo_scf_is_on = .FALSE.
 
       NULLIFY (qs_env, mscfg_env, force_env_section, subsection)
       CALL force_env_get(force_env, force_env_section=force_env_section)
