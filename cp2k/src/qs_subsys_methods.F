@@ -165,7 +165,7 @@ CONTAINS
                                                             ispin, n_ao, natom, nmol_kind, nsgf, &
                                                             nspins, z_molecule, a_minus_b, ne_spin
       INTEGER, DIMENSION(0:lmat, 10)                     :: ne_core, ne_elem, ne_explicit
-      INTEGER, DIMENSION(2)                              :: n_occ_alpha_and_beta
+      INTEGER, DIMENSION(2)                              :: n_occ_alpha_and_beta, n_occ
       REAL(KIND=dp)                                      :: charge_molecule, zeff, zeff_correction
       REAL(KIND=dp), DIMENSION(0:lmat, 10, 2)            :: edelta
       INTEGER, DIMENSION(0:lmat, 10, 2, 2)               :: abdelta
