@@ -10,6 +10,7 @@
 MODULE input_cp2k_almo
    USE bibliography,                    ONLY: Khaliullin2007,&
                                               Khaliullin2008,&
+                                              Scheiber2018,&
                                               Khaliullin2013
    USE cp_output_handling,              ONLY: cp_print_key_section_create,&
                                               low_print_level
@@ -71,7 +72,7 @@ CONTAINS
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
                           n_keywords=9, n_subsections=5, repeats=.FALSE., &
-                          citations=(/Khaliullin2013/))
+                          citations=(/Khaliullin2013,Scheiber2018/))
 
       NULLIFY (keyword)
 

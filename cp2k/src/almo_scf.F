@@ -35,6 +35,7 @@ MODULE almo_scf
                                               print_optimizer_options
    USE atomic_kind_types,               ONLY: atomic_kind_type
    USE bibliography,                    ONLY: Khaliullin2013,&
+                                              Scheiber2018,&
                                               Kolafa2004,&
                                               cite_reference
    USE cp_blacs_env,                    ONLY: cp_blacs_env_release,&
@@ -361,6 +362,7 @@ CONTAINS
 
       almo_scf_env%calc_forces = calc_forces
       IF (calc_forces) THEN
+         CALL cite_reference(Scheiber2018)
          IF (almo_scf_env%deloc_method .EQ. almo_deloc_x .OR. &
              almo_scf_env%deloc_method .EQ. almo_deloc_xalmo_x .OR. &
              almo_scf_env%deloc_method .EQ. almo_deloc_xalmo_1diag) THEN
