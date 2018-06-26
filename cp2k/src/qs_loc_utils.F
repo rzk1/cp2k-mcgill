@@ -679,13 +679,13 @@ CONTAINS
                           cell=cell, dim_op=dim_op)
       CALL compute_berry_operator(qs_env, cell, op_sm_set, dim_op)
 
-DO i = 1, dim_op
-   DO j = 1, SIZE(op_sm_set, 1)
-      print*, i
-      print*, j
-      CALL dbcsr_print(op_sm_set(j,i)%matrix)
-   ENDDO
-END DO
+!DO i = 1, dim_op
+!   DO j = 1, SIZE(op_sm_set, 1)
+!      print*, i
+!      print*, j
+!      CALL dbcsr_print(op_sm_set(j,i)%matrix)
+!   ENDDO
+!END DO
 
       CALL timestop(handle)
    END SUBROUTINE get_berry_operator
@@ -708,7 +708,6 @@ END DO
 !>      The contraction is performed block-wise
 ! **************************************************************************************************
    SUBROUTINE compute_berry_operator(qs_env, cell, op_sm_set, dim_op)
-      TYPE(qs_loc_env_new_type), POINTER                 :: qs_loc_env
       TYPE(qs_environment_type), POINTER                 :: qs_env
       TYPE(cell_type), POINTER                           :: cell
       TYPE(dbcsr_p_type), DIMENSION(:, :), POINTER       :: op_sm_set
@@ -719,7 +718,7 @@ END DO
 
       INTEGER :: handle, i, iatom, icol, ikind, inode, irow, iset, istat, jatom, jkind, jset, &
          last_jatom, ldab, ldsa, ldsb, ldwork, maxl, ncoa, ncob, nkind, nrow, nseta, nsetb, sgfa, &
-         sgfb
+         sgfb, inub, jnub
       INTEGER, DIMENSION(3)                              :: perd0
       INTEGER, DIMENSION(:), POINTER                     :: la_max, la_min, lb_max, lb_min, npgfa, &
                                                             npgfb, nsgfa, nsgfb
@@ -732,19 +731,18 @@ END DO
                                                             sphi_b, work, zeta, zetb
       TYPE(block_p_type), DIMENSION(:), POINTER          :: op_cos, op_sin
       TYPE(gto_basis_set_p_type), DIMENSION(:), POINTER  :: basis_set_list
-      TYPE(gto_basis_set_type), POINTER                  :: basis_set_a, basis_set_b, orb_basis_set
+      TYPE(gto_basis_set_type), POINTER                  :: basis_set_a, basis_set_b
       TYPE(neighbor_list_iterator_p_type), &
          DIMENSION(:), POINTER                           :: nl_iterator
       TYPE(neighbor_list_set_p_type), DIMENSION(:), &
          POINTER                                         :: sab_orb
       TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
       TYPE(qs_kind_type), DIMENSION(:), POINTER          :: qs_kind_set
-      TYPE(qs_kind_type), POINTER                        :: qs_kind
+      TYPE(qs_kind_type), POINTER                       :: qs_kind
 
       CALL timeset(routineN, handle)
-print *, 'SUBROUTINE compute_berry_operator 744'
       NULLIFY (qs_kind, qs_kind_set)
-      NULLIFY (orb_basis_set, particle_set)
+      NULLIFY (particle_set)
       NULLIFY (sab_orb)
       NULLIFY (cosab, sinab, work)
       NULLIFY (la_max, la_min, lb_max, lb_min, npgfa, npgfb, nsgfa, nsgfb)
@@ -752,7 +750,6 @@ print *, 'SUBROUTINE compute_berry_operator 744'
 
       CALL get_qs_env(qs_env=qs_env, qs_kind_set=qs_kind_set, &
                       particle_set=particle_set, sab_orb=sab_orb)
-print *, 'SUBROUTINE compute_berry_operator 754'
 
       nkind = SIZE(qs_kind_set)
 
@@ -762,53 +759,41 @@ print *, 'SUBROUTINE compute_berry_operator 754'
       ALLOCATE (cosab(ldab, ldab))
       cosab = 0.0_dp
       ALLOCATE (sinab(ldab, ldab))
-print *, 'SUBROUTINE compute_berry_operator 764'
       sinab = 0.0_dp
       ALLOCATE (work(ldwork, ldwork))
       work = 0.0_dp
 
-      ALLOCATE (op_cos(dim_op), STAT=istat)
-      ALLOCATE (op_sin(dim_op), STAT=istat)
+      ALLOCATE (op_cos(dim_op))
+      ALLOCATE (op_sin(dim_op))
       DO i = 1, dim_op
          NULLIFY (op_cos(i)%block)
          NULLIFY (op_sin(i)%block)
       END DO
-print *, 'SUBROUTINE compute_berry_operator 775'
 
       kvec = 0.0_dp
-print *, 'SUBROUTINE compute_berry_operator 783'
       vector_k = 0.0_dp
-print *, 'SUBROUTINE compute_berry_operator 785'
       vector_k(:, 1) = twopi*cell%h_inv(1, :)
-print *, 'SUBROUTINE compute_berry_operator 786'
       vector_k(:, 2) = twopi*cell%h_inv(2, :)
-print *, 'SUBROUTINE compute_berry_operator 787'
       vector_k(:, 3) = twopi*cell%h_inv(3, :)
-print *, 'SUBROUTINE compute_berry_operator 788'
       vector_k(:, 4) = twopi*(cell%h_inv(1, :)+cell%h_inv(2, :))
-print *, 'SUBROUTINE compute_berry_operator 790'
       vector_k(:, 5) = twopi*(cell%h_inv(1, :)+cell%h_inv(3, :))
-print *, 'SUBROUTINE compute_berry_operator 792'
       vector_k(:, 6) = twopi*(cell%h_inv(2, :)+cell%h_inv(3, :))
-print *, 'SUBROUTINE compute_berry_operator 785'
 
       ! This operator can be used only for periodic systems
       ! If an isolated system is used the periodicity is overimposed
       perd0(1:3) = cell%perd(1:3)
       cell%perd(1:3) = 1
 
-      ALLOCATE (basis_set_list(nkind), STAT=istat)
-print *, 'SUBROUTINE compute_berry_operator 793'
+      ALLOCATE (basis_set_list(nkind))
       DO ikind = 1, nkind
          qs_kind => qs_kind_set(ikind)
-         CALL get_qs_kind(qs_kind=qs_kind, orb_basis_set=basis_set_a)
+         CALL get_qs_kind(qs_kind=qs_kind, basis_set=basis_set_a)
          IF (ASSOCIATED(basis_set_a)) THEN
             basis_set_list(ikind)%gto_basis_set => basis_set_a
          ELSE
             NULLIFY (basis_set_list(ikind)%gto_basis_set)
          END IF
       END DO
-print *, 'SUBROUTINE compute_berry_operator 803'
       CALL neighbor_list_iterator_create(nl_iterator, sab_orb)
       DO WHILE (neighbor_list_iterate(nl_iterator) == 0)
          CALL get_iterator_info(nl_iterator, ikind=ikind, jkind=jkind, inode=inode, &
@@ -818,7 +803,6 @@ print *, 'SUBROUTINE compute_berry_operator 803'
          basis_set_b => basis_set_list(jkind)%gto_basis_set
          IF (.NOT. ASSOCIATED(basis_set_b)) CYCLE
          ra = pbc(particle_set(iatom)%r, cell)
-print *, 'SUBROUTINE compute_berry_operator 813'
          ! basis ikind
          first_sgfa => basis_set_a%first_sgf
          la_max => basis_set_a%lmax
@@ -828,7 +812,6 @@ print *, 'SUBROUTINE compute_berry_operator 813'
          nsgfa => basis_set_a%nsgf_set
          rpgfa => basis_set_a%pgf_radius
          set_radius_a => basis_set_a%set_radius
-print *, 'SUBROUTINE compute_berry_operator 823'
          sphi_a => basis_set_a%sphi
          zeta => basis_set_a%zet
          ! basis jkind
@@ -838,7 +821,6 @@ print *, 'SUBROUTINE compute_berry_operator 823'
          npgfb => basis_set_b%npgf
          nsetb = basis_set_b%nset
          nsgfb => basis_set_b%nsgf_set
-print *, 'SUBROUTINE compute_berry_operator 833'
          rpgfb => basis_set_b%pgf_radius
          set_radius_b => basis_set_b%set_radius
          sphi_b => basis_set_b%sphi
@@ -848,7 +830,6 @@ print *, 'SUBROUTINE compute_berry_operator 833'
          ldsb = SIZE(sphi_b, 1)
          IF (inode == 1) last_jatom = 0
 
-print *, 'SUBROUTINE compute_berry_operator 843'
          rb = rab+ra
 
          IF (jatom /= last_jatom) THEN
@@ -858,7 +839,6 @@ print *, 'SUBROUTINE compute_berry_operator 843'
             new_atom_b = .FALSE.
          END IF
 
-print *, 'SUBROUTINE compute_berry_operator 853'
          IF (new_atom_b) THEN
             IF (iatom <= jatom) THEN
                irow = iatom
@@ -868,60 +848,51 @@ print *, 'SUBROUTINE compute_berry_operator 853'
                icol = iatom
             END IF
 
-print *, 'SUBROUTINE compute_berry_operator 863'
             DO i = 1, dim_op
                NULLIFY (op_cos(i)%block)
-               CALL cp_dbcsr_get_block_p(matrix=op_sm_set(1, i)%matrix, &
+               CALL dbcsr_get_block_p(matrix=op_sm_set(1, i)%matrix, &
                                       row=irow, col=icol, block=op_cos(i)%block, found=found)
                NULLIFY (op_sin(i)%block)
-               CALL cp_dbcsr_get_block_p(matrix=op_sm_set(2, i)%matrix, &
+               CALL dbcsr_get_block_p(matrix=op_sm_set(2, i)%matrix, &
                                       row=irow, col=icol, block=op_sin(i)%block, found=found)
             END DO
          END IF ! new_atom_b
-print *, 'SUBROUTINE compute_berry_operator 873'
 
          rab2 = rab(1)*rab(1)+rab(2)*rab(2)+rab(3)*rab(3)
          dab = SQRT(rab2)
 
          nrow = 0
          DO iset = 1, nseta
-
+ 
             ncoa = npgfa(iset)*ncoset(la_max(iset))
             sgfa = first_sgfa(1, iset)
-print *, 'SUBROUTINE compute_berry_operator 883'
 
             DO jset = 1, nsetb
-
+    
                ncob = npgfb(jset)*ncoset(lb_max(jset))
                sgfb = first_sgfb(1, jset)
 
                IF (set_radius_a(iset)+set_radius_b(jset) >= dab) THEN
 
 !           *** Calculate the primitive overlap integrals ***
-print *, 'SUBROUTINE compute_berry_operator 893'
                   DO i = 1, dim_op
-
                      kvec(1:3) = vector_k(1:3, i)
                      cosab = 0.0_dp
                      sinab = 0.0_dp
-print *, 'SUBROUTINE compute_berry_operator 899'
                      CALL cossin(la_max(iset), npgfa(iset), zeta(:, iset), rpgfa(:, iset), &
                                  la_min(iset), lb_max(jset), npgfb(jset), zetb(:, jset), &
                                  rpgfb(:, jset), lb_min(jset), &
                                  ra, rb, kvec, cosab, sinab)
-print *, 'SUBROUTINE compute_berry_operator 903'
                      CALL contract_cossin(op_cos(i)%block, op_sin(i)%block, &
                                           iatom, ncoa, nsgfa(iset), sgfa, sphi_a, ldsa, &
                                           jatom, ncob, nsgfb(jset), sgfb, sphi_b, ldsb, &
                                           cosab, sinab, ldab, work, ldwork)
-print *, 'SUBROUTINE compute_berry_operator 910'
                   END DO
 
                END IF !  >= dab
 
             END DO ! jset
 
-print *, 'SUBROUTINE compute_berry_operator 915'
             nrow = nrow+ncoa
 
          END DO ! iset
@@ -931,17 +902,15 @@ print *, 'SUBROUTINE compute_berry_operator 915'
 
       ! Set back the correct periodicity
       cell%perd(1:3) = perd0(1:3)
-print *, 'SUBROUTINE compute_berry_operator 925'
 
       DO i = 1, dim_op
          NULLIFY (op_cos(i)%block)
          NULLIFY (op_sin(i)%block)
       END DO
-      DEALLOCATE (op_cos, op_sin, STAT=istat)
+      DEALLOCATE (op_cos, op_sin)
 
-      DEALLOCATE (cosab, sinab, work, basis_set_list, STAT=istat)
+      DEALLOCATE (cosab, sinab, work, basis_set_list)
 
-print *, 'SUBROUTINE compute_berry_operator 935'
       CALL timestop(handle)
    END SUBROUTINE compute_berry_operator
 
