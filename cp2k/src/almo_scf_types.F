@@ -45,7 +45,7 @@ MODULE almo_scf_types
    TYPE penalty_type
 
       REAL(KIND=dp)      :: occ_vol_coeff, loc_vol_coeff
-      INTEGER            :: occ_vol_method
+      INTEGER            :: occ_vol_method, occ_loc_method
 
    END TYPE penalty_type
 
