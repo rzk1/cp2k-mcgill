@@ -816,7 +816,7 @@ CONTAINS
          line_search_error, next_step_size_guess, numer, spin_factor, step_size, &
          t1, t2, t_norm, tau, time_step, penalty_amplitude, &
          penalty_func_new, det1, energy_ispin, denom2, tempreal, neg_thr, &
-         localization_obj_function, fval, localiz_coeff
+         localization_obj_function, fval, localiz_coeff, grad_loc_norm
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: &
          penalty_occ_vol_g_prefactor, penalty_occ_vol_h_prefactor, grad_norm_spin
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: nocc
@@ -1135,6 +1135,7 @@ CONTAINS
       outer_prepare_to_exit = .FALSE.
       outer_iteration = 0
       grad_norm = 0.0_dp
+      grad_loc_norm = 0.0_dp
       grad_norm_frob = 0.0_dp
       use_guess = .FALSE.
 
@@ -1185,7 +1186,7 @@ CONTAINS
                        eps_lanczos=almo_scf_env%eps_lanczos, &
                        max_iter_lanczos=almo_scf_env%max_iter_lanczos)
 
-CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_scf_env%eps_filter)
+!CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_scf_env%eps_filter)
 
                ! compute the global projectors (for the density matrix)
                CALL almo_scf_t_to_proj( &
@@ -1436,7 +1437,8 @@ print *, det1
                      matrix_t_out=matrix_t_out(ispin), &
                      weights=weights, &
                      localiz_coeff = localiz_coeff, &
-                     z2 = z2)
+                     z2 = z2, &
+                     grad_loc_norm = grad_loc_norm)
 
                ENDDO ! ispin
 
@@ -1504,7 +1506,7 @@ print *, det1
             ENDDO ! ispin
             grad_norm = MAXVAL(grad_norm_spin)
 
-            converged = (grad_norm .LE. optimizer%eps_error)
+            converged = (grad_norm .LE. optimizer%eps_error) .AND. (grad_loc_norm .LE. optimizer%eps_error*localiz_coeff)
             IF (converged .OR. (iteration .GE. max_iter)) THEN
                prepare_to_exit = .TRUE.
             ENDIF
@@ -1874,11 +1876,11 @@ print *, det1
                   energy_new, energy_diff, grad_norm, &
                   t2-t1
                IF (penalty_occ_vol) THEN
-                  WRITE(unit_nr,'(T2,A19,F23.10)') &
+                  WRITE(unit_nr,'(T2,A25,F23.10)') &
                           "Energy component:", energy_new-penalty_func_new-localization_obj_function
-                  WRITE(unit_nr,'(T2,A19,F23.10)') &
+                  WRITE(unit_nr,'(T2,A25,F23.10)') &
                           "Penalty component:", penalty_func_new
-                  WRITE(unit_nr,'(T2,A19,F23.10)') &
+                  WRITE(unit_nr,'(T2,A25,F23.10)') &
                           "Localization component:", localization_obj_function
                ENDIF
             ENDIF
@@ -5023,10 +5025,12 @@ print *, det1
                                cpu_of_domain, domain_map, assume_t0_q0x, optimize_theta, &
                                normalize_orbitals, penalty_occ_vol, penalty_occ_local, &
                                penalty_occ_vol_prefactor, envelope_amplitude, eps_filter, spin_factor, &
-                               special_case, m_sig_sqrti_ii, op_sm_set, matrix_t_out, weights, localiz_coeff, z2)
+                               special_case, m_sig_sqrti_ii, op_sm_set, matrix_t_out, weights, localiz_coeff, & 
+                               z2, grad_loc_norm)
 
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: m_grad_out
+      REAL(dp), INTENT(OUT)                              :: grad_loc_norm
       TYPE(dbcsr_type), INTENT(IN)                       :: m_ks, m_s, m_t, m_t0, m_siginv, &
                                                             m_quench_t, m_FTsiginv, &
                                                             m_siginvTFTsiginv, m_ST, m_STsiginv0, &
@@ -5043,7 +5047,7 @@ print *, det1
                                                             penalty_occ_vol, penalty_occ_local
       REAL(KIND=dp), INTENT(IN)                          :: penalty_occ_vol_prefactor, &
                                                             envelope_amplitude, eps_filter, &
-                                                            spin_factor
+                                                            spin_factor,localiz_coeff
       INTEGER, INTENT(IN)                                :: special_case
       TYPE(dbcsr_type), INTENT(IN), OPTIONAL             :: m_sig_sqrti_ii
 
@@ -5052,7 +5056,7 @@ print *, det1
 
       INTEGER                                            :: handle, nao, idim0, reim, ielem
       REAL(KIND=dp)                                      :: energy_g_norm, penalty_occ_vol_g_norm, &
-                                                            coeff, localiz_coeff 
+                                                            coeff, temp_norm
       TYPE(dbcsr_type)                                   :: m_tmp_no_1, m_tmp_no_2, m_tmp_no_3, &
                                                             m_tmp_oo_1, m_tmp_oo_2
 !TYPE(dbcsr_type), INTENT(INOUT)          :: m_tmp_no_2
@@ -5230,7 +5234,15 @@ print *, det1
             !CALL dbcsr_add(grad_loc, temp1, 1.0_dp, 1.0_dp) 
 
          ENDDO ! end loop over idim0
-         CALL dbcsr_add(m_tmp_no_2, temp1, 0.0_dp, localiz_coeff)
+         CALL dbcsr_add(m_tmp_no_2, temp1, 1.0_dp, localiz_coeff)
+         CALL dbcsr_norm(temp1, dbcsr_norm_maxabsnorm, &
+                         norm_scalar=temp_norm)
+         IF (temp_norm > grad_loc_norm) THEN
+            grad_loc_norm = temp_norm
+         ELSE
+            grad_loc_norm = grad_loc_norm
+         ENDIF
+
       ENDIF
           
       ! add penalty on the occupied volume: det(sigma)
