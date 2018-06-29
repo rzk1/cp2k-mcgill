@@ -5657,7 +5657,6 @@ CONTAINS
                node_of_domain=cpu_of_domain, &
                preconditioner=domain_prec_out(:), &
                use_trimmer=.FALSE., &
-               !eps_zero_eigenvalues=neg_thr,&
                my_action=precond_domain_projector &
                )
          ENDIF

@@ -2031,7 +2031,11 @@ CONTAINS
       INTEGER, DIMENSION(:), POINTER                     :: nmos
       LOGICAL                                            :: matrix_r_required, &
                                                             matrix_s_inv_required, &
-                                                            matrix_trimmer_required, my_use_trimmer
+                                                            matrix_trimmer_required, &
+                                                            my_use_trimmer, &
+                                                            matrix_s_inv_half_required, &
+                                                            matrix_s_half_required, &
+                                                            eps_zero_eigenvalues_required
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: Minv, proj_array
       TYPE(domain_submatrix_type), ALLOCATABLE, &
          DIMENSION(:)                                    :: subm_main, subm_tmp, subm_tmp2
@@ -2043,6 +2047,9 @@ CONTAINS
          my_use_trimmer = use_trimmer
       ENDIF
 
+      matrix_s_inv_half_required = .FALSE.
+      matrix_s_half_required = .FALSE.
+      eps_zero_eigenvalues_required = .FALSE.
       matrix_s_inv_required = .FALSE.
       matrix_trimmer_required = .FALSE.
       matrix_r_required = .FALSE.
@@ -2053,7 +2060,23 @@ CONTAINS
          matrix_trimmer_required = .TRUE.
          CPABORT("TRIMMED PRECONDITIONER DISABLED!")
       ENDIF
+      ! tie the following optional arguments together to prevent bad calls
+      IF (PRESENT(bad_modes_projector_down)) THEN
+         matrix_s_inv_half_required = .TRUE.
+         matrix_s_half_required = .TRUE.
+         eps_zero_eigenvalues_required = .TRUE.
+      ENDIF
 
+      ! check if all required optional arguments are provided
+      IF (.NOT. PRESENT(subm_s_inv_half) .AND. matrix_s_inv_half_required) THEN
+         CPABORT("S_inv_half SUBMATRICES ARE REQUIRED")
+      ENDIF
+      IF (.NOT. PRESENT(subm_s_half) .AND. matrix_s_half_required) THEN
+         CPABORT("S_half SUBMATRICES ARE REQUIRED")
+      ENDIF
+      IF (.NOT. PRESENT(eps_zero_eigenvalues) .AND. eps_zero_eigenvalues_required) THEN
+         CPABORT("EPS_ZERO_EIGENVALUES IS REQUIRED")
+      ENDIF
       IF (.NOT. PRESENT(subm_s_inv) .AND. matrix_s_inv_required) THEN
          CPABORT("S_inv SUBMATRICES ARE REQUIRED")
       ENDIF
@@ -2160,38 +2183,17 @@ CONTAINS
 
             IF (PRESENT(bad_modes_projector_down)) THEN
                ALLOCATE (proj_array(naos, naos))
-            ENDIF
-
-            IF (PRESENT(eps_zero_eigenvalues)) THEN
-               IF (PRESENT(subm_s_inv_half)) THEN
-                  CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
-                                            range1=nmos(idomain), range2=n_domain_mos, &
-                                            range1_thr=eps_zero_eigenvalues, &
-                                            bad_modes_projector_down=proj_array, &
-                                            s_inv_half=subm_s_inv_half(idomain)%mdata, &
-                                            s_half=subm_s_half(idomain)%mdata &
-                                            !metric_inv=subm_s_inv(idomain)%mdata &
-                                            )
-               ELSE
-                  CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
-                                            range1=nmos(idomain), range2=n_domain_mos, &
-                                            range1_thr=eps_zero_eigenvalues, &
-                                            bad_modes_projector_down=proj_array &
-                                            )
-               ENDIF
+               CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
+                                         range1=nmos(idomain), range2=n_domain_mos, &
+                                         range1_thr=eps_zero_eigenvalues, &
+                                         bad_modes_projector_down=proj_array, &
+                                         s_inv_half=subm_s_inv_half(idomain)%mdata, &
+                                         s_half=subm_s_half(idomain)%mdata &
+                                         )
             ELSE
-               IF (PRESENT(subm_s_inv_half)) THEN
                   CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
-                                            range1=nmos(idomain), range2=n_domain_mos, &
-                                            bad_modes_projector_down=proj_array, &
-                                            s_inv_half=subm_s_inv_half(idomain)%mdata, &
-                                            s_half=subm_s_inv(idomain)%mdata)
-               ELSE
-                  CALL pseudo_invert_matrix(A=subm_main(idomain)%mdata, Ainv=Minv, N=naos, method=1, &
-                                            range1=nmos(idomain), range2=n_domain_mos, &
-                                            bad_modes_projector_down=proj_array)
-               ENDIF
-            ENDIF ! eps_zero_eigenvalues
+                                            range1=nmos(idomain), range2=n_domain_mos)
+            ENDIF
             !!!TRIM ENDIF
 
             CALL copy_submatrices(subm_main(idomain), preconditioner(idomain), .FALSE.)
@@ -2221,8 +2223,6 @@ CONTAINS
       !   CALL dbcsr_release(m_tmp_no_2)
       !   CALL dbcsr_release(matrix_r)
       !ENDIF
-
-      !RZK-warning do we need a barrier here ?
 
       CALL timestop(handle)
 
@@ -2583,7 +2583,7 @@ CONTAINS
 
       INTEGER                                            :: handle, ii, INFO, jj, LWORK, range1_eiv, &
                                                             range2_eiv, range3_eiv, unit_nr
-      LOGICAL                                            :: use_both, use_ranges
+      LOGICAL                                            :: use_both, use_ranges_only, use_thr_only
       REAL(KIND=dp)                                      :: my_shift
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: eigenvalues, WORK
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:, :)        :: temp1, temp2, temp3, temp4
@@ -2600,15 +2600,30 @@ CONTAINS
       END IF
 
       IF (method .EQ. 1) THEN
+
+         IF ((PRESENT(range1) .AND. (.NOT. PRESENT(range2))) .OR. (PRESENT(range2) .AND. (.NOT. PRESENT(range1)))) THEN
+            CPABORT("range1 and range2 must be provided together")
+         ENDIF
+
          IF (PRESENT(range1) .AND. PRESENT(range1_thr)) THEN
             use_both = .TRUE.
+            use_thr_only = .FALSE.
+            use_ranges_only = .FALSE.
          ELSE
             use_both = .FALSE.
+
             IF (PRESENT(range1)) THEN
-               use_ranges = .TRUE.
+               use_ranges_only = .TRUE.
             ELSE
-               use_ranges = .FALSE.
+               use_ranges_only = .FALSE.
             ENDIF
+
+            IF (PRESENT(range1_thr)) THEN
+               use_thr_only = .TRUE.
+            ELSE
+               use_thr_only = .FALSE.
+            ENDIF
+
          ENDIF
 
          IF ((PRESENT(s_half) .AND. (.NOT. PRESENT(s_inv_half))) .OR. (PRESENT(s_inv_half) .AND. (.NOT. PRESENT(s_half)))) THEN
@@ -2625,7 +2640,7 @@ CONTAINS
       INFO = 0
 
       SELECT CASE (method)
-      CASE (0)
+      CASE (0) ! Inversion via cholesky factorization 
 
          CALL DPOTRF('L', N, Ainv, N, INFO)
          IF (INFO .NE. 0) THEN
@@ -2696,7 +2711,7 @@ CONTAINS
                ENDIF
             ENDDO
          ELSE
-            IF (use_ranges) THEN
+            IF (use_ranges_only) THEN
                DO jj = 1, N
                   IF (jj .LE. range1) THEN
                      temp1(jj, :) = temp2(:, jj)*0.0_dp
@@ -2712,7 +2727,7 @@ CONTAINS
                      range3_eiv = range3_eiv+1
                   ENDIF
                ENDDO
-            ELSE
+            ELSE IF (use_thr_only) THEN
                DO jj = 1, N
                   IF (eigenvalues(jj) .LT. range1_thr) THEN
                      temp1(jj, :) = temp2(:, jj)*0.0_dp
@@ -2724,6 +2739,8 @@ CONTAINS
                      range2_eiv = range2_eiv+1
                   ENDIF
                ENDDO
+            ELSE ! no ranges, no thresholds
+               CPABORT("Invert using Cholesky. It would be faster.")
             ENDIF
          ENDIF
          !WRITE(*,*) ' EIV RANGES: ', range1_eiv, range2_eiv, range3_eiv
