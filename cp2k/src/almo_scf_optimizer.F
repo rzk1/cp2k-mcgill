@@ -943,7 +943,8 @@ CONTAINS
                           my_special_case .EQ. xalmo_case_fully_deloc )
       penalty_occ_local = ( almo_scf_env%penalty%occ_loc_method .NE. almo_occ_loc_penalty_none .AND. &
                           my_special_case .EQ. xalmo_case_fully_deloc )
-      normalize_orbitals = penalty_occ_vol
+      !normalize_orbitals = penalty_occ_vol .OR. penalty_occ_local
+      normalize_orbitals = .TRUE.
       ! not used with lndet: penalty_order=2
       localiz_coeff = almo_scf_env%penalty%loc_vol_coeff 
       penalty_amplitude=almo_scf_env%penalty%occ_vol_coeff
@@ -1276,6 +1277,7 @@ CONTAINS
                         CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
                                                almo_scf_env%mat_distr_aos, .FALSE.)
 
+CALL dbcsr_print(matrix_t_out(ispin))
                         CALL dbcsr_multiply("N", "N", 1.0_dp, &
                                 op_sm_set_almo(reim, idim0)%matrix, &
                                 matrix_t_out(ispin), &
@@ -1294,15 +1296,16 @@ CONTAINS
 
                      ENDDO
 
-                     
+!print *, z2
+
                      DO ielem=1, nmo
                         SELECT CASE(2) ! allows for selection of different spread functionals
                         CASE (1) ! functional =  -W_I * log( |z_I|^2 )
-                           fval = -weights(idim0) * LOG( z2(ielem) )
+                           fval = -weights(idim0) * LOG( ABS(z2(ielem)) )
                         CASE (2) ! functional =  W_I * ( 1 - |z_I|^2 )
-                           fval = weights(idim0) - weights(idim0) * z2(ielem)
+                           fval = weights(idim0) - weights(idim0) * ABS(z2(ielem))
                         CASE (3) ! functional =  W_I * ( 1 - |z_I| )
-                           fval = weights(idim0) - weights(idim0) * SQRT( z2(ielem) )
+                           fval = weights(idim0) - weights(idim0) * SQRT( ABS(z2(ielem)) )
                         END SELECT
                         localization_obj_function = localization_obj_function + fval
                      ENDDO
@@ -1316,14 +1319,14 @@ CONTAINS
 
                !localiz_coeff = 0.0000001
                localization_obj_function = localiz_coeff * localization_obj_function
-               energy_new=energy_new+localization_obj_function
+               !energy_new=energy_new+localization_obj_function
+               energy_new=energy_new*0.0_dp+localization_obj_function
 
                IF (penalty_occ_vol) THEN
 !CALL dbcsr_print(matrix_t_out(ispin))
 !CALL dbcsr_print(almo_scf_env%matrix_sigma(ispin))
                   CALL determinant(almo_scf_env%matrix_sigma(ispin), det1, &
                           almo_scf_env%eps_filter)
-print *, det1
                   penalty_func_new = &
                           -penalty_amplitude * spin_factor * nocc(ispin) * &
                           LOG(det1)
@@ -1506,7 +1509,7 @@ print *, det1
             ENDDO ! ispin
             grad_norm = MAXVAL(grad_norm_spin)
 
-            converged = (grad_norm .LE. optimizer%eps_error) .AND. (grad_loc_norm .LE. optimizer%eps_error*localiz_coeff)
+            converged = (grad_norm .LE. optimizer%eps_error) !.AND. (grad_loc_norm .LE. optimizer%eps_error*localiz_coeff)
             IF (converged .OR. (iteration .GE. max_iter)) THEN
                prepare_to_exit = .TRUE.
             ENDIF
@@ -1875,15 +1878,20 @@ print *, det1
                   iter_type, iteration, &
                   energy_new, energy_diff, grad_norm, &
                   t2-t1
+               IF (penalty_occ_local) THEN
+                  WRITE(unit_nr,'(T2,A25,F23.10)') &
+                          "Energy component Loc:", energy_new-penalty_func_new-localization_obj_function
+                  WRITE(unit_nr,'(T2,A25,F23.10)') &
+                          "Localization component:", localization_obj_function
+               ENDIF
                IF (penalty_occ_vol) THEN
                   WRITE(unit_nr,'(T2,A25,F23.10)') &
                           "Energy component:", energy_new-penalty_func_new-localization_obj_function
                   WRITE(unit_nr,'(T2,A25,F23.10)') &
                           "Penalty component:", penalty_func_new
-                  WRITE(unit_nr,'(T2,A25,F23.10)') &
-                          "Localization component:", localization_obj_function
                ENDIF
             ENDIF
+
 
             IF (my_special_case.eq.xalmo_case_block_diag) THEN
                IF (penalty_occ_vol) THEN
@@ -5184,7 +5192,6 @@ print *, det1
                            tempNOcc1, &
                            0.0_dp, tempOccOcc1, &
                            filter_eps=eps_filter)
-   
                    CALL dbcsr_get_block_diag(tempOccOcc1,Re_diag)
 
                    CALL dbcsr_multiply("N", "N", 1.0_dp, &
@@ -5234,15 +5241,7 @@ print *, det1
             !CALL dbcsr_add(grad_loc, temp1, 1.0_dp, 1.0_dp) 
 
          ENDDO ! end loop over idim0
-         CALL dbcsr_add(m_tmp_no_2, temp1, 1.0_dp, localiz_coeff)
-         CALL dbcsr_norm(temp1, dbcsr_norm_maxabsnorm, &
-                         norm_scalar=temp_norm)
-         IF (temp_norm > grad_loc_norm) THEN
-            grad_loc_norm = temp_norm
-         ELSE
-            grad_loc_norm = grad_loc_norm
-         ENDIF
-
+         CALL dbcsr_add(m_tmp_no_2, temp1, 0.0_dp, localiz_coeff)
       ENDIF
           
       ! add penalty on the occupied volume: det(sigma)

@@ -164,7 +164,9 @@ CONTAINS
                                                             target_time
       TYPE(cp_fm_type), POINTER                          :: opvec
       TYPE(cp_logger_type), POINTER                      :: logger
-
+    INTEGER  :: inumb, jnumb, nnumb, mnumb
+    CHARACTER(LEN=20) :: fstr
+    REAL(KIND=dp), DIMENSION(:), ALLOCATABLE                :: temp1111
       CALL timeset(routineN, handle)
       logger => cp_get_default_logger()
       output_unit = cp_print_key_unit_nr(logger, print_loc_section, "PROGRAM_RUN_INFO", &
@@ -185,6 +187,19 @@ CONTAINS
                          zij_fm_set(j, i)%matrix)
          ENDDO
       ENDDO
+
+    nnumb = vectors%matrix_struct%nrow_global
+    mnumb = vectors%matrix_struct%ncol_global
+    ALLOCATE(temp1111(mnumb))
+
+    DO inumb = 1, nnumb
+       DO jnumb = 1, mnumb
+          CALL cp_fm_get_element(vectors, inumb, jnumb, temp1111(jnumb))
+       ENDDO
+       WRITE(fstr,"(A,I3,A)") "(I4,",mnumb,"F15.10)"
+       ! fstr = "(I4, 4F15.10)"
+       WRITE(*,fstr) inumb, temp1111
+    ENDDO
 
       max_iter = qs_loc_env%localized_wfn_control%max_iter
       max_crazy_angle = qs_loc_env%localized_wfn_control%max_crazy_angle

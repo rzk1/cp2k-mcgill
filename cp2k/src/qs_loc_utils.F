@@ -679,13 +679,6 @@ CONTAINS
                           cell=cell, dim_op=dim_op)
       CALL compute_berry_operator(qs_env, cell, op_sm_set, dim_op)
 
-!DO i = 1, dim_op
-!   DO j = 1, SIZE(op_sm_set, 1)
-!      print*, i
-!      print*, j
-!      CALL dbcsr_print(op_sm_set(j,i)%matrix)
-!   ENDDO
-!END DO
 
       CALL timestop(handle)
    END SUBROUTINE get_berry_operator
@@ -718,7 +711,7 @@ CONTAINS
 
       INTEGER :: handle, i, iatom, icol, ikind, inode, irow, iset, istat, jatom, jkind, jset, &
          last_jatom, ldab, ldsa, ldsb, ldwork, maxl, ncoa, ncob, nkind, nrow, nseta, nsetb, sgfa, &
-         sgfb, inub, jnub
+         sgfb, inub, jnub, j
       INTEGER, DIMENSION(3)                              :: perd0
       INTEGER, DIMENSION(:), POINTER                     :: la_max, la_min, lb_max, lb_min, npgfa, &
                                                             npgfb, nsgfa, nsgfb
@@ -738,7 +731,7 @@ CONTAINS
          POINTER                                         :: sab_orb
       TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
       TYPE(qs_kind_type), DIMENSION(:), POINTER          :: qs_kind_set
-      TYPE(qs_kind_type), POINTER                       :: qs_kind
+      TYPE(qs_kind_type), POINTER                        :: qs_kind
 
       CALL timeset(routineN, handle)
       NULLIFY (qs_kind, qs_kind_set)
@@ -911,6 +904,13 @@ CONTAINS
 
       DEALLOCATE (cosab, sinab, work, basis_set_list)
 
+!DO i = 1, dim_op
+!   DO j = 1, SIZE(op_sm_set, 1)
+!      print*, i
+!      print*, j
+!      CALL dbcsr_print(op_sm_set(j,i)%matrix)
+!   ENDDO
+!END DO
       CALL timestop(handle)
    END SUBROUTINE compute_berry_operator
 
