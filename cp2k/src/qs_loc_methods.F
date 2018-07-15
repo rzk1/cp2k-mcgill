@@ -188,6 +188,7 @@ CONTAINS
          ENDDO
       ENDDO
 
+!!!!!!Print matrxi T
     nnumb = vectors%matrix_struct%nrow_global
     mnumb = vectors%matrix_struct%ncol_global
     ALLOCATE(temp1111(mnumb))

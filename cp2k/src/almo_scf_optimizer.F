@@ -943,8 +943,8 @@ CONTAINS
                           my_special_case .EQ. xalmo_case_fully_deloc )
       penalty_occ_local = ( almo_scf_env%penalty%occ_loc_method .NE. almo_occ_loc_penalty_none .AND. &
                           my_special_case .EQ. xalmo_case_fully_deloc )
-      !normalize_orbitals = penalty_occ_vol .OR. penalty_occ_local
-      normalize_orbitals = .TRUE.
+      normalize_orbitals = penalty_occ_vol .OR. penalty_occ_local
+      !normalize_orbitals = .TRUE.
       ! not used with lndet: penalty_order=2
       localiz_coeff = almo_scf_env%penalty%loc_vol_coeff 
       penalty_amplitude=almo_scf_env%penalty%occ_vol_coeff
@@ -1277,7 +1277,7 @@ CONTAINS
                         CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
                                                almo_scf_env%mat_distr_aos, .FALSE.)
 
-CALL dbcsr_print(matrix_t_out(ispin))
+!CALL dbcsr_print(matrix_t_out(ispin))
                         CALL dbcsr_multiply("N", "N", 1.0_dp, &
                                 op_sm_set_almo(reim, idim0)%matrix, &
                                 matrix_t_out(ispin), &
@@ -1296,7 +1296,6 @@ CALL dbcsr_print(matrix_t_out(ispin))
 
                      ENDDO
 
-!print *, z2
 
                      DO ielem=1, nmo
                         SELECT CASE(2) ! allows for selection of different spread functionals
@@ -1320,7 +1319,7 @@ CALL dbcsr_print(matrix_t_out(ispin))
                !localiz_coeff = 0.0000001
                localization_obj_function = localiz_coeff * localization_obj_function
                !energy_new=energy_new+localization_obj_function
-               energy_new=energy_new*0.0_dp+localization_obj_function
+               energy_new=energy_new+localization_obj_function
 
                IF (penalty_occ_vol) THEN
 !CALL dbcsr_print(matrix_t_out(ispin))
@@ -5062,15 +5061,14 @@ CALL dbcsr_print(matrix_t_out(ispin))
       CHARACTER(len=*), PARAMETER :: routineN = 'compute_gradient', &
          routineP = moduleN//':'//routineN
 
-      INTEGER                                            :: handle, nao, idim0, reim, ielem
+      INTEGER                                            :: handle, nao, idim0, reim, ielem, dim0
       REAL(KIND=dp)                                      :: energy_g_norm, penalty_occ_vol_g_norm, &
                                                             coeff, temp_norm
       TYPE(dbcsr_type)                                   :: m_tmp_no_1, m_tmp_no_2, m_tmp_no_3, &
                                                             m_tmp_oo_1, m_tmp_oo_2
 !TYPE(dbcsr_type), INTENT(INOUT)          :: m_tmp_no_2
-      TYPE(dbcsr_type)                                   :: tempNOcc1, tempOccOcc1, temp1, &
-                                                            tempNOcc2, tempOccOcc2, temp2, &
-                                                            Re_diag, Im_diag
+      TYPE(dbcsr_type)                                   :: tempNOcc1, tempOccOcc1, temp1, temp2
+      REAL(KIND=dp), DIMENSION(:), ALLOCATABLE           :: tg_diagonal
 
       CALL timeset(routineN, handle)
 
@@ -5101,16 +5099,7 @@ CALL dbcsr_print(matrix_t_out(ispin))
       CALL dbcsr_create(tempNOcc1, &
                         template=matrix_t_out, &
                         matrix_type=dbcsr_type_no_symmetry)
-      CALL dbcsr_create(tempNOcc2, &
-                        template=matrix_t_out, &
-                        matrix_type=dbcsr_type_no_symmetry)
-      CALL dbcsr_create(tempNOcc2, &
-                        template=matrix_t_out, &
-                        matrix_type=dbcsr_type_no_symmetry)
       CALL dbcsr_create(tempOccOcc1, &
-                        template=m_siginv, &
-                        matrix_type=dbcsr_type_no_symmetry)
-      CALL dbcsr_create(tempOccOcc2, &
                         template=m_siginv, &
                         matrix_type=dbcsr_type_no_symmetry)
       CALL dbcsr_create(temp1, &
@@ -5118,12 +5107,6 @@ CALL dbcsr_print(matrix_t_out(ispin))
                         matrix_type=dbcsr_type_no_symmetry)
       CALL dbcsr_create(temp2, &
                         template=matrix_t_out, &
-                        matrix_type=dbcsr_type_no_symmetry)
-      CALL dbcsr_create(Re_diag, &
-                        template=m_siginv, &
-                        matrix_type=dbcsr_type_no_symmetry)
-      CALL dbcsr_create(Im_diag, &
-                        template=m_siginv, &
                         matrix_type=dbcsr_type_no_symmetry)
 
       ! do d_E/d_T first
@@ -5174,11 +5157,13 @@ CALL dbcsr_print(matrix_t_out(ispin))
       ! LzL Add gradient for Localization
       !IF (penalty_local) THEN
       IF (penalty_occ_local) THEN
+
+         CALL dbcsr_set(temp2,0.0_dp) ! accumulate the localization gradient here
+
          DO idim0 = 1, SIZE(op_sm_set, 2) ! this loop is over miller ind
 
             DO reim = 1, SIZE(op_sm_set, 1) ! this loop is over Re/Im 
 
-               IF (reim == 1) THEN
                    
                    CALL dbcsr_multiply("N", "N", 1.0_dp, &
                            op_sm_set(reim, idim0)%matrix, &
@@ -5192,56 +5177,36 @@ CALL dbcsr_print(matrix_t_out(ispin))
                            tempNOcc1, &
                            0.0_dp, tempOccOcc1, &
                            filter_eps=eps_filter)
-                   CALL dbcsr_get_block_diag(tempOccOcc1,Re_diag)
+
+                   CALL dbcsr_get_info(tempOccOcc1, nfullrows_total=dim0 )
+                   ALLOCATE(tg_diagonal(dim0))
+                   CALL dbcsr_get_diag(tempOccOcc1,tg_diagonal)
+                   CALL dbcsr_set(tempOccOcc1,0.0_dp)
+                   CALL dbcsr_set_diag(tempOccOcc1,tg_diagonal)
+                   DEALLOCATE(tg_diagonal)
 
                    CALL dbcsr_multiply("N", "N", 1.0_dp, &
                                        tempNOcc1, &
-                                       Re_diag, &
+                                       tempOccOcc1, &
                                        0.0_dp, temp1, &
                                        filter_eps=eps_filter)
 
-               ENDIF
-
-               IF (reim == 2) THEN
-
-                   CALL dbcsr_multiply("N", "N", 1.0_dp, &
-                           op_sm_set(reim, idim0)%matrix, &
-                           matrix_t_out, &
-                           0.0_dp, tempNOcc2, &
-                           filter_eps=eps_filter)
-                   
-                   ! warning - save time by computing only the diagonal elements
-                   CALL dbcsr_multiply("T", "N", 1.0_dp, &
-                           matrix_t_out, &
-                           tempNOcc2, &
-                           0.0_dp, tempOccOcc2, &
-                           filter_eps=eps_filter)
-
-                   CALL dbcsr_get_block_diag(tempOccOcc2,Im_diag)
-
-                   CALL dbcsr_multiply("N", "N", 1.0_dp, &
-                                       tempNOcc2, &
-                                       Im_diag, &
-                                       0.0_dp, temp2, &
-                                       filter_eps=eps_filter)
-
-               ENDIF
 
             ENDDO
 
             SELECT CASE(2) ! allows for selection of different spread functionals
             CASE (1) ! functional =  -W_I * log( |z_I|^2 )
-               coeff = -4 * (weights(idim0) / z2(ielem))
+               coeff = -(weights(idim0) / z2(ielem))
             CASE (2) ! functional =  W_I * ( 1 - |z_I|^2 )
-               coeff = -4 * weights(idim0)
+               coeff = -weights(idim0)
             CASE (3) ! functional =  W_I * ( 1 - |z_I| )
-               coeff = -4 * (weights(idim0) / (2 * z2(ielem) ))
+               coeff = -(weights(idim0) / (2 * z2(ielem) ))
             END SELECT
-            CALL dbcsr_add(temp1, temp2, coeff, coeff)
+            CALL dbcsr_add(temp2, temp1, 1.0_dp, coeff)
             !CALL dbcsr_add(grad_loc, temp1, 1.0_dp, 1.0_dp) 
 
          ENDDO ! end loop over idim0
-         CALL dbcsr_add(m_tmp_no_2, temp1, 0.0_dp, localiz_coeff)
+         CALL dbcsr_add(m_tmp_no_2, temp2, 1.0_dp, localiz_coeff*4)
       ENDIF
           
       ! add penalty on the occupied volume: det(sigma)
@@ -5279,52 +5244,52 @@ CALL dbcsr_print(matrix_t_out(ispin))
          ! where c0 = penalty_occ_vol_prefactor
          ! This is because tr(T).G_Energy = 0 and
          !                 tr(T).G_Penalty = c0*I
-         CALL dbcsr_copy(m_tmp_no_1, m_quench_t)
-         CALL dbcsr_copy(m_tmp_no_1, m_ST, keep_sparsity=.TRUE.)
-         CALL dbcsr_add(m_tmp_no_2, m_tmp_no_1, 1.0_dp, -penalty_occ_vol_prefactor)
-         CALL dbcsr_copy(m_tmp_no_1, m_quench_t)
-         CALL dbcsr_multiply("N", "N", 1.0_dp, &
-                             m_tmp_no_2, &
-                             m_sig_sqrti_ii, &
-                             0.0_dp, m_tmp_no_1, &
-                             retain_sparsity=.TRUE.)
+         
+         !! faster way to take the norm into account (tested for vol penalty olny)
+         !!CALL dbcsr_copy(m_tmp_no_1, m_quench_t)
+         !!CALL dbcsr_copy(m_tmp_no_1, m_ST, keep_sparsity=.TRUE.)
+         !!CALL dbcsr_add(m_tmp_no_2, m_tmp_no_1, 1.0_dp, -penalty_occ_vol_prefactor)
+         !!CALL dbcsr_copy(m_tmp_no_1, m_quench_t)
+         !!CALL dbcsr_multiply("N", "N", 1.0_dp, &
+         !!                    m_tmp_no_2, &
+         !!                    m_sig_sqrti_ii, &
+         !!                    0.0_dp, m_tmp_no_1, &
+         !!                    retain_sparsity=.TRUE.)
 
-         !!! slower way of taking the norm into account
-         !!CALL dbcsr_copy(m_tmp_no_1,m_tmp_no_2)
-         !!CALL dbcsr_multiply("N","N",1.0_dp,&
-         !!        m_tmp_no_2,&
-         !!        m_sig_sqrti_ii,&
-         !!        0.0_dp,m_tmp_no_1,&
-         !!        retain_sparsity=.TRUE.,&
-         !!        )
-         !!
-         !!! get [tr(T).G]_ii
-         !!CALL dbcsr_copy(m_tmp_oo_1,m_sig_sqrti_ii)
-         !!CALL dbcsr_multiply("T","N",1.0_dp,&
-         !!        m_t,&
-         !!        m_tmp_no_2,&
-         !!        0.0_dp,m_tmp_oo_1,&
-         !!        retain_sparsity=.TRUE.,&
-         !!        )
-         !!CALL dbcsr_get_info(m_sig_sqrti_ii, nfullrows_total=dim0 )
-         !!ALLOCATE(tg_diagonal(dim0))
-         !!CALL dbcsr_get_diag(m_tmp_oo_1,tg_diagonal)
-         !!CALL dbcsr_set(m_tmp_oo_1,0.0_dp)
-         !!CALL dbcsr_set_diag(m_tmp_oo_1,tg_diagonal)
-         !!DEALLOCATE(tg_diagonal)
-         !!
-         !!CALL dbcsr_multiply("N","N",1.0_dp,&
-         !!        m_sig_sqrti_ii,&
-         !!        m_tmp_oo_1,&
-         !!        0.0_dp,m_tmp_oo_2,&
-         !!        filter_eps=eps_filter,&
-         !!        )
-         !!CALL dbcsr_multiply("N","N",-1.0_dp,&
-         !!        m_ST,&
-         !!        m_tmp_oo_2,&
-         !!        1.0_dp,m_tmp_no_1,&
-         !!        retain_sparsity=.TRUE.,&
-         !!        )
+         ! slower way of taking the norm into account
+         CALL dbcsr_copy(m_tmp_no_1,m_quench_t)
+         CALL dbcsr_multiply("N","N",1.0_dp,&
+                 m_tmp_no_2,&
+                 m_sig_sqrti_ii,&
+                 0.0_dp,m_tmp_no_1,&
+                 retain_sparsity=.TRUE.)
+         
+         ! get [tr(T).G]_ii
+         CALL dbcsr_copy(m_tmp_oo_1,m_sig_sqrti_ii)
+         CALL dbcsr_multiply("T","N",1.0_dp,&
+                 m_t,&
+                 m_tmp_no_2,&
+                 0.0_dp,m_tmp_oo_1,&
+                 retain_sparsity=.TRUE.)
+
+
+         CALL dbcsr_get_info(m_sig_sqrti_ii, nfullrows_total=dim0 )
+         ALLOCATE(tg_diagonal(dim0))
+         CALL dbcsr_get_diag(m_tmp_oo_1,tg_diagonal)
+         CALL dbcsr_set(m_tmp_oo_1,0.0_dp)
+         CALL dbcsr_set_diag(m_tmp_oo_1,tg_diagonal)
+         DEALLOCATE(tg_diagonal)
+         
+         CALL dbcsr_multiply("N","N",1.0_dp,&
+                 m_sig_sqrti_ii,&
+                 m_tmp_oo_1,&
+                 0.0_dp,m_tmp_oo_2,&
+                 filter_eps=eps_filter)
+         CALL dbcsr_multiply("N","N",-1.0_dp,&
+                 m_ST,&
+                 m_tmp_oo_2,&
+                 1.0_dp,m_tmp_no_1,&
+                 retain_sparsity=.TRUE.)
 
       ELSE
 
@@ -5428,6 +5393,10 @@ CALL dbcsr_print(matrix_t_out(ispin))
       CALL dbcsr_release(m_tmp_no_3)
       CALL dbcsr_release(m_tmp_oo_1)
       CALL dbcsr_release(m_tmp_oo_2)
+      CALL dbcsr_release(tempNOcc1)
+      CALL dbcsr_release(tempOccOcc1)
+      CALL dbcsr_release(temp1)
+      CALL dbcsr_release(temp2)
 
       CALL timestop(handle)
 
