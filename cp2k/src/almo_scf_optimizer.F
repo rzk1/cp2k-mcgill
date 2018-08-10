@@ -816,7 +816,7 @@ CONTAINS
          line_search_error, next_step_size_guess, numer, spin_factor, step_size, &
          t1, t2, t_norm, tau, time_step, penalty_amplitude, &
          penalty_func_new, det1, energy_ispin, denom2, tempreal, neg_thr, &
-         localization_obj_function, fval, localiz_coeff, grad_loc_norm
+         localization_obj_function, fval, localiz_coeff
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: &
          penalty_occ_vol_g_prefactor, penalty_occ_vol_h_prefactor, grad_norm_spin
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: nocc
@@ -1136,7 +1136,6 @@ CONTAINS
       outer_prepare_to_exit = .FALSE.
       outer_iteration = 0
       grad_norm = 0.0_dp
-      grad_loc_norm = 0.0_dp
       grad_norm_frob = 0.0_dp
       use_guess = .FALSE.
 
@@ -1187,7 +1186,7 @@ CONTAINS
                        eps_lanczos=almo_scf_env%eps_lanczos, &
                        max_iter_lanczos=almo_scf_env%max_iter_lanczos)
 
-!CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_scf_env%eps_filter)
+CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_scf_env%eps_filter)
 
                ! compute the global projectors (for the density matrix)
                CALL almo_scf_t_to_proj( &
@@ -1258,26 +1257,20 @@ CONTAINS
                CALL dbcsr_get_info(almo_scf_env%matrix_sigma_inv(ispin), nfullrows_total=nmo)
                ALLOCATE(z2(nmo))
                ALLOCATE(reim_diag(nmo))
-
-!DO i = 1, dim_op
-!   DO j = 1, SIZE(op_sm_set_almo, 1)
-!      print*, i
-!      print*, j
-!      CALL dbcsr_print(op_sm_set_almo(j,i))
-!   ENDDO
-!END DO
-
+   
                IF (penalty_occ_local) THEN
+
                   DO idim0 = 1, SIZE(op_sm_set_qs, 2) ! this loop is over miller ind
 
                      z2(:) = 0.0_dp
 
                      DO reim = 1, SIZE(op_sm_set_qs, 1) ! this loop is over Re/Im 
 
+!CALL dbcsr_print(op_sm_set_almo(reim, idim0)%matrix)
                         CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
                                                almo_scf_env%mat_distr_aos, .FALSE.)
-
-!CALL dbcsr_print(matrix_t_out(ispin))
+!CALL dbcsr_print(op_sm_set_qs(reim, idim0)%matrix)
+!CALL dbcsr_print(op_sm_set_almo(reim, idim0)%matrix)
                         CALL dbcsr_multiply("N", "N", 1.0_dp, &
                                 op_sm_set_almo(reim, idim0)%matrix, &
                                 matrix_t_out(ispin), &
@@ -1319,7 +1312,7 @@ CONTAINS
                !localiz_coeff = 0.0000001
                localization_obj_function = localiz_coeff * localization_obj_function
                !energy_new=energy_new+localization_obj_function
-               energy_new=energy_new+localization_obj_function
+               energy_new=energy_new + localization_obj_function
 
                IF (penalty_occ_vol) THEN
 !CALL dbcsr_print(matrix_t_out(ispin))
@@ -1439,8 +1432,7 @@ CONTAINS
                      matrix_t_out=matrix_t_out(ispin), &
                      weights=weights, &
                      localiz_coeff = localiz_coeff, &
-                     z2 = z2, &
-                     grad_loc_norm = grad_loc_norm)
+                     z2 = z2)
 
                ENDDO ! ispin
 
@@ -1879,7 +1871,7 @@ CONTAINS
                   t2-t1
                IF (penalty_occ_local) THEN
                   WRITE(unit_nr,'(T2,A25,F23.10)') &
-                          "Energy component Loc:", energy_new-penalty_func_new-localization_obj_function
+                          "Energy component Loc:", (energy_new-penalty_func_new-localization_obj_function)
                   WRITE(unit_nr,'(T2,A25,F23.10)') &
                           "Localization component:", localization_obj_function
                ENDIF
@@ -2050,6 +2042,8 @@ CONTAINS
       DEALLOCATE(nocc)
 
       DEALLOCATE (m_theta, m_t_in_local)
+      DEALLOCATE(op_sm_set_qs)
+      DEALLOCATE(op_sm_set_almo)
 
       IF (.NOT.converged .AND. .NOT.optimizer%early_stopping_on ) THEN
          CPABORT("Optimization not converged! ")
@@ -5033,11 +5027,10 @@ CONTAINS
                                normalize_orbitals, penalty_occ_vol, penalty_occ_local, &
                                penalty_occ_vol_prefactor, envelope_amplitude, eps_filter, spin_factor, &
                                special_case, m_sig_sqrti_ii, op_sm_set, matrix_t_out, weights, localiz_coeff, & 
-                               z2, grad_loc_norm)
+                               z2)
 
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: m_grad_out
-      REAL(dp), INTENT(OUT)                              :: grad_loc_norm
       TYPE(dbcsr_type), INTENT(IN)                       :: m_ks, m_s, m_t, m_t0, m_siginv, &
                                                             m_quench_t, m_FTsiginv, &
                                                             m_siginvTFTsiginv, m_ST, m_STsiginv0, &
