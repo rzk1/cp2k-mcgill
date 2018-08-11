@@ -1,0 +1,29 @@
+# Graham:   1) nixpkgs/16.09   3) gcc/5.4.0   5) openmpi/2.1.1    7) libint/1.1.6   4) imkl/2017.1.132   6) fftw-mpi/3.3.6   8) libxc/4.2.1    -- note that libxc still requires explicit pointers to include directory
+#module load nixpkgs/16.09 gcc/5.4.0 openmpi/2.1.1 imkl/11.3.4.258 libint/1.1.6 libxc/4.2.1 fftw-mpi/3.3.6
+
+CC         = gcc
+CPP        =
+FC         = mpif90
+LD         = mpif90
+AR         = ar -r
+
+DFLAGS     = -D__MKL -D__parallel -D__SCALAPACK
+DFLAGS     += -D__FFTW3 
+DFLAGS     += -D__LIBXC
+DFLAGS     += -D__LIBINT
+
+CPPFLAGS   = -C -traditional $(DFLAGS)
+CPPFLAGS   += -I'/cvmfs/soft.computecanada.ca/easybuild/software/2017/avx2/Compiler/gcc5.4/libxc/4.2.1/include'
+
+FCFLAGS    = $(DFLAGS) -ffree-form -ffree-line-length-none -march=native -m64 -I${MKLROOT}/include 
+FCFLAGS    += -O3 -ffast-math -ftree-vectorize -funroll-loops
+FCFLAGS    += -I'/cvmfs/soft.computecanada.ca/easybuild/software/2017/avx2/Compiler/gcc5.4/libxc/4.2.1/include'
+
+LDFLAGS    = $(FCFLAGS) -static-libgfortran
+#LDFLAGS    += -L'/home/rzk/project/group/libxc/libxc-4.2.1-intel-2016.4/lib'
+
+LIBS       = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_openmpi_lp64 -lgfortran -lpthread -lm -ldl
+LIBS       += -lfftw3 -lfftw3_mpi
+LIBS       += -lxcf03 -lxc 
+LIBS       += -lint -lderiv -lstdc++
+
