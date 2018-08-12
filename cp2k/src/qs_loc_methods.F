@@ -189,18 +189,18 @@ CONTAINS
       ENDDO
 
 !!!!!!Print matrxi T
-    nnumb = vectors%matrix_struct%nrow_global
-    mnumb = vectors%matrix_struct%ncol_global
-    ALLOCATE(temp1111(mnumb))
-
-    DO inumb = 1, nnumb
-       DO jnumb = 1, mnumb
-          CALL cp_fm_get_element(vectors, inumb, jnumb, temp1111(jnumb))
-       ENDDO
-       WRITE(fstr,"(A,I3,A)") "(I4,",mnumb,"F15.10)"
-       ! fstr = "(I4, 4F15.10)"
-       WRITE(*,fstr) inumb, temp1111
-    ENDDO
+!    nnumb = vectors%matrix_struct%nrow_global
+!    mnumb = vectors%matrix_struct%ncol_global
+!    ALLOCATE(temp1111(mnumb))
+!
+!    DO inumb = 1, nnumb
+!       DO jnumb = 1, mnumb
+!          CALL cp_fm_get_element(vectors, inumb, jnumb, temp1111(jnumb))
+!       ENDDO
+!       WRITE(fstr,"(A,I3,A)") "(I4,",mnumb,"F15.10)"
+!       ! fstr = "(I4, 4F15.10)"
+!       WRITE(*,fstr) inumb, temp1111
+!    ENDDO
 
       max_iter = qs_loc_env%localized_wfn_control%max_iter
       max_crazy_angle = qs_loc_env%localized_wfn_control%max_crazy_angle
