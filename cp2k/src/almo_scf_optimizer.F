@@ -11,6 +11,7 @@
 !> \author Rustam Z Khaliullin
 ! **************************************************************************************************
 MODULE almo_scf_optimizer
+   USE message_passing,                 ONLY: mp_sum
    USE cp_para_types,                   ONLY: cp_para_env_type
    USE cp_blacs_env,                    ONLY: cp_blacs_env_type
    USE almo_scf_diis_types,             ONLY: almo_scf_diis_extrapolate,&
@@ -806,7 +807,8 @@ CONTAINS
       INTEGER :: cg_iteration, dim0, eda_unit, fixed_line_search_niter, handle, ispin, iteration, &
          jj, line_search_iteration, max_iter, my_special_case, ndomains, nspins, occ1, &
          outer_iteration, outer_max_iter, prec_type, precond_domain_projector, unit_nr, &
-         zero_neg_eivi, penalty_order, nmoloc, nao, nmo, idim0, reim, ielem, dim_op, i, j
+         zero_neg_eivi, penalty_order, nmoloc, nao, nmo, idim0, reim, ielem, dim_op, i, j, &
+         para_group
       LOGICAL :: converged, just_started, line_search, normalize_orbitals, &
          optimize_theta, outer_prepare_to_exit, prepare_to_exit, &
          blissful_neglect, &
@@ -1260,6 +1262,8 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
    
                IF (penalty_occ_local) THEN
 
+                  CALL dbcsr_get_info( tempOccOcc(ispin), group=para_group )
+
                   DO idim0 = 1, SIZE(op_sm_set_qs, 2) ! this loop is over miller ind
 
                      z2(:) = 0.0_dp
@@ -1283,12 +1287,12 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                                 0.0_dp, tempOccOcc(ispin), &
                                 filter_eps=almo_scf_env%eps_filter)
 
-   
+                        reim_diag=0.0_dp 
                         CALL dbcsr_get_diag(tempOccOcc(ispin),reim_diag)
+                        CALL mp_sum(reim_diag, para_group)
                         z2(:) = z2(:) + reim_diag(:)*reim_diag(:)
 
                      ENDDO
-
 
                      DO ielem=1, nmo
                         SELECT CASE(2) ! allows for selection of different spread functionals
