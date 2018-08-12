@@ -9,21 +9,21 @@ AR         = ar -r
 
 DFLAGS     = -D__MKL -D__parallel -D__SCALAPACK
 DFLAGS     += -D__FFTW3 
-DFLAGS     += -D__LIBXC
+#DFLAGS     += -D__LIBXC
 DFLAGS     += -D__LIBINT
 
 CPPFLAGS   = -C -traditional $(DFLAGS)
-CPPFLAGS   += -I'/cvmfs/soft.computecanada.ca/easybuild/software/2017/avx2/Compiler/gcc5.4/libxc/4.2.1/include'
+#CPPFLAGS   += -I'/cvmfs/soft.computecanada.ca/easybuild/software/2017/avx2/Compiler/gcc5.4/libxc/4.2.1/include'
 
 FCFLAGS    = $(DFLAGS) -ffree-form -ffree-line-length-none -march=native -m64 -I${MKLROOT}/include 
 FCFLAGS    += -O3 -ffast-math -ftree-vectorize -funroll-loops
-FCFLAGS    += -I'/cvmfs/soft.computecanada.ca/easybuild/software/2017/avx2/Compiler/gcc5.4/libxc/4.2.1/include'
+#FCFLAGS    += -I'/cvmfs/soft.computecanada.ca/easybuild/software/2017/avx2/Compiler/gcc5.4/libxc/4.2.1/include'
 
 LDFLAGS    = $(FCFLAGS) -static-libgfortran
-#LDFLAGS    += -L'/home/rzk/project/group/libxc/libxc-4.2.1-intel-2016.4/lib'
+#LDFLAGS    += -L'/cvmfs/soft.computecanada.ca/easybuild/software/2017/avx2/Compiler/gcc5.4/libxc/4.2.1/lib'
 
 LIBS       = -L${MKLROOT}/lib/intel64 -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_sequential -lmkl_core -lmkl_blacs_openmpi_lp64 -lgfortran -lpthread -lm -ldl
 LIBS       += -lfftw3 -lfftw3_mpi
-LIBS       += -lxcf03 -lxc 
+#LIBS       += -lxcf03 -lxc 
 LIBS       += -lint -lderiv -lstdc++
 

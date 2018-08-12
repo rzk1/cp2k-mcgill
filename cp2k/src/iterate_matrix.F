@@ -9,6 +9,7 @@
 !> \author Joost VandeVondele
 ! **************************************************************************************************
 MODULE iterate_matrix
+   USE message_passing,                 ONLY: mp_sum
    USE arnoldi_api,                     ONLY: arnoldi_data_type,&
                                               arnoldi_ev,&
                                               arnoldi_extremal,&
@@ -76,7 +77,7 @@ CONTAINS
 
     INTEGER                                  :: handle, i, unit_nr, nsize,&
                                                 sign_iter, order_lanczos, &
-                                                max_iter_lanczos
+                                                max_iter_lanczos, group
     INTEGER, SAVE                            :: recursion_depth = 0
     INTEGER(KIND=int_8)                      :: flop1, flop2
     REAL(KIND=dp), DIMENSION(:), ALLOCATABLE :: diagonal 
@@ -108,9 +109,10 @@ CONTAINS
             matrix_type=dbcsr_type_no_symmetry)
 
     ! compute the product of the diagonal elements
-    CALL dbcsr_get_info(matrix, nfullrows_total=nsize )
+    CALL dbcsr_get_info(matrix, nfullrows_total=nsize, group=group )
     ALLOCATE(diagonal(nsize))
     CALL dbcsr_get_diag(matrix,diagonal)
+    CALL mp_sum(diagonal, group)
     det = PRODUCT(diagonal)
 
     ! create diagonal SQRTI matrix
