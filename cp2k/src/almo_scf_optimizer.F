@@ -818,7 +818,7 @@ CONTAINS
          line_search_error, next_step_size_guess, numer, spin_factor, step_size, &
          t1, t2, t_norm, tau, time_step, penalty_amplitude, &
          penalty_func_new, det1, energy_ispin, denom2, tempreal, neg_thr, &
-         localization_obj_function, fval, localiz_coeff
+         localization_obj_function, fval, localiz_coeff, energy_coeff
       REAL(kind=dp), ALLOCATABLE, DIMENSION(:)           :: &
          penalty_occ_vol_g_prefactor, penalty_occ_vol_h_prefactor, grad_norm_spin
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: nocc
@@ -829,7 +829,7 @@ CONTAINS
                                                             prev_step, ST, step, m_sig_sqrti_ii, &
                                                             m_t_in_local, m_theta, prec_vv, &
                                                             siginvTFTsiginv, STsiginv_0, grad, &
-                                                            tempNOcc, tempOccOcc
+                                                            tempNOcc, tempOccOcc, tempNOcc_1
       TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: qs_matrix_s
       TYPE(domain_submatrix_type), ALLOCATABLE, &
          DIMENSION(:,:)                                    :: domain_r_down, &
@@ -941,15 +941,16 @@ CONTAINS
       ! A = T for n = 2
       ! A = 2T for n = 4
       ! A = (32/6)T for n = 6
-      penalty_occ_vol = ( almo_scf_env%penalty%occ_vol_method .NE. almo_occ_vol_penalty_none .AND. &
+      energy_coeff = optimizer%opt_penalty%energy_coeff
+      localiz_coeff = optimizer%opt_penalty%loc_vol_coeff
+      penalty_amplitude=optimizer%opt_penalty%occ_vol_coeff
+      penalty_occ_vol = ( optimizer%opt_penalty%occ_vol_method .NE. almo_occ_vol_penalty_none .AND. &
                           my_special_case .EQ. xalmo_case_fully_deloc )
-      penalty_occ_local = ( almo_scf_env%penalty%occ_loc_method .NE. almo_occ_loc_penalty_none .AND. &
+      penalty_occ_local = ( optimizer%opt_penalty%occ_loc_method .NE. almo_occ_loc_penalty_none .AND. &
                           my_special_case .EQ. xalmo_case_fully_deloc )
       normalize_orbitals = penalty_occ_vol .OR. penalty_occ_local
       !normalize_orbitals = .TRUE.
       ! not used with lndet: penalty_order=2
-      localiz_coeff = almo_scf_env%penalty%loc_vol_coeff 
-      penalty_amplitude=almo_scf_env%penalty%occ_vol_coeff
       ALLOCATE(penalty_occ_vol_g_prefactor(nspins))
       ALLOCATE(penalty_occ_vol_h_prefactor(nspins))
       penalty_occ_vol_g_prefactor(:)=0.0_dp
@@ -1029,6 +1030,7 @@ CONTAINS
       ALLOCATE(prev_minus_prec_grad(nspins))
       ALLOCATE(m_sig_sqrti_ii(nspins))
       ALLOCATE(tempNOcc(ispin))
+      ALLOCATE(tempNOcc_1(ispin))
       ALLOCATE(tempOccOcc(ispin))
       DO ispin = 1, nspins
 
@@ -1067,6 +1069,9 @@ CONTAINS
                            template=almo_scf_env%matrix_sigma_inv(ispin), &
                            matrix_type=dbcsr_type_no_symmetry)
          CALL dbcsr_create(tempNOcc(ispin), &
+                           template=matrix_t_out(ispin), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_create(tempNOcc_1(ispin), &
                            template=matrix_t_out(ispin), &
                            matrix_type=dbcsr_type_no_symmetry)
          CALL dbcsr_create(tempOccOcc(ispin), &
@@ -1131,6 +1136,76 @@ CONTAINS
 
          ENDIF ! assume_t0_q0x
 
+         IF (almo_scf_env%construct_nlmos ) THEN
+
+            CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                                almo_scf_env%matrix_s(1), &
+                                matrix_t_in(ispin), &
+                                0.0_dp, tempNOcc(ispin), &
+                                filter_eps=almo_scf_env%eps_filter)
+            CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                                tempNOcc(ispin), &
+                                almo_scf_env%matrix_sigma_inv(ispin), &
+                                0.0_dp, tempNOCC_1(ispin), &
+                                filter_eps=almo_scf_env%eps_filter)
+
+            DO idim0 = 1, SIZE(op_sm_set_qs, 2) ! this loop is over miller ind
+
+               DO reim = 1, SIZE(op_sm_set_qs, 1) ! this loop is over Re/Im 
+
+                  CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
+                                         almo_scf_env%mat_distr_aos, .FALSE.)
+
+                  CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                          op_sm_set_almo(reim, idim0)%matrix, &
+                          matrix_t_in(ispin), &
+                          0.0_dp, tempNOcc(ispin), &
+                          filter_eps=almo_scf_env%eps_filter)
+
+                  !warning - save time by computing only the diagonal elements
+                  CALL dbcsr_multiply("T", "N", 1.0_dp, &
+                          matrix_t_in(ispin), &
+                          tempNOcc(ispin), &
+                          0.0_dp, tempOccOcc(ispin), &
+                          filter_eps=almo_scf_env%eps_filter)
+
+                  CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                          tempNOCC_1(ispin), &
+                          tempOccOcc(ispin), &
+                          0.0_dp, tempNOcc(ispin), &
+                          filter_eps=almo_scf_env%eps_filter)
+
+                  CALL dbcsr_multiply("N", "T", 1.0_dp, &
+                          tempNOcc(ispin), &
+                          tempNOcc_1(ispin), &
+                          0.0_dp, op_sm_set_almo(reim, idim0)%matrix, &
+                          filter_eps=almo_scf_env%eps_filter)
+
+               ENDDO
+
+            ENDDO ! end loop over idim0
+
+               IF (penalty_occ_vol) THEN
+
+                  CALL determinant(almo_scf_env%matrix_sigma(ispin), det1, &
+                          almo_scf_env%eps_filter)
+                  penalty_func_new = &
+                          -penalty_amplitude * spin_factor * nocc(ispin) * &
+                          LOG(det1)
+                  penalty_occ_vol_g_prefactor(ispin) = &
+                          -2.0_dp * penalty_amplitude * spin_factor * nocc(ispin)
+                  penalty_occ_vol_h_prefactor(ispin) = 0.0_dp
+                  IF (unit_nr>0) THEN
+                     WRITE(unit_nr,*) "penalty c0: ", penalty_occ_vol_g_prefactor(ispin)
+                     WRITE(unit_nr,*) "penalty c1: ", penalty_occ_vol_h_prefactor(ispin)
+                     WRITE(unit_nr,*) "penalty c0*c1: ", penalty_occ_vol_g_prefactor(ispin)*penalty_occ_vol_h_prefactor(ispin)
+                     WRITE(unit_nr,*) "energy, penalty: ", energy_new-localization_obj_function, penalty_func_new
+                  ENDIF
+                  ! this is not pure energy anymore
+                  energy_new=energy_new+penalty_func_new
+               ENDIF
+         ENDIF ! do nlmo?
+
       ENDDO ! ispin
 
       ! start the outer SCF loop
@@ -1188,7 +1263,6 @@ CONTAINS
                        eps_lanczos=almo_scf_env%eps_lanczos, &
                        max_iter_lanczos=almo_scf_env%max_iter_lanczos)
 
-CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_scf_env%eps_filter)
 
                ! compute the global projectors (for the density matrix)
                CALL almo_scf_t_to_proj( &
@@ -1271,8 +1345,8 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                      DO reim = 1, SIZE(op_sm_set_qs, 1) ! this loop is over Re/Im 
 
 !CALL dbcsr_print(op_sm_set_almo(reim, idim0)%matrix)
-                        CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
-                                               almo_scf_env%mat_distr_aos, .FALSE.)
+                        !CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
+                        !                       almo_scf_env%mat_distr_aos, .FALSE.)
 !CALL dbcsr_print(op_sm_set_qs(reim, idim0)%matrix)
 !CALL dbcsr_print(op_sm_set_almo(reim, idim0)%matrix)
                         CALL dbcsr_multiply("N", "N", 1.0_dp, &
@@ -1306,17 +1380,16 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                         localization_obj_function = localization_obj_function + fval
                      ENDDO
 
-
                   ENDDO ! end loop over idim0
                ENDIF
 
                DEALLOCATE(z2)
                DEALLOCATE(reim_diag)
 
-               !localiz_coeff = 0.0000001
                localization_obj_function = localiz_coeff * localization_obj_function
                !energy_new=energy_new+localization_obj_function
-               energy_new=energy_new + localization_obj_function
+               energy_new=energy_new * energy_coeff + localization_obj_function
+               !energy_new=energy_new + localization_obj_function
 
                IF (penalty_occ_vol) THEN
 !CALL dbcsr_print(matrix_t_out(ispin))
@@ -1435,6 +1508,7 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                      op_sm_set=op_sm_set_almo, &
                      matrix_t_out=matrix_t_out(ispin), &
                      weights=weights, &
+                     energy_coeff = energy_coeff, &
                      localiz_coeff = localiz_coeff, &
                      z2 = z2)
 
@@ -5030,8 +5104,8 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                                cpu_of_domain, domain_map, assume_t0_q0x, optimize_theta, &
                                normalize_orbitals, penalty_occ_vol, penalty_occ_local, &
                                penalty_occ_vol_prefactor, envelope_amplitude, eps_filter, spin_factor, &
-                               special_case, m_sig_sqrti_ii, op_sm_set, matrix_t_out, weights, localiz_coeff, & 
-                               z2)
+                               special_case, m_sig_sqrti_ii, op_sm_set, matrix_t_out, weights, energy_coeff, &
+                               localiz_coeff, z2)
 
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: m_grad_out
@@ -5051,7 +5125,7 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
                                                             penalty_occ_vol, penalty_occ_local
       REAL(KIND=dp), INTENT(IN)                          :: penalty_occ_vol_prefactor, &
                                                             envelope_amplitude, eps_filter, &
-                                                            spin_factor,localiz_coeff
+                                                            spin_factor,localiz_coeff, energy_coeff
       INTEGER, INTENT(IN)                                :: special_case
       TYPE(dbcsr_type), INTENT(IN), OPTIONAL             :: m_sig_sqrti_ii
 
@@ -5199,11 +5273,11 @@ CALL report_matrix_sparsity(matrix_t_out(ispin), unit_nr, "ALMO matrix", almo_sc
             CASE (3) ! functional =  W_I * ( 1 - |z_I| )
                coeff = -(weights(idim0) / (2 * z2(ielem) ))
             END SELECT
-            CALL dbcsr_add(temp2, temp1, 1.0_dp, coeff)
+            CALL dbcsr_add(temp2, temp1, 0.0_dp, coeff)
             !CALL dbcsr_add(grad_loc, temp1, 1.0_dp, 1.0_dp) 
 
          ENDDO ! end loop over idim0
-         CALL dbcsr_add(m_tmp_no_2, temp2, 1.0_dp, localiz_coeff*4)
+         CALL dbcsr_add(m_tmp_no_2, temp2, energy_coeff, localiz_coeff*4)
       ENDIF
           
       ! add penalty on the occupied volume: det(sigma)

@@ -155,6 +155,9 @@ CONTAINS
       ! allow electron delocalization
       CALL almo_scf_delocalization(qs_env, almo_scf_env)
 
+      ! construct NLMOs
+      CALL construct_nlmos(qs_env, almo_scf_env)
+
       ! electron correlation methods
       !CALL almo_correlation_main(qs_env,almo_scf_env)
 
@@ -209,6 +212,7 @@ CONTAINS
       almo_scf_env%opt_block_diag_pcg%optimizer_type = optimizer_pcg
       almo_scf_env%opt_xalmo_diis%optimizer_type = optimizer_diis
       almo_scf_env%opt_xalmo_pcg%optimizer_type = optimizer_pcg
+      almo_scf_env%opt_nlmo_pcg%optimizer_type = optimizer_pcg
       almo_scf_env%opt_xalmo_newton_pcg_solver%optimizer_type=optimizer_lin_eq_pcg
 
       ! get info from the qs_env
@@ -1540,6 +1544,110 @@ CONTAINS
       CALL timestop(handle)
 
    END SUBROUTINE almo_scf_delocalization
+
+! **************************************************************************************************
+!> \brief selects various post scf routines
+!> \param qs_env ...
+!> \param almo_scf_env ...
+!> \par History
+!>       2018.09 created [Ziling Luo]
+!> \author Ziling Luo
+! **************************************************************************************************
+   SUBROUTINE construct_nlmos(qs_env, almo_scf_env)
+
+      TYPE(qs_environment_type), POINTER                 :: qs_env
+      TYPE(almo_scf_env_type)                            :: almo_scf_env
+
+      CHARACTER(len=*), PARAMETER :: routineN = 'construct_nlmos', &
+         routineP = moduleN//':'//routineN
+
+      INTEGER                                            :: col, handle, hold, iblock_col, &
+                                                            iblock_row, ispin, mynode, &
+                                                            nblkcols_tot, nblkrows_tot, row, &
+                                                            unit_nr
+      LOGICAL                                            :: almo_experimental, tr
+      REAL(KIND=dp), DIMENSION(:, :), POINTER            :: p_new_block
+      TYPE(cp_logger_type), POINTER                      :: logger
+      TYPE(dbcsr_distribution_type)                      :: dist
+      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:)        :: no_quench
+      TYPE(optimizer_options_type)                       :: arbitrary_optimizer
+
+      CALL timeset(routineN, handle)
+
+      ! get a useful output_unit
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      ENDIF
+
+      IF (almo_scf_env%construct_nlmos) THEN
+
+         ! RZK-warning hack into the quenched routine:
+         ! create a quench matrix with all-all-all blocks 1.0
+         ! it is a waste of memory but since matrices are distributed
+         ! we can tolerate it for now
+         ALLOCATE (no_quench(almo_scf_env%nspins))
+         CALL dbcsr_create(no_quench(1), &
+                           template=almo_scf_env%matrix_t(1), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_get_info(no_quench(1), distribution=dist)
+         CALL dbcsr_distribution_get(dist, mynode=mynode)
+         CALL dbcsr_work_create(no_quench(1), &
+                                work_mutable=.TRUE.)
+         nblkrows_tot = dbcsr_nblkrows_total(no_quench(1))
+         nblkcols_tot = dbcsr_nblkcols_total(no_quench(1))
+         ! RZK-warning: is it a quadratic-scaling routine?
+         ! As a matter of fact it is! But this block treats
+         ! fully delocalized MOs. So it is unavoidable.
+         ! C'est la vie
+         DO row = 1, nblkrows_tot
+            DO col = 1, nblkcols_tot
+               tr = .FALSE.
+               iblock_row = row
+               iblock_col = col
+               CALL dbcsr_get_stored_coordinates(no_quench(1), &
+                                                 iblock_row, iblock_col, hold)
+               IF (hold .EQ. mynode) THEN
+                  NULLIFY (p_new_block)
+                  CALL dbcsr_reserve_block2d(no_quench(1), &
+                                             iblock_row, iblock_col, p_new_block)
+                  CPASSERT(ASSOCIATED(p_new_block))
+                  p_new_block(:, :) = 1.0_dp
+               ENDIF
+            ENDDO
+         ENDDO
+         CALL dbcsr_finalize(no_quench(1))
+         IF (almo_scf_env%nspins .GT. 1) THEN
+            DO ispin = 2, almo_scf_env%nspins
+               CALL dbcsr_create(no_quench(ispin), &
+                                 template=almo_scf_env%matrix_t(1), &
+                                 matrix_type=dbcsr_type_no_symmetry)
+               CALL dbcsr_copy(no_quench(ispin), no_quench(1))
+            ENDDO
+         ENDIF
+
+         CALL almo_scf_xalmo_pcg(qs_env=qs_env, &
+                                 almo_scf_env=almo_scf_env, &
+                                 optimizer=almo_scf_env%opt_nlmo_pcg, &
+                                 quench_t=no_quench, &
+                                 matrix_t_in=almo_scf_env%matrix_t, &
+                                 matrix_t_out=almo_scf_env%matrix_t, &
+                                 assume_t0_q0x=.FALSE.,&
+                                 perturbation_only=.FALSE., &
+                                 special_case=xalmo_case_fully_deloc)
+
+         DO ispin = 1, almo_scf_env%nspins
+            CALL dbcsr_release(no_quench(ispin))
+         ENDDO
+         DEALLOCATE (no_quench)
+
+      ENDIF
+
+      CALL timestop(handle)
+
+   END SUBROUTINE construct_nlmos
 
 ! *****************************************************************************
 !> \brief after SCF we have the final density and KS matrices compute various

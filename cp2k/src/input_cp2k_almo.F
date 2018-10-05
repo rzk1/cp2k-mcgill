@@ -44,6 +44,7 @@ MODULE input_cp2k_almo
    INTEGER, PARAMETER, PRIVATE :: optimizer_block_diagonal_diis = 1
    INTEGER, PARAMETER, PRIVATE :: optimizer_block_diagonal_pcg = 2
    INTEGER, PARAMETER, PRIVATE :: optimizer_xalmo_pcg = 3
+   INTEGER, PARAMETER, PRIVATE :: optimizer_nlmo_pcg = 4
    INTEGER, PARAMETER, PRIVATE :: optimizer_newton_pcg_solver = 5
 
    PUBLIC :: create_almo_scf_section
@@ -195,6 +196,12 @@ CONTAINS
            usage="RETURN_ORTHOGONALIZED_MOS .TRUE.", default_l_val=.TRUE.,&
            lone_keyword_l_val=.TRUE.)
       CALL section_add_keyword(section,keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="CONSTRUCT_NLMOS", &
+                          description="CONSTRUCT NLMOS", &
+                          usage="CONSTRUCT_NLMOS .TRUE.", default_l_val=.TRUE.)
+      CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       !CALL keyword_create(keyword, name="DELOCALIZE_EPS_ITER",&
@@ -590,7 +597,7 @@ CONTAINS
       CALL section_release(subsection)
 
       NULLIFY (subsection)
-      CALL create_penalty_section(subsection)
+      CALL create_optimizer_section(subsection, optimizer_nlmo_pcg)
       CALL section_add_subsection(section, subsection)
       CALL section_release(subsection)
 
@@ -641,16 +648,21 @@ CONTAINS
       CASE (optimizer_block_diagonal_pcg)
          CALL section_create(section, "ALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of block-diagonal ALMOs.", &
-                             n_keywords=9, n_subsections=0, repeats=.FALSE.)
+                             n_keywords=9, n_subsections=1, repeats=.FALSE.)
+         optimizer_type = optimizer_pcg
+      CASE (optimizer_nlmo_pcg)
+         CALL section_create(section, "NLMO_OPTIMIZER_PCG", &
+                             description="Controls the PCG optimization of nonorthogonal localized MOs.", &
+                             n_keywords=9, n_subsections=1, repeats=.FALSE.)
          optimizer_type = optimizer_pcg
       CASE (optimizer_xalmo_pcg)
          CALL section_create(section, "XALMO_OPTIMIZER_PCG", &
                              description="Controls the PCG optimization of extended ALMOs.", &
-                             n_keywords=10, n_subsections=1, repeats=.FALSE.)
+                             n_keywords=10, n_subsections=2, repeats=.FALSE.)
          NULLIFY(subsection)
          CALL create_optimizer_section(subsection,optimizer_newton_pcg_solver)
          CALL section_add_subsection(section, subsection)
-         CALL section_release(subsection)
+         CALL section_release(subsection)      
          optimizer_type = optimizer_pcg
        CASE(optimizer_newton_pcg_solver)
           CALL section_create(section,"XALMO_NEWTON_PCG_SOLVER",&
@@ -739,6 +751,11 @@ CONTAINS
                                 usage="NEGLECT_THRESHOLD 0.1", default_r_val=0.5_dp)
             CALL section_add_keyword(section, keyword)
             CALL keyword_release(keyword)
+
+            NULLIFY (subsection)
+            CALL create_penalty_section(subsection)
+            CALL section_add_subsection(section, subsection)
+            CALL section_release(subsection)
 
          ENDIF
 
@@ -849,7 +866,7 @@ CONTAINS
          keyword, name="OCCUPIED_VOLUME_PENALTY_METHOD", &
          description="Penalty that prevents nonorthogonal orbitals from becoming linear dependent.", &
          usage="OCCUPIED_VOLUME_PENALTY_METHOD LNDET", &
-         default_i_val=almo_occ_vol_penalty_lndet, &
+         default_i_val=almo_occ_vol_penalty_none, &
          enum_c_vals=s2a("NONE", "LNDET"), &
          enum_desc=s2a("Do not use penalties", &
                        "Use -coeff*ln(det(MO-overlap)) term."), &
@@ -859,7 +876,7 @@ CONTAINS
 
       CALL keyword_create(keyword, name="OCCUPIED_VOLUME_PENALTY_COEFF", &
                           description="Multiplication factor that determines the strength of the penalty term.", &
-                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 10.0", default_r_val=1.0_dp)
+                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 10.0", default_r_val=0.0_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
@@ -878,6 +895,12 @@ CONTAINS
       CALL keyword_create(keyword, name="LOCALIZATION_PENALTY_COEFF", &
                           description="Multiplication factor that determines the strength of the localization penalty.", &
                           usage="LOCALIZATION_PENALTY_COEFF 10.0", default_r_val=0.0_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="ENERGY_COEFF", &
+                          description="Contribution of energy into the objective function.", &
+                          usage="ENERGY_COEFF 0.0", default_r_val=1.0_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 

@@ -44,7 +44,7 @@ MODULE almo_scf_types
    ! methods that add penalty terms to the energy functional 
    TYPE penalty_type
 
-      REAL(KIND=dp)      :: occ_vol_coeff, loc_vol_coeff
+      REAL(KIND=dp)      :: occ_vol_coeff, loc_vol_coeff, energy_coeff
       INTEGER            :: occ_vol_method, occ_loc_method
 
    END TYPE penalty_type
@@ -83,6 +83,7 @@ MODULE almo_scf_types
                         neglect_threshold
 
       INTEGER        :: optimizer_type ! diis, pcg, etc.
+      TYPE(penalty_type)  :: opt_penalty
 
       INTEGER        :: preconditioner, & ! preconditioner type
                         conjugator, & ! conjugator type
@@ -215,7 +216,7 @@ MODULE almo_scf_types
       LOGICAL              :: s_sqrt_done
       REAL(KIND=dp)        :: almo_scf_energy
       LOGICAL              :: orthogonal_basis, fixed_mu
-      LOGICAL              :: return_orthogonalized_mos
+      LOGICAL              :: return_orthogonalized_mos, construct_nlmos
 
       ! Controls for the SCF procedure
       REAL(KIND=dp)         :: eps_filter
@@ -350,13 +351,13 @@ MODULE almo_scf_types
 
       ! Options for various subsection options collected neatly
       TYPE(almo_analysis_type)                       :: almo_analysis
-      TYPE(penalty_type)                             :: penalty
 
       ! Options for various optimizers collected neatly
       TYPE(optimizer_options_type)                   :: opt_block_diag_diis
       TYPE(optimizer_options_type)                   :: opt_block_diag_pcg
       TYPE(optimizer_options_type)                   :: opt_xalmo_diis
       TYPE(optimizer_options_type)                   :: opt_xalmo_pcg
+      TYPE(optimizer_options_type)                   :: opt_nlmo_pcg
       TYPE(optimizer_options_type)                   :: opt_xalmo_newton_pcg_solver
       TYPE(optimizer_options_type)                   :: opt_k_pcg
 
