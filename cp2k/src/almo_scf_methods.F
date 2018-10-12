@@ -2198,14 +2198,11 @@ CONTAINS
 
             CALL copy_submatrices(subm_main(idomain), preconditioner(idomain), .FALSE.)
             CALL copy_submatrix_data(Minv, preconditioner(idomain))
+            DEALLOCATE (Minv)
 
             IF (PRESENT(bad_modes_projector_down)) THEN
                CALL copy_submatrices(subm_main(idomain), bad_modes_projector_down(idomain), .FALSE.)
                CALL copy_submatrix_data(proj_array, bad_modes_projector_down(idomain))
-            ENDIF
-
-            DEALLOCATE (Minv)
-            IF (PRESENT(bad_modes_projector_down)) THEN
                DEALLOCATE (proj_array)
             ENDIF
 
@@ -2692,7 +2689,7 @@ CONTAINS
          ! project out near-zero eigenvalue modes
          ALLOCATE (temp2(N, N))
          IF (PRESENT(bad_modes_projector_down)) ALLOCATE (temp3(N, N))
-         temp2 = Ainv
+         temp2(1:N, 1:N) = Ainv(1:N, 1:N)
 
          range1_eiv = 0
          range2_eiv = 0
@@ -2887,7 +2884,7 @@ CONTAINS
       ! project out near-zero eigenvalue modes
       ALLOCATE (temp2(N, N))
 
-      temp2 = Apow
+      temp2(1:N, 1:N) = Apow(1:N, 1:N)
 
       range1_eiv = 0
       range2_eiv = 0

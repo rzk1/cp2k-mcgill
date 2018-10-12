@@ -37,6 +37,7 @@ MODULE almo_scf
    USE bibliography,                    ONLY: Khaliullin2013,&
                                               Scheiber2018,&
                                               Kolafa2004,&
+                                              Scheiber2018,&
                                               cite_reference
    USE cp_blacs_env,                    ONLY: cp_blacs_env_release,&
                                               cp_blacs_env_retain

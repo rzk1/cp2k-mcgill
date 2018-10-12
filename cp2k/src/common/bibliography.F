@@ -82,7 +82,8 @@ MODULE bibliography
                             Bates2013, Andermatt2016, Zhu2016, Schuett2016, Lu2004, &
                             Becke1988b, Migliore2009, Mavros2015, Holmberg2017, Marek2014, &
                             Stoychev2016, Futera2017, Bailey2006, Papior2017, Lehtola2018, &
-                            Brieuc2016, Barca2018, Huang2011, Heaton_Burgess2007, Scheiber2018
+                            Brieuc2016, Barca2018, Scheiber2018, Huang2011, Heaton_Burgess2007, &
+                            Schuett2018
 
 CONTAINS
 
@@ -3879,6 +3880,37 @@ CONTAINS
                          "AR 256401 ", &
                          "ER"), &
                          DOI="10.1103/PhysRevLett.98.256401")
+
+      CALL add_reference(key=Scheiber2018, ISI_record=s2a( &
+                         "AU Scheiber, H", &
+                         "   Shi, Y", &
+                         "   Khaliullin, RZ", &
+                         "AF Scheiber, Hayden", &
+                         "   Shi, Yifei", &
+                         "   Khaliullin, Rustam Z.", &
+                 "TI Compact orbitals enable low-cost linear-scaling ab initio molecular dynamics for weakly-interacting systems", &
+                         "SO The Journal of Chemical Physics", &
+                         "PD JUN 21", &
+                         "PY 2018", &
+                         "VL 148", &
+                         "AR 231103", &
+                         "DI 10.1063/1.5029939", &
+                         "ER"), &
+                         DOI="10.1063/1.5029939")
+
+      CALL add_reference(key=Schuett2018, ISI_record=s2a( &
+                         "AU Schuett, O", &
+                         "   VandeVondele, J", &
+                         "AF Schuett, Ole", &
+                         "   VandeVondele, Joost", &
+                         "TI Machine Learning Adaptive Basis Sets for Efficient Large Scale Density Functional Theory Simulation", &
+                         "SO Journal of Chemical Theory and Computation", &
+                         "SN 1549-9618", &
+                         "PY 2018", &
+                         "VL 14", &
+                         "DI 10.1021/acs.jctc.8b00378", &
+                         "ER"), &
+                         DOI="10.1021/acs.jctc.8b00378")
 
    END SUBROUTINE add_all_references
 

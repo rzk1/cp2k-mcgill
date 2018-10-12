@@ -10,8 +10,8 @@
 MODULE input_cp2k_almo
    USE bibliography,                    ONLY: Khaliullin2007,&
                                               Khaliullin2008,&
-                                              Scheiber2018,&
-                                              Khaliullin2013
+                                              Khaliullin2013,&
+                                              Scheiber2018
    USE cp_output_handling,              ONLY: cp_print_key_section_create,&
                                               low_print_level
    USE input_constants,                 ONLY: &
@@ -72,7 +72,7 @@ CONTAINS
                           "on absolutely localized orbitals"// &
                           " (ALMOs). ALMO methods are currently restricted to closed-shell molecular systems.", &
                           n_keywords=9, n_subsections=5, repeats=.FALSE., &
-                          citations=(/Khaliullin2013,Scheiber2018/))
+                          citations=(/Khaliullin2013, Scheiber2018/))
 
       NULLIFY (keyword)
 
@@ -87,7 +87,7 @@ CONTAINS
                           usage="ALMO_SCF_GUESS MOLECULAR", &
                           default_i_val=atomic_guess, &
                           enum_c_vals=s2a("MOLECULAR", "ATOMIC"), &
-                          enum_desc=s2a("SCF calculations on single molecules controled by the regular SCF "// &
+                          enum_desc=s2a("SCF calculations on single molecules controlled by the regular SCF "// &
                                         "keywords outside ALMO options. This kind of calculation is expensive "// &
                                         "and only recommended if ALMO SCF does not converge from the ATOMIC guess.", &
                                         "Superposition of atomic densities."), &
