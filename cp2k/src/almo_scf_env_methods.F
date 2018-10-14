@@ -18,8 +18,8 @@ MODULE almo_scf_env_methods
         almo_constraint_distance, almo_deloc_xalmo_1diag, almo_domain_layout_atomic, &
         almo_domain_layout_molecular, almo_frz_crystal, almo_mat_distr_molecular, almo_scf_diag, &
         almo_scf_pcg, cg_hager_zhang, do_bondparm_vdw, molecular_guess, tensor_orthogonal, &
-        almo_occ_vol_penalty_none, almo_occ_vol_penalty_lndet, &
-        almo_occ_loc_penalty_none, almo_occ_loc_penalty_lndet, &
+        penalty_type_none, penalty_type_lndet, &
+        penalty_type_nlmo, &
         almo_deloc_x_then_scf, almo_deloc_x, almo_deloc_scf, &
         virt_full, virt_minimal, virt_number, almo_scf_skip, xalmo_trial_r0_out, almo_deloc_none
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
@@ -207,7 +207,7 @@ CONTAINS
                                 i_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_vol_method)
       CALL section_vals_val_get(penalty_section, &
                                 "LOCALIZATION_PENALTY_COEFF", &
-                                r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%loc_vol_coeff)
+                                r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_loc_coeff)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_loc_method)
@@ -244,7 +244,7 @@ CONTAINS
                                 i_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_vol_method)
       CALL section_vals_val_get(penalty_section, &
                                 "LOCALIZATION_PENALTY_COEFF", &
-                                r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%loc_vol_coeff)
+                                r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_loc_coeff)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_loc_method)
@@ -281,7 +281,7 @@ CONTAINS
                                 i_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_method)
       CALL section_vals_val_get(penalty_section, &
                                 "LOCALIZATION_PENALTY_COEFF", &
-                                r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%loc_vol_coeff)
+                                r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_loc_coeff)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_loc_method)
@@ -535,7 +535,7 @@ CONTAINS
       ENDIF ! end analysis settings
 
       ! check penalty settings
-      IF (almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_vol_method .NE. almo_occ_vol_penalty_none) THEN
+      IF (almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_vol_method .NE. penalty_type_none) THEN
          IF (almo_scf_env%deloc_method.NE.almo_deloc_x .AND. &
              almo_scf_env%deloc_method.NE.almo_deloc_scf .AND. &
              almo_scf_env%deloc_method.NE.almo_deloc_x_then_scf) THEN
@@ -543,7 +543,7 @@ CONTAINS
          ENDIF
       ENDIF
 
-      IF (almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_loc_method .NE. almo_occ_loc_penalty_none) THEN
+      IF (almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_loc_method .NE. penalty_type_none) THEN
          IF (almo_scf_env%deloc_method.NE.almo_deloc_x .AND. &
              almo_scf_env%deloc_method.NE.almo_deloc_scf .AND. &
              almo_scf_env%deloc_method.NE.almo_deloc_x_then_scf) THEN

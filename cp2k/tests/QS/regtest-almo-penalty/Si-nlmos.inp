@@ -1,0 +1,127 @@
+&GLOBAL
+  PROJECT NLMOS
+  RUN_TYPE ENERGY
+  PRINT_LEVEL LOW
+&END GLOBAL
+&FORCE_EVAL
+  METHOD QS
+  &DFT
+    BASIS_SET_FILE_NAME GTH_BASIS_SETS
+    POTENTIAL_FILE_NAME POTENTIAL
+    &MGRID
+      CUTOFF 1000
+      NGRIDS 4
+    &END MGRID
+    &QS
+      ALMO_SCF T
+      EPS_DEFAULT 1.0E-12
+    &END QS
+
+    &PRINT
+      &MO_CUBES
+      &END
+    &END PRINT
+
+    &ALMO_SCF
+
+      EPS_FILTER                 1.0E-12
+      ALMO_ALGORITHM             SKIP
+      MO_OVERLAP_INV_ALG         DENSE_CHOLESKY         
+      DELOCALIZE_METHOD          FULL_SCF
+      ALMO_SCF_GUESS             ATOMIC
+      XALMO_TRIAL_WF             SIMPLE
+      CONSTRUCT_NLMOS            T
+
+      &ALMO_OPTIMIZER_PCG
+        MAX_ITER                 30
+        EPS_ERROR                1.0E-5
+        CONJUGATOR               HESTENES_STIEFEL
+        PRECONDITIONER           DEFAULT
+        LIN_SEARCH_EPS_ERROR     0.05
+        LIN_SEARCH_STEP_SIZE_GUESS 0.1
+        MAX_ITER_OUTER_LOOP      5
+        &PENALTY
+          OCCUPIED_VOLUME_PENALTY_METHOD    NONE
+          OCCUPIED_LOCALIZATION_PENALTY_METHOD  NONE
+        &END PENALTY
+      &END ALMO_OPTIMIZER_PCG
+
+      &XALMO_OPTIMIZER_PCG
+        MAX_ITER                 50
+        EPS_ERROR                1.0E-5
+        CONJUGATOR               HESTENES_STIEFEL
+        PRECONDITIONER           DEFAULT
+        LIN_SEARCH_EPS_ERROR     0.1
+        LIN_SEARCH_STEP_SIZE_GUESS 0.2
+        MAX_ITER_OUTER_LOOP      10
+        &PENALTY
+          OCCUPIED_VOLUME_PENALTY_METHOD    NONE
+          OCCUPIED_LOCALIZATION_PENALTY_METHOD  NONE
+        &END PENALTY
+      &END XALMO_OPTIMIZER_PCG
+      
+      &NLMO_OPTIMIZER_PCG
+        MAX_ITER                 2000
+        EPS_ERROR                1.0E-6
+        CONJUGATOR               HESTENES_STIEFEL
+        PRECONDITIONER           NONE
+        LIN_SEARCH_EPS_ERROR     0.01
+        LIN_SEARCH_STEP_SIZE_GUESS 0.001
+        MAX_ITER_OUTER_LOOP      5
+        &PENALTY
+          OCCUPIED_VOLUME_PENALTY_METHOD    NONE
+          OCCUPIED_VOLUME_PENALTY_COEFF     0.0
+          OCCUPIED_LOCALIZATION_PENALTY_METHOD  NLMO
+          LOCALIZATION_PENALTY_COEFF        0.00001
+          ENERGY_COEFF           0.0
+        &END PENALTY
+      &END NLMO_OPTIMIZER_PCG
+
+    &END ALMO_SCF
+
+    &SCF
+      SCF_GUESS ATOMIC
+      EPS_SCF 1.0E-7
+      MAX_SCF 30
+      &OT ON
+        PRECONDITIONER FULL_ALL
+      &END OT
+      &OUTER_SCF
+         EPS_SCF 1.0E-7
+         MAX_SCF 5
+      &END
+      &PRINT
+        &RESTART OFF
+        &END
+      &END
+    &END SCF
+    &XC
+      &XC_FUNCTIONAL BLYP
+      &END XC_FUNCTIONAL
+    &END XC
+  &END DFT
+  &SUBSYS
+    &CELL
+      ABC 5.430710 5.430710 5.430710
+      MULTIPLE_UNIT_CELL 1 1 1
+    &END CELL
+    &TOPOLOGY
+      MULTIPLE_UNIT_CELL 1 1 1
+    &END
+    &COORD
+      SCALED T
+      Si         0.000000      0.000000      0.000000
+      Si         0.000000      0.500000      0.500000
+      Si         0.500000      0.000000      0.500000
+      Si         0.500000      0.500000      0.000000
+      Si         0.250000      0.250000      0.250000
+      Si         0.250000      0.750000      0.750000
+      Si         0.750000      0.250000      0.750000
+      Si         0.750000      0.750000      0.250000
+    &END COORD
+    &KIND Si
+      BASIS_SET DZVP-GTH
+      POTENTIAL GTH-PBE-q4
+    &END KIND
+  &END SUBSYS
+&END FORCE_EVAL

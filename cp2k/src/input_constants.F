@@ -875,10 +875,9 @@ MODULE input_constants
                                    almo_scf_pcg = 3, &
                                    almo_scf_skip = 4
 
-   INTEGER, PARAMETER, PUBLIC   :: almo_occ_vol_penalty_none = 0, &
-                                   almo_occ_vol_penalty_lndet = 1, &
-                                   almo_occ_loc_penalty_none = 0, &
-                                   almo_occ_loc_penalty_lndet = 1
+   INTEGER, PARAMETER, PUBLIC   :: penalty_type_none = 0, &
+                                   penalty_type_lndet = 1, &
+                                   penalty_type_nlmo = 2
 
    ! optimizer parameters
    INTEGER, PARAMETER, PUBLIC   :: cg_zero = 0, &

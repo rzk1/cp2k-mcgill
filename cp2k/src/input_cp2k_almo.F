@@ -21,8 +21,8 @@ MODULE input_cp2k_almo
         cg_zero, molecular_guess, optimizer_diis, optimizer_pcg, xalmo_prec_zero, xalmo_prec_domain, &
         xalmo_prec_full, spd_inversion_ls_hotelling, spd_inversion_dense_cholesky, almo_scf_skip, &
         xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg, spd_inversion_ls_taylor, &
-        almo_occ_vol_penalty_none, almo_occ_vol_penalty_lndet, &
-        almo_occ_loc_penalty_none, almo_occ_loc_penalty_lndet
+        penalty_type_none, penalty_type_lndet, &
+        penalty_type_nlmo
 
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
@@ -199,8 +199,8 @@ CONTAINS
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="CONSTRUCT_NLMOS", &
-                          description="CONSTRUCT NLMOS", &
-                          usage="CONSTRUCT_NLMOS .TRUE.", default_l_val=.TRUE.)
+                          description="Turns on post-SCF construction of NLMOs", &
+                          usage="CONSTRUCT_NLMOS .TRUE.", default_l_val=.FALSE.)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
@@ -866,35 +866,35 @@ CONTAINS
          keyword, name="OCCUPIED_VOLUME_PENALTY_METHOD", &
          description="Penalty that prevents nonorthogonal orbitals from becoming linear dependent.", &
          usage="OCCUPIED_VOLUME_PENALTY_METHOD LNDET", &
-         default_i_val=almo_occ_vol_penalty_none, &
+         default_i_val=penalty_type_none, &
          enum_c_vals=s2a("NONE", "LNDET"), &
-         enum_desc=s2a("Do not use penalties", &
+         enum_desc=s2a("Do not use penalty.", &
                        "Use -coeff*ln(det(MO-overlap)) term."), &
-         enum_i_vals=(/almo_occ_vol_penalty_none, almo_occ_vol_penalty_lndet/))
+         enum_i_vals=(/penalty_type_none, penalty_type_lndet/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="OCCUPIED_VOLUME_PENALTY_COEFF", &
-                          description="Multiplication factor that determines the strength of the penalty term.", &
-                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 10.0", default_r_val=0.0_dp)
+                          description="Multiplication factor that determines the strength of the orthogonalization penalty term.", &
+                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 0.0001", default_r_val=0.0_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       CALL keyword_create( &
          keyword, name="OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
          description="Penalty that localize orbitals.", &
-         usage="OCCUPIED_LOCALIZATION_PENALTY_METHOD LNDET", &
-         default_i_val=almo_occ_loc_penalty_none, &
-         enum_c_vals=s2a("NONE", "LNDET"), &
-         enum_desc=s2a("Do not use penalties", &
-                       "Use -coeff*ln(det(MO-overlap)) term."), &
-         enum_i_vals=(/almo_occ_loc_penalty_none, almo_occ_loc_penalty_lndet/))
+         usage="OCCUPIED_LOCALIZATION_PENALTY_METHOD NLMO", &
+         default_i_val=penalty_type_none, &
+         enum_c_vals=s2a("NONE", "NLMO"), &
+         enum_desc=s2a("Do not use penalty.", &
+                       "Use the NLMO penalty function."), &
+         enum_i_vals=(/penalty_type_none, penalty_type_nlmo/))
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
       CALL keyword_create(keyword, name="LOCALIZATION_PENALTY_COEFF", &
                           description="Multiplication factor that determines the strength of the localization penalty.", &
-                          usage="LOCALIZATION_PENALTY_COEFF 10.0", default_r_val=0.0_dp)
+                          usage="LOCALIZATION_PENALTY_COEFF 0.001", default_r_val=0.0_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
