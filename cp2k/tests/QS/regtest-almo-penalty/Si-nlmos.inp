@@ -18,7 +18,8 @@
     &END QS
 
     &PRINT
-      &MO_CUBES
+      &MO_CUBES LOW
+        NHOMO -1
       &END
     &END PRINT
 
@@ -66,7 +67,7 @@
         CONJUGATOR               HESTENES_STIEFEL
         PRECONDITIONER           NONE
         LIN_SEARCH_EPS_ERROR     0.01
-        LIN_SEARCH_STEP_SIZE_GUESS 0.001
+        LIN_SEARCH_STEP_SIZE_GUESS 0.1
         MAX_ITER_OUTER_LOOP      5
         &PENALTY
           OCCUPIED_VOLUME_PENALTY_METHOD    NONE

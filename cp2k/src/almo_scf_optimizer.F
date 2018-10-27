@@ -2176,7 +2176,7 @@ CONTAINS
                                                             g1, t2, appr_sec_der, e0, g0, &
                                                             tempreal, step_size, beta, &
                                                             localization_obj_function, &
-                                                            objf_diff, &
+                                                            objf_diff, g0sign, g1sign, &
                                                             next_step_size_guess, &
                                                             line_search_error, &
                                                             t1, fval, penalty_func_new
@@ -2189,7 +2189,8 @@ CONTAINS
                                                             line_search_iteration, max_iter, &
                                                             outer_max_iter, &
                                                             outer_iteration, iteration, &
-                                                            cg_iteration, para_group, ielem
+                                                            cg_iteration, para_group, ielem, &
+                                                            linear_search_type
 
       CALL timeset(routineN, handle)
 
@@ -2411,6 +2412,7 @@ CONTAINS
       outer_iteration = 0
       grad_norm = 0.0_dp
       penalty_func_new=0.0_dp
+      linear_search_type = 2 ! safe restart, no quadratic assumption, takes more steps
 
       DO
 
@@ -2784,20 +2786,27 @@ CONTAINS
                      CALL dbcsr_trace(grad(ispin), step(ispin), tempreal)
                      g0 = g0 + tempreal
                   ENDDO ! ispin
-                  IF (iteration .EQ. 0) THEN
-                     step_size = optimizer%lin_search_step_size_guess
-                  ELSE
-                     IF (next_step_size_guess .LE. 0.0_dp) THEN
+                  g0sign = SIGN(1.0_dp, g0) ! sign of g0
+                  IF (linear_search_type .EQ. 1) THEN
+                     IF (iteration .EQ. 0) THEN
                         step_size = optimizer%lin_search_step_size_guess
                      ELSE
-                        ! take the last value
-                        step_size = next_step_size_guess*1.05_dp
+                        IF (next_step_size_guess .LE. 0.0_dp) THEN
+                           step_size = optimizer%lin_search_step_size_guess
+                        ELSE
+                           ! take the last value
+                           step_size = next_step_size_guess*1.05_dp
+                        ENDIF
                      ENDIF
+                  ELSE IF (linear_search_type .EQ. 2) THEN
+                     ! this LS type is designed not to trust quadratic appr
+                     ! so it always restarts from a safe step size
+                     step_size = optimizer%lin_search_step_size_guess
                   ENDIF
-                  !IF (unit_nr > 0) THEN
-                  !   WRITE (unit_nr, '(A2,3F12.5)') &
-                  !      "EG", e0, g0, step_size
-                  !ENDIF
+                  IF (unit_nr > 0) THEN
+                     WRITE (unit_nr, '(A2,3F12.5)') &
+                        "DT", e0, g0, step_size
+                  ENDIF
                   next_step_size_guess = step_size
                ELSE
                   e1 = objf_new
@@ -2806,16 +2815,28 @@ CONTAINS
                      CALL dbcsr_trace(grad(ispin), step(ispin), tempreal)
                      g1 = g1 + tempreal
                   ENDDO ! ispin
-                  ! we have accumulated some points along this direction
-                  ! use only the most recent g0 (quadratic approximation)
-                  appr_sec_der = (g1-g0)/step_size
-                  !IF (unit_nr > 0) THEN
-                  !   WRITE (unit_nr, '(A2,7F12.5)') &
-                  !      "EG", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
-                  !ENDIF
-                  step_size = -g1/appr_sec_der
+                  g1sign = SIGN(1.0_dp, g1) ! sign of g1
+                  IF (linear_search_type .EQ. 1) THEN
+                     ! we have accumulated some points along this direction
+                     ! use only the most recent g0 (quadratic approximation)
+                     appr_sec_der = (g1-g0)/step_size
+                     !IF (unit_nr > 0) THEN
+                     !   WRITE (unit_nr, '(A2,7F12.5)') &
+                     !      "DT", e0, e1, g0, g1, appr_sec_der, step_size, -g1/appr_sec_der
+                     !ENDIF
+                     step_size = -g1/appr_sec_der
+                  ELSE IF (linear_search_type .EQ. 2) THEN
+                     ! alternative method for finding step size
+                     IF (g1sign .NE. g0sign ) THEN
+                       step_size = -step_size/2.0;
+                     ELSE
+                       step_size = step_size*1.5;
+                     ENDIF
+                  ENDIF
+                  ! end alternative LS types
                   e0 = e1
                   g0 = g1
+                  g0sign = g1sign
                   next_step_size_guess = next_step_size_guess+step_size
                ENDIF
 
