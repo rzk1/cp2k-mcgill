@@ -2569,9 +2569,12 @@ CONTAINS
             DO ispin = 1, nspins
 
                IF (penalty_occ_vol) THEN
-                  CALL invert_Hotelling(m_sigma(ispin),&
-                     m_siginv(ispin),&
-                     almo_scf_env%eps_filter)
+                  CALL invert_Hotelling( & 
+                            matrix_inverse=m_siginv(ispin), & 
+                            matrix=m_sigma(ispin), & 
+                            threshold=almo_scf_env%eps_filter*10.0_dp, &
+                            filter_eps=almo_scf_env%eps_filter, &
+                            silent=.FALSE.)
                ENDIF
 
                CALL compute_gradient_nlmos( &
