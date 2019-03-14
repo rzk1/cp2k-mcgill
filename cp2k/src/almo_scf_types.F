@@ -44,7 +44,7 @@ MODULE almo_scf_types
    ! methods that add penalty terms to the energy functional 
    TYPE penalty_type
 
-      REAL(KIND=dp)      :: occ_vol_coeff, occ_loc_coeff, energy_coeff
+      REAL(KIND=dp)      :: occ_vol_coeff, occ_loc_coeff, energy_coeff, final_determinant
       INTEGER            :: occ_vol_method, occ_loc_method
 
    END TYPE penalty_type
@@ -235,6 +235,9 @@ MODULE almo_scf_types
       INTEGER               :: xalmo_update_algorithm
       ! mo overlap inversion algorithm
       INTEGER               :: sigma_inv_algorithm
+
+      ! Determinant of the ALMO overlap matrix
+      REAL(KIND=dp)         :: overlap_determinant
 
       ! ALMO SCF delocalization control
       LOGICAL               :: perturbative_delocalization

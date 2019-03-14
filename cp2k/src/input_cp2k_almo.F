@@ -880,6 +880,12 @@ CONTAINS
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
+      CALL keyword_create(keyword, name="FINAL_DETERMINANT", &
+                          description="The final determinant that obtained after optimization.", &
+                          usage="FINAL_DETERMINANT 0.1", default_r_val=0.1_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
       CALL keyword_create( &
          keyword, name="OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
          description="Penalty that localize orbitals.", &

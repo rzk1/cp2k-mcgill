@@ -2168,11 +2168,12 @@ CONTAINS
                                                             grad, m_siginv, &
                                                             tempNOcc1, tempOccOcc1, tempOccOcc2
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: z2, reim_diag, weights, grad_norm_spin, &
-                                                            diagonal, penalty_occ_vol_prefactor
+                                                            diagonal, penalty_occ_vol_prefactor, &
+                                                            suggested_vol_penalty
       REAL(KIND=dp)                                      :: e1, det1, denom, denom2, &
                                                             objf_new, objf_old, localiz_coeff, &
                                                             penalty_amplitude, spin_factor, &
-                                                            grad_norm, &
+                                                            grad_norm, pre_occ_vol_coeff, &
                                                             g1, t2, appr_sec_der, e0, g0, &
                                                             tempreal, step_size, beta, &
                                                             localization_obj_function, &
@@ -2281,6 +2282,7 @@ CONTAINS
       ALLOCATE(grad_norm_spin(nspins))
       ALLOCATE(nocc(nspins))
       ALLOCATE(penalty_occ_vol_prefactor(nspins))
+      ALLOCATE(suggested_vol_penalty(nspins))
 
       ! create a local copy of matrix_t_in because
       ! matrix_t_in and matrix_t_out can be the same matrix
@@ -2414,6 +2416,8 @@ CONTAINS
       penalty_func_new=0.0_dp
       linear_search_type = 2 ! safe restart, no quadratic assumption, takes more steps
 
+print *, penalty_amplitude 
+ 
       DO
 
          ! start the inner SCF loop
@@ -2547,6 +2551,8 @@ CONTAINS
 
                   CALL determinant(m_sigma(ispin), det1, &
                           almo_scf_env%eps_filter)
+                  ! save the current determinant
+                  almo_scf_env%overlap_determinant = det1 
 
                   penalty_func_new = penalty_func_new + penalty_occ_vol_prefactor(ispin) * LOG(det1)
 
@@ -2589,7 +2595,8 @@ CONTAINS
                   do_penalty_local=penalty_local, &
                   local_coeff = localiz_coeff, &
                   occ_vol_prefactor=penalty_occ_vol_prefactor(ispin), &
-                  eps_filter=almo_scf_env%eps_filter)
+                  eps_filter=almo_scf_env%eps_filter, &
+                  suggested_vol_penalty=suggested_vol_penalty(ispin))
 
             ENDDO ! ispin
 
@@ -2859,10 +2866,10 @@ CONTAINS
             t2 = m_walltime()
             IF (unit_nr > 0) THEN
                iter_type = TRIM("NLMO OPT "//iter_type)
-               WRITE (unit_nr, '(T2,A13,I6,F23.10,E14.5,F14.9,F9.2)') &
+               WRITE (unit_nr, '(T2,A13,I6,F23.10,E14.5,F14.9,F9.2, A13)') &
                   iter_type, iteration, &
                   objf_new, objf_diff, grad_norm, &
-                  t2-t1
+                  t2-t1 
                IF (penalty_local) THEN
                   WRITE(unit_nr,'(T2,A19,F23.10)') &
                           "Localization component:", localization_obj_function
@@ -2889,6 +2896,14 @@ CONTAINS
          IF (outer_prepare_to_exit) EXIT
 
       ENDDO ! outer loop
+
+      ! return the optimal determinant penalty
+      optimizer%opt_penalty%occ_vol_coeff = 0.0_dp
+      DO ispin=1, nspins
+         optimizer%opt_penalty%occ_vol_coeff = optimizer%opt_penalty%occ_vol_coeff + &
+            suggested_vol_penalty(ispin) / (spin_factor * nocc(ispin))
+      ENDDO
+      optimizer%opt_penalty%occ_vol_coeff = optimizer%opt_penalty%occ_vol_coeff / nspins
 
       ! clean up
       DO ispin = 1, nspins
@@ -2918,6 +2933,7 @@ CONTAINS
       DEALLOCATE(grad_norm_spin)
       DEALLOCATE(nocc)
       DEALLOCATE(penalty_occ_vol_prefactor)
+      DEALLOCATE(suggested_vol_penalty)
 
       DEALLOCATE(approx_hessian)
       DEALLOCATE(m_theta_normalized)
@@ -6296,7 +6312,7 @@ CONTAINS
    SUBROUTINE compute_gradient_nlmos(m_grad_out, m_B0, weights, &
       m_S0, m_theta_normalized, &
       m_siginv, m_sig_sqrti_ii, do_penalty_occ_vol, do_penalty_local, &
-      local_coeff, occ_vol_prefactor, eps_filter)
+      local_coeff, occ_vol_prefactor, eps_filter, suggested_vol_penalty)
 
       TYPE(dbcsr_type), INTENT(INOUT)                    :: m_grad_out
       TYPE(dbcsr_type), DIMENSION(:, :), INTENT(IN)      :: m_B0
@@ -6309,6 +6325,7 @@ CONTAINS
       REAL(KIND=dp), INTENT(IN)                          :: occ_vol_prefactor, &
                                                             eps_filter, &
                                                             local_coeff
+      REAL(KIND=dp), INTENT(INOUT)                       :: suggested_vol_penalty 
 
       CHARACTER(len=*), PARAMETER :: routineN = 'compute_gradient_nlmos', &
          routineP = moduleN//':'//routineN
@@ -6318,6 +6335,7 @@ CONTAINS
                                                             m_temp_oo_3, &
                                                             m_temp_oo_4
       REAL(KIND=dp), DIMENSION(:), ALLOCATABLE           :: tg_diagonal, z2
+      REAL(KIND=dp)                                      :: norm_vol, norm_loc
 
       CALL timeset(routineN, handle)
 
@@ -6415,12 +6433,21 @@ CONTAINS
       ! G = 2*prefactor*sigma0.a_norm.sigma_inv
       IF (do_penalty_occ_vol) THEN
          CALL dbcsr_multiply("N", "N", &
-                             2.0_dp*occ_vol_prefactor, &
+                             1.0_dp, &
                              m_temp_oo_2, &
                              m_siginv, &
-                             1.0_dp, m_temp_oo_1, &
+                             0.0_dp, m_temp_oo_3, &
                              filter_eps=eps_filter)
+         CALL dbcsr_norm(m_temp_oo_3, &
+              dbcsr_norm_maxabsnorm, norm_scalar=norm_vol)
+         CALL dbcsr_norm(m_temp_oo_1, &
+              dbcsr_norm_maxabsnorm, norm_scalar=norm_loc)
+         suggested_vol_penalty = norm_loc/norm_vol 
+         CALL dbcsr_add(m_temp_oo_1,m_temp_oo_3,&
+            1.0_dp,2.0_dp*occ_vol_prefactor)
       ENDIF
+
+      
          
       ! take into account the factor from the normalization constraint
       ! G = ( G - sigma0.a_norm.[tr(a_norm).G]_ii ) . [sig_sqrti]_ii
