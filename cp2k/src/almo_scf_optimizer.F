@@ -2180,7 +2180,8 @@ CONTAINS
                                                             objf_diff, g0sign, g1sign, &
                                                             next_step_size_guess, &
                                                             line_search_error, &
-                                                            t1, fval, penalty_func_new
+                                                            t1, fval, penalty_func_new, &
+                                                            localization_obj_function_ispin
       LOGICAL                                            :: penalty_local, penalty_occ_vol, &
                                                             prepare_to_exit, outer_prepare_to_exit, &
                                                             converged, line_search, &
@@ -2363,7 +2364,7 @@ CONTAINS
          CALL dbcsr_get_info(almo_scf_env%matrix_sigma_inv(ispin), &
                  nfullrows_total = nocc(ispin) )
 
-         penalty_occ_vol_prefactor(ispin) = -penalty_amplitude * spin_factor * nocc(ispin)
+         penalty_occ_vol_prefactor(ispin) = -penalty_amplitude !KEEP: * spin_factor * nocc(ispin)
 
          ! compute m_S0=T0^t.S.T0
          CALL dbcsr_multiply("N", "N", 1.0_dp, &
@@ -2416,8 +2417,6 @@ CONTAINS
       penalty_func_new=0.0_dp
       linear_search_type = 2 ! safe restart, no quadratic assumption, takes more steps
 
-print *, penalty_amplitude 
- 
       DO
 
          ! start the inner SCF loop
@@ -2483,6 +2482,7 @@ print *, penalty_amplitude
 
                IF (penalty_local) THEN
 
+                  localization_obj_function_ispin = 0.0_dp
                   ALLOCATE(z2(nocc(ispin)))
                   ALLOCATE(reim_diag(nocc(ispin)))
    
@@ -2523,7 +2523,7 @@ print *, penalty_amplitude
                         CASE (3) ! functional =  W_I * ( 1 - |z_I| )
                            fval = weights(idim0) - weights(idim0) * SQRT( ABS(z2(ielem)) )
                         END SELECT
-                        localization_obj_function = localization_obj_function + fval
+                        localization_obj_function_ispin = localization_obj_function_ispin + fval
                      ENDDO
 
                   ENDDO ! end loop over idim0
@@ -2531,7 +2531,8 @@ print *, penalty_amplitude
                   DEALLOCATE(z2)
                   DEALLOCATE(reim_diag)
 
-                  localization_obj_function = localiz_coeff * localization_obj_function
+                  localization_obj_function_ispin = localiz_coeff * localization_obj_function_ispin
+                  localization_obj_function = localization_obj_function + localization_obj_function_ispin
 
                ENDIF
 
@@ -2554,6 +2555,9 @@ print *, penalty_amplitude
                   ! save the current determinant
                   almo_scf_env%overlap_determinant = det1 
 
+                  IF (just_started .AND. penalty_amplitude .lt. 0.0_dp ) THEN 
+                     penalty_occ_vol_prefactor(ispin) = - (-penalty_amplitude)*localization_obj_function_ispin
+                  ENDIF
                   penalty_func_new = penalty_func_new + penalty_occ_vol_prefactor(ispin) * LOG(det1)
 
                ENDIF
@@ -2898,12 +2902,35 @@ print *, penalty_amplitude
       ENDDO ! outer loop
 
       ! return the optimal determinant penalty
+      !KEEP: optimizer%opt_penalty%occ_vol_coeff = 0.0_dp
+      !KEEP: DO ispin=1, nspins
+      !KEEP:    optimizer%opt_penalty%occ_vol_coeff = optimizer%opt_penalty%occ_vol_coeff + &
+      !KEEP:       suggested_vol_penalty(ispin) / (spin_factor * nocc(ispin))
+      !KEEP: ENDDO
+      !KEEP: optimizer%opt_penalty%occ_vol_coeff = optimizer%opt_penalty%occ_vol_coeff / nspins
       optimizer%opt_penalty%occ_vol_coeff = 0.0_dp
       DO ispin=1, nspins
          optimizer%opt_penalty%occ_vol_coeff = optimizer%opt_penalty%occ_vol_coeff + &
-            suggested_vol_penalty(ispin) / (spin_factor * nocc(ispin))
+            (-1.0_dp)*penalty_occ_vol_prefactor(ispin)
       ENDDO
       optimizer%opt_penalty%occ_vol_coeff = optimizer%opt_penalty%occ_vol_coeff / nspins
+
+      IF (unit_nr > 0) THEN
+         IF (penalty_local) THEN
+            WRITE(unit_nr,'()')
+            WRITE(unit_nr,'(T2,A19,F23.10)') &
+                    "FINAL LOCALIZATION:", localization_obj_function
+         ENDIF
+         IF (penalty_occ_vol) THEN
+            WRITE(unit_nr,'()')
+            WRITE(unit_nr,'(T2,A19,F23.10)') &
+                    "FINAL DETERMINANT:", almo_scf_env%overlap_determinant
+
+            WRITE(unit_nr,'()')
+            WRITE(unit_nr,'(T2,A19,F23.10)') &
+                        "PENALTY COEFF", optimizer%opt_penalty%occ_vol_coeff
+         ENDIF
+      ENDIF
 
       ! clean up
       DO ispin = 1, nspins

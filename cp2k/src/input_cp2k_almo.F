@@ -876,7 +876,19 @@ CONTAINS
 
       CALL keyword_create(keyword, name="OCCUPIED_VOLUME_PENALTY_COEFF", &
                           description="Multiplication factor that determines the strength of the orthogonalization penalty term.", &
-                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 0.0001", default_r_val=0.0_dp)
+                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 0.1", default_r_val=1.0_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="VOLUME_PENALTY_COEFF_DECREASE_FACTOR", &
+                          description="Adjust the decrease speed of volume penalty coefficient cp in each step.", &
+                          usage="VOLUME_PENALTY_COEFF_DECREASE_FACTOR 1.1", default_r_val=1.1_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="DETERMINANT_ERROR", &
+                          description="The minimum determinnat error we accepted to stop optimization.", &
+                          usage="DETERMINANT_ERROR 1.0E-4", default_r_val=1.0E-3_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
