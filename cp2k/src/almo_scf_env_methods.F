@@ -200,6 +200,9 @@ CONTAINS
                                 "ENERGY_COEFF", &
                                 r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%energy_coeff)
       CALL section_vals_val_get(penalty_section, &
+                                "OPERATOR", &
+                                i_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%operator_type)
+      CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_vol_coeff)
       CALL section_vals_val_get(penalty_section, &
@@ -246,6 +249,9 @@ CONTAINS
                                 "ENERGY_COEFF", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%energy_coeff)
       CALL section_vals_val_get(penalty_section, &
+                                "OPERATOR", &
+                                i_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%operator_type)
+      CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_vol_coeff)
       CALL section_vals_val_get(penalty_section, &
@@ -291,6 +297,9 @@ CONTAINS
       CALL section_vals_val_get(penalty_section, &
                                 "ENERGY_COEFF", &
                                 r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%energy_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "OPERATOR", &
+                                i_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%operator_type)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff)

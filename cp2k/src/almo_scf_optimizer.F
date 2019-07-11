@@ -76,7 +76,8 @@ MODULE almo_scf_optimizer
         cg_hager_zhang, cg_hestenes_stiefel, cg_liu_storey, cg_polak_ribiere, cg_zero, &
         xalmo_prec_zero, xalmo_prec_domain, xalmo_prec_full, &
         penalty_type_none, virt_full, xalmo_case_block_diag, &
-        xalmo_case_fully_deloc, xalmo_case_normal
+        xalmo_case_fully_deloc, xalmo_case_normal, op_loc_berry, op_loc_pipek, &
+        op_loc_boys
    USE input_section_types,             ONLY: section_vals_get_subs_vals,&
                                               section_vals_type
    USE iterate_matrix,                  ONLY: invert_Hotelling,&
@@ -92,6 +93,11 @@ MODULE almo_scf_optimizer
    USE qs_localization_methods,         ONLY: initialize_weights
    USE cell_types,                      ONLY: cell_type
    USE cp_log_handling,                 ONLY: cp_to_string
+   USE qs_kind_types,                   ONLY: qs_kind_type
+   USE particle_types,                  ONLY: allocate_particle_set,&
+                                              deallocate_particle_set,&
+                                              particle_type
+   USE particle_methods,                ONLY: get_particle_set
 
 #include "./base/base_uses.f90"
 
@@ -2170,6 +2176,7 @@ CONTAINS
       REAL(KIND=dp), ALLOCATABLE, DIMENSION(:)           :: z2, reim_diag, weights, grad_norm_spin, &
                                                             diagonal, penalty_occ_vol_prefactor, &
                                                             suggested_vol_penalty
+      INTEGER, ALLOCATABLE, DIMENSION(:)                 :: first_sgf, last_sgf, nsgf
       REAL(KIND=dp)                                      :: e1, det1, denom, denom2, &
                                                             objf_new, objf_old, localiz_coeff, &
                                                             penalty_amplitude, spin_factor, &
@@ -2192,7 +2199,10 @@ CONTAINS
                                                             outer_max_iter, &
                                                             outer_iteration, iteration, &
                                                             cg_iteration, para_group, ielem, &
-                                                            linear_search_type
+                                                            linear_search_type, natom, iatom, &
+                                                            isgf, ncol, nmoloc, nao
+      TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
+      TYPE(qs_kind_type), DIMENSION(:), POINTER          :: qs_kind_set
 
       CALL timeset(routineN, handle)
 
@@ -2215,9 +2225,27 @@ CONTAINS
             "Objective Function", "Change", "Convergence", "Time"
          WRITE (unit_nr, '(T2,A)') REPEAT("-", 79)
       ENDIF
+
+      NULLIFY (particle_set)
+      ! get rows and cols of the input
+      CALL dbcsr_get_info(matrix_t_in(1), nfullrows_total=nao, nfullcols_total=nmoloc)
+print *, nao
+print *, nmoloc
+
       CALL get_qs_env(qs_env=qs_env, &
                       matrix_s=qs_matrix_s, &
-                      cell=cell)
+                      cell=cell, &
+                      particle_set=particle_set, &
+                      qs_kind_set=qs_kind_set)
+
+      natom = SIZE(particle_set, 1)
+      ALLOCATE (first_sgf(natom))
+      ALLOCATE (last_sgf(natom))
+      ALLOCATE (nsgf(natom))
+      !   construction of
+      CALL get_particle_set(particle_set, qs_kind_set, &
+              first_sgf=first_sgf, last_sgf=last_sgf, nsgf=nsgf)
+
 
       ! m_theta contains a set of variational parameters
       ! that define one-electron orbitals
@@ -2231,39 +2259,67 @@ CONTAINS
          CALL dbcsr_add_on_diag(m_theta(ispin), 1.0_dp)
       ENDDO
 
-      IF (cell%orthorhombic) THEN
-         dim_op = 3
-      ELSE
-         dim_op = 6
-      END IF
-      ALLOCATE(weights(6))
-      weights=0.0_dp
-      CALL initialize_weights(cell, weights)
-      ALLOCATE(op_sm_set_qs(2, dim_op))
-      ALLOCATE(op_sm_set_almo(2, dim_op))
-      ! allocate space for T0^t.B.T0
-      ALLOCATE(m_B0(2, dim_op, nspins))
-      DO idim0 = 1, dim_op
-         DO reim = 1, SIZE(op_sm_set_qs, 1)
-            NULLIFY(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix)
-            ALLOCATE(op_sm_set_qs(reim, idim0)%matrix)
-            ALLOCATE(op_sm_set_almo(reim, idim0)%matrix)
-            CALL dbcsr_copy(op_sm_set_qs(reim, idim0)%matrix, qs_matrix_s(1)%matrix, &
-               name="almo_scf_env%op_sm_"//TRIM(ADJUSTL(cp_to_string(reim)))//"-"//TRIM(ADJUSTL(cp_to_string(idim0))))
-            CALL dbcsr_set(op_sm_set_qs(reim, idim0)%matrix, 0.0_dp)
-            CALL dbcsr_copy(op_sm_set_almo(reim, idim0)%matrix, almo_scf_env%matrix_s(1), &
-               name="almo_scf_env%op_sm_"//TRIM(ADJUSTL(cp_to_string(reim)))//"-"//TRIM(ADJUSTL(cp_to_string(idim0))))
-            CALL dbcsr_set(op_sm_set_almo(reim, idim0)%matrix, 0.0_dp)
-            DO ispin = 1, nspins
-               CALL dbcsr_create(m_B0(reim,idim0,ispin), &
-                                 template=m_theta(ispin), &
-                                 matrix_type=dbcsr_type_no_symmetry)
-               CALL dbcsr_set(m_B0(reim, idim0, ispin), 0.0_dp)
+      SELECT CASE (optimizer%opt_penalty%operator_type)
+
+      CASE (op_loc_boys)
+         CPABORT("Boys localization not implemented")
+
+      CASE (op_loc_berry)
+
+         IF (cell%orthorhombic) THEN
+            dim_op = 3
+         ELSE
+            dim_op = 6
+         END IF
+         ALLOCATE(weights(6))
+         weights=0.0_dp
+         CALL initialize_weights(cell, weights)
+         ALLOCATE(op_sm_set_qs(2, dim_op))
+         ALLOCATE(op_sm_set_almo(2, dim_op))
+         ! allocate space for T0^t.B.T0
+         ALLOCATE(m_B0(2, dim_op, nspins))
+         DO idim0 = 1, dim_op
+            DO reim = 1, SIZE(op_sm_set_qs, 1)
+               NULLIFY(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix)
+               ALLOCATE(op_sm_set_qs(reim, idim0)%matrix)
+               ALLOCATE(op_sm_set_almo(reim, idim0)%matrix)
+               CALL dbcsr_copy(op_sm_set_qs(reim, idim0)%matrix, qs_matrix_s(1)%matrix, &
+                  name="almo_scf_env%op_sm_"//TRIM(ADJUSTL(cp_to_string(reim)))//"-"//TRIM(ADJUSTL(cp_to_string(idim0))))
+               CALL dbcsr_set(op_sm_set_qs(reim, idim0)%matrix, 0.0_dp)
+               CALL dbcsr_copy(op_sm_set_almo(reim, idim0)%matrix, almo_scf_env%matrix_s(1), &
+                  name="almo_scf_env%op_sm_"//TRIM(ADJUSTL(cp_to_string(reim)))//"-"//TRIM(ADJUSTL(cp_to_string(idim0))))
+               CALL dbcsr_set(op_sm_set_almo(reim, idim0)%matrix, 0.0_dp)
+               DO ispin = 1, nspins
+                  CALL dbcsr_create(m_B0(reim,idim0,ispin), &
+                                    template=m_theta(ispin), &
+                                    matrix_type=dbcsr_type_no_symmetry)
+                  CALL dbcsr_set(m_B0(reim, idim0, ispin), 0.0_dp)
+               ENDDO
             ENDDO
          ENDDO
-      ENDDO
 
-      CALL compute_berry_operator(qs_env, cell, op_sm_set_qs, dim_op)
+         CALL compute_berry_operator(qs_env, cell, op_sm_set_qs, dim_op)
+
+      CASE (op_loc_pipek)
+
+         dim_op = natom
+         ALLOCATE(weights(dim_op))
+         weights=1.0_dp
+
+         ALLOCATE(m_B0(1, dim_op, nspins))
+!m_B0 first dim is 1 now!
+         DO idim0 = 1, dim_op
+            DO reim = 1, 1 !SIZE(op_sm_set_qs, 1)
+               DO ispin = 1, nspins
+                  CALL dbcsr_create(m_B0(reim,idim0,ispin), &
+                                    template=m_theta(ispin), &
+                                    matrix_type=dbcsr_type_no_symmetry)
+                  CALL dbcsr_set(m_B0(reim, idim0, ispin), 0.0_dp)
+               ENDDO
+            ENDDO
+         ENDDO
+
+      END SELECT
 
       ! penalty amplitude adjusts the strenght of volume conservation
       localiz_coeff = optimizer%opt_penalty%occ_loc_coeff
@@ -2378,36 +2434,92 @@ CONTAINS
                  0.0_dp, m_S0(ispin), &
                  filter_eps=almo_scf_env%eps_filter)
 
-         ! compute m_B0=T0^t.B.T0
-         DO idim0 = 1, SIZE(op_sm_set_qs, 2) ! this loop is over miller ind
+         SELECT CASE (optimizer%opt_penalty%operator_type)
 
-            DO reim = 1, SIZE(op_sm_set_qs, 1) ! this loop is over Re/Im 
+         CASE (op_loc_berry)
 
-               CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
-                                      almo_scf_env%mat_distr_aos, .FALSE.)
+            ! compute m_B0=T0^t.B.T0
+            DO idim0 = 1, SIZE(op_sm_set_qs, 2) ! this loop is over miller ind
+
+               DO reim = 1, SIZE(op_sm_set_qs, 1) ! this loop is over Re/Im 
+
+                  CALL matrix_qs_to_almo(op_sm_set_qs(reim, idim0)%matrix, op_sm_set_almo(reim, idim0)%matrix, &
+                                         almo_scf_env%mat_distr_aos, .FALSE.)
+
+                  CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                          op_sm_set_almo(reim, idim0)%matrix, &
+                          m_t_in_local(ispin), &
+                          0.0_dp, tempNOcc1(ispin), &
+                          filter_eps=almo_scf_env%eps_filter)
+
+                  CALL dbcsr_multiply("T", "N", 1.0_dp, &
+                          m_t_in_local(ispin), &
+                          tempNOcc1(ispin), &
+                          0.0_dp, m_B0(reim,idim0,ispin), &
+                          filter_eps=almo_scf_env%eps_filter)
+
+                  DEALLOCATE(op_sm_set_qs(reim, idim0)%matrix)
+                  DEALLOCATE(op_sm_set_almo(reim, idim0)%matrix)
+
+               ENDDO
+
+            ENDDO ! end loop over idim0
+
+         CASE (op_loc_pipek)
+
+            ! compute m_B0=T0^t.B.T0
+            DO iatom = 1, natom ! this loop is over "miller" ind
+
+               isgf = first_sgf(iatom)
+               ncol = nsgf(iatom)
 
                CALL dbcsr_multiply("N", "N", 1.0_dp, &
-                       op_sm_set_almo(reim, idim0)%matrix, &
+                       almo_scf_env%matrix_s(1), &
                        m_t_in_local(ispin), &
                        0.0_dp, tempNOcc1(ispin), &
                        filter_eps=almo_scf_env%eps_filter)
 
-               CALL dbcsr_multiply("T", "N", 1.0_dp, &
+               CALL dbcsr_multiply("T", "N", 0.5_dp, &
                        m_t_in_local(ispin), &
                        tempNOcc1(ispin), &
-                       0.0_dp, m_B0(reim,idim0,ispin), &
+                       0.0_dp, m_B0(1,iatom,ispin), &
+                       first_k=isgf, last_k=isgf+ncol-1, &
                        filter_eps=almo_scf_env%eps_filter)
 
-               DEALLOCATE(op_sm_set_qs(reim, idim0)%matrix)
-               DEALLOCATE(op_sm_set_almo(reim, idim0)%matrix)
+               CALL dbcsr_multiply("N", "N", 1.0_dp, &
+                       almo_scf_env%matrix_s(1), &
+                       m_t_in_local(ispin), &
+                       0.0_dp, tempNOcc1(ispin), &
+                       first_k=isgf, last_k=isgf+ncol-1, &
+                       filter_eps=almo_scf_env%eps_filter)
 
-            ENDDO
+               CALL dbcsr_multiply("T", "N", 0.5_dp, &
+                       m_t_in_local(ispin), &
+                       tempNOcc1(ispin), &
+                       1.0_dp, m_B0(1,iatom,ispin), &
+                       filter_eps=almo_scf_env%eps_filter)
 
-         ENDDO ! end loop over idim0
+            ENDDO ! end loop over iatom
+
+         END SELECT
 
       ENDDO ! ispin
 
-      DEALLOCATE(op_sm_set_qs,op_sm_set_almo)
+!CALL dbcsr_print(almo_scf_env%matrix_s(1))
+!
+!DO ispin = 1, nspins
+!   CALL dbcsr_print(m_t_in_local(ispin))
+!END DO
+!
+!DO ispin = 1, nspins
+!   DO iatom = 1, natom ! this loop is over "miller" ind
+!      CALL dbcsr_print(m_B0(1,iatom,ispin))
+!   END DO
+!END DO
+
+      IF (optimizer%opt_penalty%operator_type .EQ. op_loc_berry) THEN
+         DEALLOCATE(op_sm_set_qs,op_sm_set_almo)
+      ENDIF
 
       ! start the outer SCF loop
       outer_max_iter = optimizer%max_iter_outer_loop
@@ -2980,6 +3092,7 @@ CONTAINS
       DEALLOCATE(m_theta, m_t_in_local)
       DEALLOCATE(m_B0)
       DEALLOCATE(weights)
+      DEALLOCATE (first_sgf, last_sgf, nsgf)
 
       IF (.NOT.converged) THEN
          CPABORT("Optimization not converged! ")

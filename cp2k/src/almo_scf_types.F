@@ -46,7 +46,7 @@ MODULE almo_scf_types
 
       REAL(KIND=dp)      :: occ_vol_coeff, occ_loc_coeff, energy_coeff, final_determinant, &
                             det_error, vol_coeff_dec_factor
-      INTEGER            :: occ_vol_method, occ_loc_method
+      INTEGER            :: occ_vol_method, occ_loc_method, operator_type
 
    END TYPE penalty_type
 
