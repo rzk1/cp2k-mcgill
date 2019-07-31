@@ -322,8 +322,7 @@ CONTAINS
       NULLIFY (particle_set)
       ! get rows and cols of the input
       CALL cp_fm_get_info(vectors, nrow_global=nao, ncol_global=nmoloc)
-print *, nao
-print *, nmoloc
+
       ! replicate the input kind of matrix
       CALL cp_fm_create(opvec, vectors%matrix_struct)
       CALL cp_fm_set_all(opvec, 0.0_dp)

@@ -2229,8 +2229,6 @@ CONTAINS
       NULLIFY (particle_set)
       ! get rows and cols of the input
       CALL dbcsr_get_info(matrix_t_in(1), nfullrows_total=nao, nfullcols_total=nmoloc)
-print *, nao
-print *, nmoloc
 
       CALL get_qs_env(qs_env=qs_env, &
                       matrix_s=qs_matrix_s, &
