@@ -797,7 +797,6 @@ CONTAINS
       ALLOCATE (mii(dim2), mij(dim2), mjj(dim2))
       DO idim = 1, dim2
 !!!!! PRINT weights
-         print *, weights(idim)
          CALL cp_fm_scale_and_add(1.0_dp, mat_t, weights(idim), zij(1, idim)%matrix)
          CALL cp_fm_scale_and_add(1.0_dp, mat_t, weights(idim), zij(2, idim)%matrix)
       ENDDO

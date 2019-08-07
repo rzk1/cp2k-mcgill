@@ -22,7 +22,7 @@ MODULE input_cp2k_almo
         xalmo_prec_full, spd_inversion_ls_hotelling, spd_inversion_dense_cholesky, almo_scf_skip, &
         xalmo_trial_simplex, xalmo_trial_r0_out, optimizer_lin_eq_pcg, spd_inversion_ls_taylor, &
         penalty_type_none, penalty_type_lndet, &
-        penalty_type_nlmo
+        penalty_type_nlmo, op_loc_berry, op_loc_boys, op_loc_pipek
 
    USE input_keyword_types,             ONLY: keyword_create,&
                                               keyword_release,&
@@ -874,9 +874,36 @@ CONTAINS
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 
+      CALL keyword_create(keyword, name="OPERATOR", &
+                          description="Type of opertator which defines the spread functional", &
+                          usage="OPERATOR (BERRY|BOYS|PIPEK)", &
+                          enum_c_vals=s2a("BERRY", "BOYS", "PIPEK"), &
+                          enum_i_vals=(/op_loc_berry, op_loc_boys, op_loc_pipek/), &
+                          default_i_val=op_loc_berry)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
       CALL keyword_create(keyword, name="OCCUPIED_VOLUME_PENALTY_COEFF", &
-                          description="Multiplication factor that determines the strength of the orthogonalization penalty term.", &
-                          usage="OCCUPIED_VOLUME_PENALTY_COEFF 0.0001", default_r_val=0.0_dp)
+                          description="Adjust the decrease speed of volume penalty coefficient cp in each step.", &
+                          usage="VOLUME_PENALTY_COEFF_DECREASE_FACTOR 1.1", default_r_val=1.1_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="VOLUME_PENALTY_COEFF_DECREASE_FACTOR", &
+                          description="Adjust the decrease speed of volume penalty coefficient cp in each step.", &
+                          usage="VOLUME_PENALTY_COEFF_DECREASE_FACTOR 1.1", default_r_val=1.1_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="DETERMINANT_ERROR", &
+                          description="The minimum determinnat error we accepted to stop optimization.", &
+                          usage="DETERMINANT_ERROR 1.0E-4", default_r_val=1.0E-3_dp)
+      CALL section_add_keyword(section, keyword)
+      CALL keyword_release(keyword)
+
+      CALL keyword_create(keyword, name="FINAL_DETERMINANT", &
+                          description="The final determinant that obtained after optimization.", &
+                          usage="FINAL_DETERMINANT 0.1", default_r_val=0.1_dp)
       CALL section_add_keyword(section, keyword)
       CALL keyword_release(keyword)
 

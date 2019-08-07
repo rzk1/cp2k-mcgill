@@ -1561,14 +1561,160 @@ CONTAINS
 
       CHARACTER(len=*), PARAMETER :: routineN = 'construct_nlmos', &
          routineP = moduleN//':'//routineN
+      TYPE(dbcsr_type), ALLOCATABLE, DIMENSION(:)        :: no_quench
+      INTEGER                                            :: col, hold, iblock_col, &
+                                                            iblock_row, ispin, mynode, &
+                                                            nblkcols_tot, nblkrows_tot, row, &
+                                                            iteration_number, unit_nr
+      LOGICAL                                            :: tr
+      REAL(KIND=dp), DIMENSION(:, :), POINTER            :: p_new_block
+      TYPE(dbcsr_distribution_type)                      :: dist
+      REAL(KIND=dp)                                      :: occ_vol_saved, initial_vol_coeff, &
+                                                            det_diff, prev_determinant
+      TYPE(cp_logger_type), POINTER                      :: logger
+
+      ! get a useful output_unit
+      logger => cp_get_default_logger()
+      IF (logger%para_env%mepos == logger%para_env%source) THEN
+         unit_nr = cp_logger_get_default_unit_nr(logger, local=.TRUE.)
+      ELSE
+         unit_nr = -1
+      ENDIF
 
       IF (almo_scf_env%construct_nlmos) THEN
 
-         CALL almo_scf_construct_nlmos(qs_env=qs_env, &
-                                 almo_scf_env=almo_scf_env, &
-                                 optimizer=almo_scf_env%opt_nlmo_pcg, &
-                                 matrix_t_in=almo_scf_env%matrix_t, &
-                                 matrix_t_out=almo_scf_env%matrix_t)
+         DO ispin = 1, almo_scf_env%nspins
+
+            CALL orthogonalize_mos(ket=almo_scf_env%matrix_t(ispin), &
+                                   overlap=almo_scf_env%matrix_sigma(ispin), &
+                                   metric=almo_scf_env%matrix_s(1), &
+                                   retain_locality=.FALSE., &
+                                   only_normalize=.FALSE., &
+                                   nocc_of_domain=almo_scf_env%nocc_of_domain(:,ispin), &
+                                   eps_filter=almo_scf_env%eps_filter, &
+                                   order_lanczos=almo_scf_env%order_lanczos, &
+                                   eps_lanczos=almo_scf_env%eps_lanczos, &
+                                   max_iter_lanczos=almo_scf_env%max_iter_lanczos)
+         ENDDO
+
+         almo_scf_env%overlap_determinant=1.0
+         ! KEEP: initial_vol_coeff = almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff
+         almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff = &
+            -1.0_dp*almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff !NEW1
+
+         !loop_over_vol_strength: 
+         !DO iteration_number = 1, 50
+         prev_determinant = 10.0_dp
+         DO WHILE (almo_scf_env%overlap_determinant .gt. almo_scf_env%opt_nlmo_pcg%opt_penalty%final_determinant) 
+         !!! KEEP: occ_vol_saved = almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff
+IF (unit_nr .gt. 0) THEN
+ WRITE (unit_nr,*) "Before calling construct", almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff
+ENDIF
+             CALL almo_scf_construct_nlmos(qs_env=qs_env, &
+                                     almo_scf_env=almo_scf_env, &
+                                     optimizer=almo_scf_env%opt_nlmo_pcg, &
+                                     matrix_t_in=almo_scf_env%matrix_t, &
+                                     matrix_t_out=almo_scf_env%matrix_t)
+             det_diff = prev_determinant - almo_scf_env%overlap_determinant
+             almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff = &
+                   almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff / ABS(almo_scf_env%opt_nlmo_pcg%opt_penalty%vol_coeff_dec_factor) !NEW1
+IF (unit_nr .gt. 0) THEN
+ WRITE (unit_nr,*) "After construct, divided", almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff
+ENDIF
+!print *, almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff
+         !    IF (almo_scf_env%overlap_determinant .lt. almo_scf_env%opt_nlmo_pcg%opt_penalty%final_determinant) THEN !NEW1
+         !          EXIT !NEW1
+         !    ENDIF !NEW1
+             IF (det_diff < almo_scf_env%opt_nlmo_pcg%opt_penalty%det_error) THEN
+                EXIT !NEW1
+             ENDIF !NEW1
+             prev_determinant = almo_scf_env%overlap_determinant
+         ENDDO !NEW1
+         !KEEP:   IF (iteration_number.eq.1) THEN
+         !KEEP:       IF (initial_vol_coeff .gt. almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff ) THEN
+         !KEEP:           occ_vol_saved = almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff
+         !KEEP:       ELSE
+         !KEEP:           occ_vol_saved = initial_vol_coeff
+         !KEEP:       ENDIF
+         !KEEP:   ELSE
+         !KEEP:       nlmo_loc_gradient = (prev_loc - almo_scf_env%opt_nlmo_pcg%opt_penalty%loc_function) & 
+         !KEEP:                           / (pre_occ_vol - occ_vol_saved)
+
+         !KEEP:       IF (almo_scf_env%overlap_determinant .gt. almo_scf_env%opt_nlmo_pcg%opt_penalty%final_determinant &
+         !KEEP:           .OR. nlmo_loc_gradient .gt. almo_scf_env%opt_nlmo_pcg%opt_penalty%min_gradient) THEN
+         !KEEP:           occ_vol_saved = occ_vol_saved / 2.0_dp
+         !KEEP:           almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff = occ_vol_saved
+         !KEEP:       ELSE
+         !KEEP:          EXIT !loop_over_vol_strength
+         !KEEP:       ENDIF
+         !KEEP:   ENDIF
+         !KEEP:   
+         !KEEP:   prev_loc = almo_scf_env%opt_nlmo_pcg%opt_penalty%loc_function
+         !KEEP:   pre_occ_vol = almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff
+         !KEEP:ENDDO
+
+         ALLOCATE (no_quench(almo_scf_env%nspins))
+         CALL dbcsr_create(no_quench(1), &
+                           template=almo_scf_env%matrix_t(1), &
+                           matrix_type=dbcsr_type_no_symmetry)
+         CALL dbcsr_get_info(no_quench(1), distribution=dist)
+         CALL dbcsr_distribution_get(dist, mynode=mynode)
+         CALL dbcsr_work_create(no_quench(1), &
+                                work_mutable=.TRUE.)
+         nblkrows_tot = dbcsr_nblkrows_total(no_quench(1))
+         nblkcols_tot = dbcsr_nblkcols_total(no_quench(1))
+         ! RZK-warning: is it a quadratic-scaling routine?
+         ! As a matter of fact it is! But this block treats
+         ! fully delocalized MOs. So it is unavoidable.
+         ! C'est la vie
+         DO row = 1, nblkrows_tot
+            DO col = 1, nblkcols_tot
+               tr = .FALSE.
+               iblock_row = row
+               iblock_col = col
+               CALL dbcsr_get_stored_coordinates(no_quench(1), &
+                                                 iblock_row, iblock_col, hold)
+               IF (hold .EQ. mynode) THEN
+                  NULLIFY (p_new_block)
+                  CALL dbcsr_reserve_block2d(no_quench(1), &
+                                             iblock_row, iblock_col, p_new_block)
+                  CPASSERT(ASSOCIATED(p_new_block))
+                  p_new_block(:, :) = 1.0_dp
+               ENDIF
+            ENDDO
+         ENDDO
+         CALL dbcsr_finalize(no_quench(1))
+         IF (almo_scf_env%nspins .GT. 1) THEN
+            DO ispin = 2, almo_scf_env%nspins
+               CALL dbcsr_create(no_quench(ispin), &
+                                 template=almo_scf_env%matrix_t(1), &
+                                 matrix_type=dbcsr_type_no_symmetry)
+               CALL dbcsr_copy(no_quench(ispin), no_quench(1))
+            ENDDO
+         ENDIF
+
+         !ALLOCATE (no_quench(almo_scf_env%nspins))
+         !DO ispin = 1, almo_scf_env%nspins
+         !   CALL dbcsr_create(no_quench(ispin), &
+         !                     template=almo_scf_env%matrix_t(1), &
+         !                     matrix_type=dbcsr_type_no_symmetry)
+         !   CALL dbcsr_set(no_quench(ispin),1.0)
+         !ENDDO
+
+         !CALL almo_scf_xalmo_pcg(qs_env=qs_env, &
+         !                        almo_scf_env=almo_scf_env, &
+         !                        optimizer=almo_scf_env%opt_xalmo_pcg, &
+         !                        quench_t=no_quench, &
+         !                        matrix_t_in=almo_scf_env%matrix_t, &
+         !                        matrix_t_out=almo_scf_env%matrix_t, &
+         !                        assume_t0_q0x=.FALSE., &
+         !                        perturbation_only=.FALSE., &
+         !                        special_case=xalmo_case_fully_deloc)
+         !DO ispin = 1, almo_scf_env%nspins
+         !   CALL dbcsr_release(no_quench(ispin))
+         !ENDDO
+
+         DEALLOCATE(no_quench)
 
       ENDIF
 

@@ -32,7 +32,7 @@ MODULE qs_loc_methods
                                               cp_fm_struct_type
    USE cp_fm_types,                     ONLY: &
         cp_fm_create, cp_fm_get_element, cp_fm_get_info, cp_fm_get_submatrix, cp_fm_p_type, &
-        cp_fm_release, cp_fm_set_all, cp_fm_set_submatrix, cp_fm_to_fm, cp_fm_type
+        cp_fm_release, cp_fm_set_all, cp_fm_set_submatrix, cp_fm_to_fm, cp_fm_type, cp_fm_get_element
    USE cp_gemm_interface,               ONLY: cp_gemm
    USE cp_log_handling,                 ONLY: cp_get_default_logger,&
                                               cp_logger_type,&
@@ -302,7 +302,8 @@ CONTAINS
          routineP = moduleN//':'//routineN
 
       INTEGER                                            :: handle, iatom, isgf, ldz, nao, natom, &
-                                                            ncol, nmoloc, output_unit, sweeps
+                                                            ncol, nmoloc, output_unit, sweeps, &
+                                                            i, j, mnumb, nnumb 
       INTEGER, ALLOCATABLE, DIMENSION(:)                 :: first_sgf, last_sgf, nsgf
       TYPE(cp_fm_pool_p_type), DIMENSION(:), POINTER     :: ao_ao_fm_pools
       TYPE(cp_fm_type), POINTER                          :: opvec, ov_fm
@@ -310,6 +311,8 @@ CONTAINS
       TYPE(dbcsr_p_type), DIMENSION(:), POINTER          :: matrix_s
       TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
       TYPE(qs_kind_type), DIMENSION(:), POINTER          :: qs_kind_set
+      REAL(KIND=dp), DIMENSION(:), ALLOCATABLE           :: temp1111
+      CHARACTER(LEN=20) :: fstr
 
       CALL timeset(routineN, handle)
       logger => cp_get_default_logger()
@@ -319,6 +322,7 @@ CONTAINS
       NULLIFY (particle_set)
       ! get rows and cols of the input
       CALL cp_fm_get_info(vectors, nrow_global=nao, ncol_global=nmoloc)
+
       ! replicate the input kind of matrix
       CALL cp_fm_create(opvec, vectors%matrix_struct)
       CALL cp_fm_set_all(opvec, 0.0_dp)
@@ -346,19 +350,64 @@ CONTAINS
          CALL cp_fm_get_info(zij_fm_set(iatom, 1)%matrix, ncol_global=ldz)
          isgf = first_sgf(iatom)
          ncol = nsgf(iatom)
+
          ! multiply fmxfm, using only part of the ao : Ct x S
          CALL cp_gemm('N', 'N', nao, nmoloc, nao, 1.0_dp, ov_fm, vectors, 0.0_dp, opvec, &
                       a_first_col=1, a_first_row=1, b_first_col=1, b_first_row=1)
+
          CALL cp_gemm('T', 'N', nmoloc, nmoloc, ncol, 0.5_dp, vectors, opvec, &
                       0.0_dp, zij_fm_set(iatom, 1)%matrix, &
                       a_first_col=1, a_first_row=isgf, b_first_col=1, b_first_row=isgf)
 
          CALL cp_gemm('N', 'N', nao, nmoloc, ncol, 1.0_dp, ov_fm, vectors, 0.0_dp, opvec, &
-                      a_first_col=1, a_first_row=isgf, b_first_col=1, b_first_row=isgf)
+                      a_first_col=isgf, a_first_row=1, b_first_col=1, b_first_row=isgf)
+
          CALL cp_gemm('T', 'N', nmoloc, nmoloc, nao, 0.5_dp, vectors, opvec, &
                       1.0_dp, zij_fm_set(iatom, 1)%matrix, &
                       a_first_col=1, a_first_row=1, b_first_col=1, b_first_row=1)
+
       END DO ! iatom
+
+!nnumb = ov_fm%matrix_struct%nrow_global
+!mnumb = ov_fm%matrix_struct%ncol_global
+!ALLOCATE(temp1111(nmoloc))
+!DO i = 1, nnumb
+!   DO j = 1, mnumb
+!      CALL cp_fm_get_element(ov_fm, i, j, temp1111(j))
+!   ENDDO
+!   WRITE(fstr, "(A,I3,A)") "(I4,",mnumb,"F15.10)"
+!   ! fstr = "(I4, 4F15.10)"
+!   WRITE(*, fstr) i, temp1111
+!ENDDO
+!DEALLOCATE(temp1111)
+
+!nnumb = vectors%matrix_struct%nrow_global
+!mnumb = vectors%matrix_struct%ncol_global
+!ALLOCATE(temp1111(nmoloc))
+!DO i = 1, nnumb
+!   DO j = 1, mnumb
+!      CALL cp_fm_get_element(vectors, i, j, temp1111(j))
+!   ENDDO
+!   WRITE(fstr, "(A,I3,A)") "(I4,",mnumb,"F15.10)"
+!   ! fstr = "(I4, 4F15.10)"
+!   WRITE(*,fstr) i, temp1111
+!ENDDO
+!DEALLOCATE(temp1111)
+
+!DO iatom = 1, natom
+!   nnumb = zij_fm_set(iatom, 1)%matrix%matrix_struct%nrow_global
+!   mnumb = zij_fm_set(iatom, 1)%matrix%matrix_struct%ncol_global
+!   ALLOCATE(temp1111(nmoloc))
+!   DO i = 1, nnumb
+!      DO j = 1, mnumb
+!         CALL cp_fm_get_element(zij_fm_set(iatom, 1)%matrix, i, j, temp1111(j))
+!      ENDDO
+!      WRITE(fstr,"(A,I3,A)") "(I4,",mnumb,"F15.10)"
+!      ! fstr = "(I4, 4F15.10)"
+!      WRITE(*, fstr) i, temp1111
+!   ENDDO
+!   DEALLOCATE(temp1111)
+!END DO
 
       !   And now perform the optimization and rotate the orbitals
       SELECT CASE (method)
@@ -622,7 +671,7 @@ CONTAINS
       INTEGER                                            :: dim_op, handle, i, imo, imoloc, ir, &
                                                             ispin, istate, j, jstate, l_spin, lb, &
                                                             loc_method, n_rep, nao, ncubes, nmo, &
-                                                            nmosub, s_spin, ub
+                                                            nmosub, s_spin, ub, natom
       INTEGER, DIMENSION(:), POINTER                     :: bounds, list, list_cubes
       LOGICAL                                            :: append_cube, list_cubes_setup
       LOGICAL, SAVE                                      :: first_time = .TRUE.
@@ -639,10 +688,12 @@ CONTAINS
       TYPE(localized_wfn_control_type), POINTER          :: localized_wfn_control
       TYPE(mo_set_p_type), DIMENSION(:), POINTER         :: mos
       TYPE(section_vals_type), POINTER                   :: print_key
+      TYPE(particle_type), DIMENSION(:), POINTER         :: particle_set
 
       CALL timeset(routineN, handle)
       NULLIFY (para_env, mos, dft_control, list_cubes)
       NULLIFY (cell, localized_wfn_control, moloc_coeff, op_sm_set, op_fm_set)
+      NULLIFY (particle_set)
       qs_loc_env%first_time = first_time
       qs_loc_env%target_time = qs_env%target_time
       qs_loc_env%start_time = qs_env%start_time
@@ -653,7 +704,10 @@ CONTAINS
                           weights=weights, dim_op=dim_op)
 
       CALL get_qs_env(qs_env=qs_env, dft_control=dft_control, &
-                      para_env=para_env, mos=mos)
+                      para_env=para_env, mos=mos, particle_set=particle_set)
+
+
+      natom = SIZE(particle_set, 1)
 
       s_spin = 1
       l_spin = dft_control%nspins
@@ -663,9 +717,12 @@ CONTAINS
       END IF
 
       DO ispin = s_spin, l_spin
+
          CALL get_mo_set(mo_set=mos(ispin)%mo_set, nao=nao, nmo=nmo)
          loc_method = localized_wfn_control%localization_method
+
          SELECT CASE (localized_wfn_control%operator_type)
+
          CASE (op_loc_berry)
             ! Here we allocate op_fm_set with the RIGHT size for uks
             NULLIFY (tmp_fm_struct, mo_coeff)
@@ -708,6 +765,7 @@ CONTAINS
             CPABORT("Boys localization not implemented")
 
          CASE (op_loc_pipek)
+
             CALL optimize_loc_pipek(qs_env, loc_method, qs_loc_env, moloc_coeff(ispin)%matrix, &
                                     op_fm_set, ispin, print_loc_section)
 

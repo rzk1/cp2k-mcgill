@@ -200,14 +200,26 @@ CONTAINS
                                 "ENERGY_COEFF", &
                                 r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%energy_coeff)
       CALL section_vals_val_get(penalty_section, &
+                                "OPERATOR", &
+                                i_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%operator_type)
+      CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_vol_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "VOLUME_PENALTY_COEFF_DECREASE_FACTOR", &
+                                r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%vol_coeff_dec_factor)
+      CALL section_vals_val_get(penalty_section, &
+                                "DETERMINANT_ERROR", &
+                                r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%det_error)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_vol_method)
       CALL section_vals_val_get(penalty_section, &
                                 "LOCALIZATION_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_loc_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "FINAL_DETERMINANT", &
+                                r_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%final_determinant)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_block_diag_pcg%opt_penalty%occ_loc_method)
@@ -237,14 +249,26 @@ CONTAINS
                                 "ENERGY_COEFF", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%energy_coeff)
       CALL section_vals_val_get(penalty_section, &
+                                "OPERATOR", &
+                                i_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%operator_type)
+      CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_vol_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "VOLUME_PENALTY_COEFF_DECREASE_FACTOR", &
+                                r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%vol_coeff_dec_factor)
+      CALL section_vals_val_get(penalty_section, &
+                                "DETERMINANT_ERROR", &
+                                r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%det_error)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_vol_method)
       CALL section_vals_val_get(penalty_section, &
                                 "LOCALIZATION_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_loc_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "FINAL_DETERMINANT", &
+                                r_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%final_determinant)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_xalmo_pcg%opt_penalty%occ_loc_method)
@@ -274,14 +298,26 @@ CONTAINS
                                 "ENERGY_COEFF", &
                                 r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%energy_coeff)
       CALL section_vals_val_get(penalty_section, &
+                                "OPERATOR", &
+                                i_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%operator_type)
+      CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "VOLUME_PENALTY_COEFF_DECREASE_FACTOR", &
+                                r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%vol_coeff_dec_factor)
+      CALL section_vals_val_get(penalty_section, &
+                                "DETERMINANT_ERROR", &
+                                r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%det_error)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_VOLUME_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_vol_method)
       CALL section_vals_val_get(penalty_section, &
                                 "LOCALIZATION_PENALTY_COEFF", &
                                 r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_loc_coeff)
+      CALL section_vals_val_get(penalty_section, &
+                                "FINAL_DETERMINANT", &
+                                r_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%final_determinant)
       CALL section_vals_val_get(penalty_section, &
                                 "OCCUPIED_LOCALIZATION_PENALTY_METHOD", &
                                 i_val=almo_scf_env%opt_nlmo_pcg%opt_penalty%occ_loc_method)

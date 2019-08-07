@@ -279,7 +279,9 @@ CONTAINS
 
                ct = COS(theta)
                st = SIN(theta)
+
                CALL rotate_rmat_real(istate, jstate, st, ct, rmat)
+
                CALL rotate_zij_real(istate, jstate, st, ct, zij_fm_set)
             END DO
          END DO
@@ -627,6 +629,7 @@ CONTAINS
                   CALL cp_fm_set_all(qs_loc_env%op_fm_set(iatom, ispin)%matrix, 0.0_dp)
                END DO ! iatom
             END DO ! ispin
+            natoms = SIZE(qs_loc_env%particle_set, 1)
          ELSE
             CPABORT("Type of operator not implemented")
          ENDIF
